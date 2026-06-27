@@ -155,6 +155,11 @@
     flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
     background: #ff5470; color: #2a0410; font-weight: 800; font-size: 14px;
   }
+
+  /* ---- per-question timer ---- */
+  .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
+  .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar 20s linear forwards; }
+  @keyframes countdown-bar { from { width: 100%; } to { width: 0%; } }
 </style>
 </head>
 <body>
@@ -239,10 +244,16 @@ var ONEPIECE_TEXT_BOARD = [
 var BOARDS = [
   { id: "anime", name: "Anime Jeopardy", date: "2026-06-20", icon: "🎌", accent: "#a786df",
     tagline: "Heroes, villains, powers, and real opening songs.",
-    textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening" },
+    textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening",
+    final: { category: "Anime Endings & Legacy",
+      q: "This 1997 mecha series, helmed by Hideaki Anno, ends with Shinji Ikari confronting his own self-worth in a famously abstract finale.",
+      a: "What is Neon Genesis Evangelion?" } },
   { id: "onepiece", name: "One Piece Jeopardy", date: "2026-06-27", icon: "🏴‍☠️", accent: "#3da9fc",
     tagline: "Straw Hats, Warlords, Devil Fruits, and Grand Line lore.",
-    textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null },
+    textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null,
+    final: { category: "Grand Line History",
+      q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
+      a: "What is the Void Century?" } },
 ];
 
 var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
@@ -264,6 +275,17 @@ var state = {
   playing: false,
   used: {},
   confirm: null,        // {message, action}
+  timerEnabled: false,
+  dailyDouble: null,    // {catKey, qIndex}
+  wagering: false,
+  wager: null,
+  wagerInput: "",
+  finalDone: false,
+  finalStage: null,     // wager | clue | answer
+  finalPlayerIndex: 0,
+  finalWagers: {},
+  finalWagerInput: "",
+  finalResults: {},
 };
 
 function currentBoard() {
@@ -283,6 +305,27 @@ function hexToRgba(hex, alpha) {
   var h = hex.replace("#", "");
   var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+}
+function maxTileValue() {
+  var board = currentBoard();
+  var max = 0;
+  board.textBoard.forEach(function (cat) {
+    cat.questions.forEach(function (q) { if (q.value > max) max = q.value; });
+  });
+  return max;
+}
+function pickDailyDouble(board) {
+  var catIdx = Math.floor(Math.random() * board.textBoard.length);
+  var rowIdx = Math.floor(Math.random() * 5);
+  return { catKey: catIdx, qIndex: rowIdx };
+}
+function isDailyDoubleTile(catKey, qIndex) {
+  return !!state.dailyDouble && state.dailyDouble.catKey === catKey && state.dailyDouble.qIndex === qIndex;
+}
+function isAllUsed() {
+  var categories = getCategories();
+  var totalTiles = categories.length * 5;
+  return Object.keys(state.used).length === totalTiles;
 }
 
 // ---- actions ----
@@ -305,6 +348,8 @@ function selectBoard(id) {
   state.used = {};
   state.turn = 0;
   state.players.forEach(function (p) { p.score = 0; });
+  state.dailyDouble = pickDailyDouble(currentBoard());
+  state.finalDone = false;
   state.menuOpen = false;
   state.phase = "board";
   render();
@@ -315,6 +360,8 @@ function switchBoard() {
   state.used = {};
   state.turn = 0;
   state.players.forEach(function (p) { p.score = 0; });
+  state.dailyDouble = null;
+  state.finalDone = false;
   state.phase = "boards";
   render();
 }
@@ -329,9 +376,20 @@ function newPlayers() {
   state.playing = false;
   state.used = {};
   state.nameError = "";
+  state.dailyDouble = null;
+  state.wagering = false;
+  state.wager = null;
+  state.wagerInput = "";
+  state.finalDone = false;
+  state.finalStage = null;
+  state.finalPlayerIndex = 0;
+  state.finalWagers = {};
+  state.finalWagerInput = "";
+  state.finalResults = {};
   state.phase = "players";
   render();
 }
+function toggleTimer() { state.timerEnabled = !state.timerEnabled; render(); }
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
   if (state.used[key]) return;
@@ -339,11 +397,25 @@ function openQuestion(catKey, qIndex) {
   state.revealed = false;
   state.answerHidden = false;
   state.playing = false;
+  state.wagering = isDailyDoubleTile(catKey, qIndex);
+  state.wager = null;
+  state.wagerInput = "";
   state.phase = "question";
+  render();
+}
+function submitWager() {
+  var player = state.players[state.turn];
+  var cap = Math.max(player.score, maxTileValue());
+  var amt = parseInt(state.wagerInput, 10);
+  if (isNaN(amt)) amt = 0;
+  amt = Math.max(0, Math.min(amt, cap));
+  state.wager = amt;
+  state.wagering = false;
   render();
 }
 function activeValue() {
   if (!state.active) return 0;
+  if (state.wager != null) return state.wager;
   var board = currentBoard();
   if (state.active.catKey === VIDEO) return board.videoSlots[state.active.qIndex].value;
   return board.textBoard[state.active.catKey].questions[state.active.qIndex].value;
@@ -362,15 +434,58 @@ function closeQuestion() {
   state.revealed = false;
   state.answerHidden = false;
   state.playing = false;
+  state.wagering = false;
+  state.wager = null;
   state.turn = (state.turn + 1) % state.players.length;
-  state.phase = "board";
+  var board = currentBoard();
+  if (isAllUsed() && board.final && !state.finalDone) {
+    state.finalStage = "wager";
+    state.finalPlayerIndex = 0;
+    state.finalWagers = {};
+    state.finalWagerInput = "";
+    state.finalResults = {};
+    state.phase = "final";
+  } else {
+    state.phase = "board";
+  }
   render();
 }
 function newRound() {
   state.menuOpen = false;
   state.used = {};
   state.players.forEach(function (p) { p.score = 0; });
-  state.turn = 0; state.phase = "board"; render();
+  state.turn = 0;
+  state.dailyDouble = pickDailyDouble(currentBoard());
+  state.finalDone = false;
+  state.phase = "board";
+  render();
+}
+
+// ---- final jeopardy ----
+function submitFinalWager() {
+  var i = state.finalPlayerIndex;
+  var player = state.players[i];
+  var cap = Math.max(player.score, 0);
+  var amt = parseInt(state.finalWagerInput, 10);
+  if (isNaN(amt)) amt = 0;
+  amt = Math.max(0, Math.min(amt, cap));
+  state.finalWagers[i] = amt;
+  state.finalWagerInput = "";
+  state.finalPlayerIndex++;
+  if (state.finalPlayerIndex >= state.players.length) state.finalStage = "clue";
+  render();
+}
+function revealFinalAnswer() { state.finalStage = "answer"; render(); }
+function markFinal(i, correct) {
+  var wager = state.finalWagers[i] || 0;
+  state.players[i].score += correct ? wager : -wager;
+  state.finalResults[i] = correct ? "correct" : "incorrect";
+  render();
+}
+function finishFinal() {
+  state.finalDone = true;
+  state.phase = "board";
+  render();
 }
 
 // ---- confirmation dialog ----
@@ -447,12 +562,38 @@ function viewPlayers() {
       '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
+      '<button data-action="toggleTimer" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:14px;color:#fff;cursor:pointer">' +
+        '<span style="font-weight:700;font-size:14px">Question Timer (20s)</span>' +
+        '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
+      '</button>' +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
     '</div>' +
   '</div></div>';
 }
 
+function viewDailyDoubleWager() {
+  var player = state.players[state.turn];
+  var cap = Math.max(player.score, maxTileValue());
+  var menu = renderMenu([
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+  return menu + '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:32px">DAILY DOUBLE!</h1>' +
+    '<p class="sub">' + esc(player.name) + ', wager any amount from 0 up to ' + cap + '.</p>' +
+    '<div class="card">' +
+      '<label class="lbl">Your wager (0 &ndash; ' + cap + ')</label>' +
+      '<div style="display:flex;gap:8px;margin-top:6px">' +
+        '<input class="input" id="wagerInput" type="number" min="0" max="' + cap + '" placeholder="0" value="' + esc(state.wagerInput) + '" />' +
+        '<button class="btn-gold" data-action="submitWager">Lock In</button>' +
+      '</div>' +
+    '</div>' +
+  '</div></div>';
+}
+
 function viewQuestion() {
+  if (state.wagering) return viewDailyDoubleWager();
   var board = currentBoard();
   var isVideo = state.active.catKey === VIDEO;
   var value = activeValue();
@@ -509,6 +650,8 @@ function viewQuestion() {
   }
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
+  var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar"></div></div>' : "";
+  var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
 
   var menu = renderMenu([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
@@ -517,9 +660,10 @@ function viewQuestion() {
   ]);
 
   return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
+    ddBanner +
     '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">' + esc(catName.toUpperCase()) + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
-    media + hint + revealBlock + scoreBlock +
+    media + hint + timerBar + revealBlock + scoreBlock +
   '</div></div>';
 }
 
@@ -578,6 +722,67 @@ function viewBoard() {
   '</div></div>';
 }
 
+function viewFinalWager(fin) {
+  var i = state.finalPlayerIndex;
+  var player = state.players[i];
+  var cap = Math.max(player.score, 0);
+  return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:32px">FINAL JEOPARDY</h1>' +
+    '<p class="sub">Category: ' + esc(fin.category) + '</p>' +
+    '<div class="card">' +
+      '<p style="text-align:center;font-weight:700;margin:0 0 12px">' + esc(player.name) + ', enter your secret wager.</p>' +
+      '<label class="lbl">Wager (0 &ndash; ' + cap + ')</label>' +
+      '<div style="display:flex;gap:8px;margin-top:6px">' +
+        '<input class="input" id="finalWagerInput" type="number" min="0" max="' + cap + '" placeholder="0" value="' + esc(state.finalWagerInput) + '" />' +
+        '<button class="btn-gold" data-action="submitFinalWager">Lock In</button>' +
+      '</div>' +
+      '<p class="muted">Pass the device to the host, then on to the next player.</p>' +
+    '</div>' +
+  '</div></div>';
+}
+
+function viewFinalClue(fin) {
+  return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
+    '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">FINAL JEOPARDY</div>' +
+    '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:22px;margin-bottom:14px">' + esc(fin.category) + '</div>' +
+    '<div style="background:#1d2455;border-radius:16px;padding:28px 22px;font-size:21px;line-height:1.5;text-align:center;font-weight:600;min-height:90px;display:flex;align-items:center;justify-content:center">' + esc(fin.q) + '</div>' +
+    '<button class="big-gold" data-action="revealFinalAnswer">Reveal Answer</button>' +
+  '</div></div>';
+}
+
+function viewFinalAnswerStage(fin) {
+  var rows = state.players.map(function (p, i) {
+    var wager = state.finalWagers[i] || 0;
+    var result = state.finalResults[i];
+    var status = result
+      ? '<span style="font-weight:800;color:' + (result === "correct" ? "#7ee2b0" : "#ff8aa0") + '">' + (result === "correct" ? "Correct" : "Incorrect") + '</span>'
+      : '<span style="display:flex;gap:8px">' +
+          '<button class="plus-btn" data-action="markFinal" data-i="' + i + '" data-correct="1">Correct</button>' +
+          '<button class="minus-btn" data-action="markFinal" data-i="' + i + '" data-correct="0">Incorrect</button>' +
+        '</span>';
+    return '<div class="row-item">' +
+      '<span class="dot" style="background:' + p.color + '"></span>' +
+      '<span style="flex:1;font-weight:700">' + esc(p.name) + ' (wagered ' + wager + ')</span>' +
+      status +
+    '</div>';
+  }).join("");
+  var allMarked = state.players.every(function (p, i) { return !!state.finalResults[i]; });
+  return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
+    '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">FINAL JEOPARDY</div>' +
+    '<div class="answer-box">' + esc(fin.a) + '</div>' +
+    '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Mark each player correct or incorrect to apply their wager.</p>' +
+    '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>' +
+    (allMarked ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="finishFinal">See Final Results</button>' : '') +
+  '</div></div>';
+}
+
+function viewFinal() {
+  var fin = currentBoard().final;
+  if (state.finalStage === "clue") return viewFinalClue(fin);
+  if (state.finalStage === "answer") return viewFinalAnswerStage(fin);
+  return viewFinalWager(fin);
+}
+
 function renderConfirm() {
   if (!state.confirm) return "";
   return '<div class="confirm-overlay">' +
@@ -597,6 +802,7 @@ function render() {
   var html;
   if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = viewBoards();
+  else if (state.phase === "final") html = viewFinal();
   else if (state.phase === "question" && state.active) html = viewQuestion();
   else html = viewBoard();
   root.innerHTML = html + renderConfirm();
@@ -605,6 +811,16 @@ function render() {
   if (nameField) {
     nameField.addEventListener("input", function (e) { state.nameInput = e.target.value; });
     nameField.addEventListener("keydown", function (e) { if (e.key === "Enter") addPlayer(); });
+  }
+  var wagerField = document.getElementById("wagerInput");
+  if (wagerField) {
+    wagerField.addEventListener("input", function (e) { state.wagerInput = e.target.value; });
+    wagerField.addEventListener("keydown", function (e) { if (e.key === "Enter") submitWager(); });
+  }
+  var finalWagerField = document.getElementById("finalWagerInput");
+  if (finalWagerField) {
+    finalWagerField.addEventListener("input", function (e) { state.finalWagerInput = e.target.value; });
+    finalWagerField.addEventListener("keydown", function (e) { if (e.key === "Enter") submitFinalWager(); });
   }
 }
 
@@ -633,6 +849,12 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "confirmNewPlayers") confirmNewPlayers();
   else if (action === "cancelConfirm") cancelConfirm();
   else if (action === "confirmYes") confirmYes();
+  else if (action === "toggleTimer") toggleTimer();
+  else if (action === "submitWager") submitWager();
+  else if (action === "submitFinalWager") submitFinalWager();
+  else if (action === "revealFinalAnswer") revealFinalAnswer();
+  else if (action === "markFinal") markFinal(+t.getAttribute("data-i"), t.getAttribute("data-correct") === "1");
+  else if (action === "finishFinal") finishFinal();
 });
 
 render();
