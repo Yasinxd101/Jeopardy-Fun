@@ -83,6 +83,78 @@
   }
   .err { color: #ff8aa0; font-size: 13px; font-weight: 600; margin: 8px 0 0; }
   .muted { color: #6a72a8; text-align: center; font-size: 14px; margin: 8px 0; }
+
+  /* ---- board picker ---- */
+  .boards-bg {
+    min-height: 100vh; box-sizing: border-box;
+    padding: 48px 20px 32px;
+    display: flex; justify-content: center;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(255, 209, 102, 0.10), transparent 55%),
+      linear-gradient(165deg, #161c42 0%, #0b0f24 55%, #060812 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .boards-bg::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 75%);
+  }
+  .boards-wrap { width: 100%; max-width: 540px; position: relative; z-index: 1; }
+  .boards-header { text-align: center; margin-bottom: 30px; }
+  .boards-title {
+    margin: 0; font-size: 42px; font-weight: 900; letter-spacing: 2px;
+    color: #ffd166; text-shadow: 0 0 22px rgba(255, 209, 102, 0.45), 0 2px 0 #00000066;
+  }
+  .boards-subtitle { margin: 8px 0 0; color: #aab0d8; font-size: 15px; font-weight: 600; }
+  .boards-grid { display: flex; flex-direction: column; gap: 16px; }
+  .board-card {
+    position: relative; display: flex; align-items: center; gap: 16px;
+    width: 100%; text-align: left; border: none; cursor: pointer;
+    background: linear-gradient(155deg, #1c2252 0%, #131838 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 4px solid var(--accent);
+    border-radius: 18px; padding: 20px 18px 24px;
+    box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.6);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .board-card:hover, .board-card:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--accent);
+  }
+  .board-card:active { transform: translateY(0); filter: brightness(0.96); }
+  .board-card-icon {
+    flex-shrink: 0; width: 50px; height: 50px; border-radius: 14px;
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .board-card-body { flex: 1; min-width: 0; }
+  .board-card-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
+  .board-card-tagline { margin-top: 4px; font-size: 13px; color: #aab0d8; line-height: 1.4; }
+  .board-card-cta { flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+  .board-card-date { position: absolute; bottom: 7px; right: 18px; font-size: 10px; color: #5a6090; font-weight: 600; }
+
+  /* ---- confirmation dialog ---- */
+  .confirm-overlay {
+    position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 50;
+  }
+  .confirm-card {
+    width: 100%; max-width: 340px; background: #161b3d; border-radius: 16px;
+    padding: 22px 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .confirm-msg { margin: 0 0 18px; font-size: 15px; line-height: 1.5; color: #fff; font-weight: 600; text-align: center; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-btn-cancel {
+    flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    background: #2a2f55; color: #aab0d8; font-weight: 800; font-size: 14px;
+  }
+  .confirm-btn-yes {
+    flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    background: #ff5470; color: #2a0410; font-weight: 800; font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -165,8 +237,12 @@ var ONEPIECE_TEXT_BOARD = [
 ];
 
 var BOARDS = [
-  { id: "anime", name: "Anime Jeopardy", date: "2026-06-20", textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening" },
-  { id: "onepiece", name: "One Piece Jeopardy", date: "2026-06-27", textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null },
+  { id: "anime", name: "Anime Jeopardy", date: "2026-06-20", icon: "🎌", accent: "#a786df",
+    tagline: "Heroes, villains, powers, and real opening songs.",
+    textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening" },
+  { id: "onepiece", name: "One Piece Jeopardy", date: "2026-06-27", icon: "🏴‍☠️", accent: "#3da9fc",
+    tagline: "Straw Hats, Warlords, Devil Fruits, and Grand Line lore.",
+    textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null },
 ];
 
 var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
@@ -175,7 +251,8 @@ var gold = "#ffd166";
 
 // ---- state ----
 var state = {
-  phase: "boards",       // boards | setup | board | question
+  phase: "players",      // players | boards | board | question
+  menuOpen: false,
   boardId: null,
   players: [],          // {name, score, color}
   nameInput: "",
@@ -186,6 +263,7 @@ var state = {
   answerHidden: false,
   playing: false,
   used: {},
+  confirm: null,        // {message, action}
 };
 
 function currentBoard() {
@@ -201,26 +279,14 @@ function getCategories() {
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+function hexToRgba(hex, alpha) {
+  var h = hex.replace("#", "");
+  var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+  return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+}
 
 // ---- actions ----
-function selectBoard(id) {
-  state.boardId = id;
-  state.phase = "setup";
-  render();
-}
-function backToBoards() {
-  state.phase = "boards";
-  state.boardId = null;
-  state.players = [];
-  state.turn = 0;
-  state.active = null;
-  state.revealed = false;
-  state.answerHidden = false;
-  state.playing = false;
-  state.used = {};
-  state.nameError = "";
-  render();
-}
+function toggleMenu() { state.menuOpen = !state.menuOpen; render(); }
 function addPlayer() {
   var name = state.nameInput.trim();
   if (!name || state.players.length >= 6) return;
@@ -232,7 +298,40 @@ function addPlayer() {
   render();
 }
 function removePlayer(i) { state.players.splice(i, 1); render(); }
-function startGame() { if (state.players.length) { state.phase = "board"; render(); } }
+function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
+function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
+function selectBoard(id) {
+  state.boardId = id;
+  state.used = {};
+  state.turn = 0;
+  state.players.forEach(function (p) { p.score = 0; });
+  state.menuOpen = false;
+  state.phase = "board";
+  render();
+}
+function switchBoard() {
+  state.menuOpen = false;
+  state.boardId = null;
+  state.used = {};
+  state.turn = 0;
+  state.players.forEach(function (p) { p.score = 0; });
+  state.phase = "boards";
+  render();
+}
+function newPlayers() {
+  state.menuOpen = false;
+  state.players = [];
+  state.boardId = null;
+  state.turn = 0;
+  state.active = null;
+  state.revealed = false;
+  state.answerHidden = false;
+  state.playing = false;
+  state.used = {};
+  state.nameError = "";
+  state.phase = "players";
+  render();
+}
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
   if (state.used[key]) return;
@@ -267,40 +366,67 @@ function closeQuestion() {
   state.phase = "board";
   render();
 }
-function resetGame() {
-  state.phase = "setup"; state.players = []; state.turn = 0; state.active = null;
-  state.revealed = false; state.answerHidden = false; state.playing = false; state.used = {}; state.nameError = "";
-  render();
-}
 function newRound() {
+  state.menuOpen = false;
   state.used = {};
   state.players.forEach(function (p) { p.score = 0; });
   state.turn = 0; state.phase = "board"; render();
 }
 
+// ---- confirmation dialog ----
+function askConfirm(message, action) { state.menuOpen = false; state.confirm = { message: message, action: action }; render(); }
+function cancelConfirm() { state.confirm = null; render(); }
+function confirmYes() {
+  var action = state.confirm ? state.confirm.action : null;
+  state.confirm = null;
+  if (action === "switchBoard") switchBoard();
+  else if (action === "newRound") newRound();
+  else if (action === "newPlayers") newPlayers();
+  else render();
+}
+function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
+function confirmNewRound() { askConfirm("Start a new game? All scores and used questions on this board will reset.", "newRound"); }
+function confirmNewPlayers() { askConfirm("Clear all players? This removes everyone and all progress, and takes you back to the start.", "newPlayers"); }
+
 // ---- views ----
+function renderMenu(items) {
+  var btn = '<button data-action="toggleMenu" aria-label="Menu" style="position:fixed;top:14px;right:14px;width:42px;height:42px;border-radius:10px;border:none;background:#161b3d;color:#fff;font-size:20px;cursor:pointer;z-index:30">&#9776;</button>';
+  if (!state.menuOpen) return btn;
+  var rows = items.map(function (it) {
+    return '<button data-action="' + it.action + '" style="display:block;width:100%;text-align:left;padding:12px 14px;border:none;background:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;border-radius:8px">' + esc(it.label) + '</button>';
+  }).join("");
+  var panel = '<div style="position:fixed;top:60px;right:14px;background:#161b3d;border-radius:12px;padding:6px;box-shadow:0 8px 30px #00000066;z-index:30;min-width:220px">' + rows + '</div>';
+  return btn + panel;
+}
+
 function viewBoards() {
-  var rows = BOARDS.map(function (b) {
-    return '<button class="row-item" style="width:100%;border:none;cursor:pointer;text-align:left" data-action="selectBoard" data-id="' + esc(b.id) + '">' +
-      '<span style="flex:1">' +
-        '<span style="display:block;font-weight:700">' + esc(b.name) + '</span>' +
-        '<span style="display:block;font-size:12px;color:#aab0d8">' + esc(b.date) + '</span>' +
-      '</span>' +
-      '<span class="btn-gold" style="padding:8px 14px">Play</span>' +
+  var cards = BOARDS.map(function (b) {
+    return '<button class="board-card" style="--accent:' + b.accent + '" data-action="selectBoard" data-id="' + esc(b.id) + '">' +
+      '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon + '</div>' +
+      '<div class="board-card-body">' +
+        '<div class="board-card-title">' + esc(b.name) + '</div>' +
+        '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
+      '</div>' +
+      '<div class="board-card-cta">PLAY &rarr;</div>' +
+      '<div class="board-card-date">' + esc(b.date) + '</div>' +
     '</button>';
   }).join("");
 
-  return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
-    '<h1 class="title">JEOPARDY</h1>' +
-    '<p class="sub">Pick a board to play.</p>' +
-    '<div class="card">' +
-      '<div style="display:flex;flex-direction:column;gap:8px">' + rows + '</div>' +
+  var menu = renderMenu([
+    { label: "Edit Players", action: "editPlayers" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+
+  return menu + '<div class="boards-bg"><div class="boards-wrap">' +
+    '<div class="boards-header">' +
+      '<h1 class="boards-title">JEOPARDY</h1>' +
+      '<p class="boards-subtitle">Choose a board to start the game</p>' +
     '</div>' +
+    '<div class="boards-grid">' + cards + '</div>' +
   '</div></div>';
 }
 
-function viewSetup() {
-  var board = currentBoard();
+function viewPlayers() {
   var playerRows = state.players.map(function (p, i) {
     return '<div class="row-item">' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
@@ -311,9 +437,8 @@ function viewSetup() {
   if (!state.players.length) playerRows = '<p class="muted">No players yet. Add up to 6.</p>';
 
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
-    '<button data-action="backToBoards" style="background:none;border:none;color:#aab0d8;font-weight:700;cursor:pointer;padding:0;margin-bottom:8px">&larr; All Boards</button>' +
-    '<h1 class="title">' + esc(board.name.toUpperCase()) + '</h1>' +
-    '<p class="sub">Add players, then start. Higher points are harder.' + (board.videoSlots ? ' The last column plays real video clips with the title hidden.' : '') + '</p>' +
+    '<h1 class="title">JEOPARDY</h1>' +
+    '<p class="sub">Add players, then pick a board to play.</p>' +
     '<div class="card">' +
       '<label class="lbl">Player name</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
@@ -322,7 +447,7 @@ function viewSetup() {
       '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
-      '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="start">Start Game</button>' +
+      '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -385,7 +510,13 @@ function viewQuestion() {
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
 
-  return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
+  var menu = renderMenu([
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+
+  return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">' + esc(catName.toUpperCase()) + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
     media + hint + revealBlock + scoreBlock +
@@ -429,11 +560,15 @@ function viewBoard() {
   }
 
   var controls = "";
-  if (allUsed) controls += '<button class="btn-gold" style="padding:12px 20px" data-action="newRound">Play Again (reset scores)</button>';
-  controls += '<button data-action="reset" style="padding:12px 20px;border-radius:10px;border:none;background:#161b3d;color:#aab0d8;font-weight:700;cursor:pointer">New Game</button>';
-  controls += '<button data-action="backToBoards" style="padding:12px 20px;border-radius:10px;border:none;background:#161b3d;color:#aab0d8;font-weight:700;cursor:pointer">All Boards</button>';
+  if (allUsed) controls += '<button class="btn-gold" style="padding:12px 20px" data-action="confirmNewRound">Play Again (reset scores)</button>';
 
-  return '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
+  var menu = renderMenu([
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+
+  return menu + '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       (allUsed ? 'Round over. Leader: ' + esc(leader.name) + ' (' + leader.score + ')' : esc(state.players[state.turn].name) + "'s pick") +
@@ -443,15 +578,28 @@ function viewBoard() {
   '</div></div>';
 }
 
+function renderConfirm() {
+  if (!state.confirm) return "";
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card">' +
+      '<p class="confirm-msg">' + esc(state.confirm.message) + '</p>' +
+      '<div class="confirm-actions">' +
+        '<button class="confirm-btn-cancel" data-action="cancelConfirm">Cancel</button>' +
+        '<button class="confirm-btn-yes" data-action="confirmYes">Yes, Continue</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 // ---- render + events ----
 function render() {
   var root = document.getElementById("root");
   var html;
-  if (state.phase === "boards") html = viewBoards();
-  else if (state.phase === "setup") html = viewSetup();
+  if (state.phase === "players") html = viewPlayers();
+  else if (state.phase === "boards") html = viewBoards();
   else if (state.phase === "question" && state.active) html = viewQuestion();
   else html = viewBoard();
-  root.innerHTML = html;
+  root.innerHTML = html + renderConfirm();
 
   var nameField = document.getElementById("nameInput");
   if (nameField) {
@@ -465,10 +613,13 @@ document.getElementById("root").addEventListener("click", function (e) {
   if (!t) return;
   var action = t.getAttribute("data-action");
   if (action === "selectBoard") selectBoard(t.getAttribute("data-id"));
-  else if (action === "backToBoards") backToBoards();
+  else if (action === "continueToBoards") continueToBoards();
+  else if (action === "editPlayers") editPlayers();
+  else if (action === "switchBoard") switchBoard();
+  else if (action === "newPlayers") newPlayers();
+  else if (action === "toggleMenu") toggleMenu();
   else if (action === "add") addPlayer();
   else if (action === "remove") removePlayer(+t.getAttribute("data-i"));
-  else if (action === "start") startGame();
   else if (action === "open") openQuestion(t.getAttribute("data-cat") === VIDEO ? VIDEO : +t.getAttribute("data-cat"), +t.getAttribute("data-row"));
   else if (action === "reveal") reveal();
   else if (action === "toggleAnswer") toggleAnswer();
@@ -477,7 +628,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
   else if (action === "close") closeQuestion();
   else if (action === "newRound") newRound();
-  else if (action === "reset") resetGame();
+  else if (action === "confirmSwitchBoard") confirmSwitchBoard();
+  else if (action === "confirmNewRound") confirmNewRound();
+  else if (action === "confirmNewPlayers") confirmNewPlayers();
+  else if (action === "cancelConfirm") cancelConfirm();
+  else if (action === "confirmYes") confirmYes();
 });
 
 render();
