@@ -160,6 +160,67 @@
   .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
   .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar 20s linear forwards; }
   @keyframes countdown-bar { from { width: 100%; } to { width: 0%; } }
+
+  /* ---- tile feedback ---- */
+  .tile { transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease; }
+  .tile:not([disabled]):hover { transform: translateY(-2px); filter: brightness(1.12); }
+  .tile:not([disabled]):active { transform: scale(0.94); }
+
+  /* ---- clue entrance ---- */
+  @keyframes clueIn {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .clue-enter { animation: clueIn 0.32s ease-out; }
+
+  /* ---- score tick feedback ---- */
+  .score-num { display: inline-block; transition: color 0.2s ease; }
+  .score-pulse-up { color: #7ee2b0 !important; animation: scorePulse 0.5s ease; }
+  .score-pulse-down { color: #ff8aa0 !important; animation: scorePulse 0.5s ease; }
+  @keyframes scorePulse {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  /* ---- win screen ---- */
+  .win-bg {
+    min-height: 100vh; box-sizing: border-box; padding: 48px 20px 32px;
+    display: flex; justify-content: center;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(255, 209, 102, 0.16), transparent 55%),
+      linear-gradient(165deg, #161c42 0%, #0b0f24 55%, #060812 100%);
+  }
+  .win-wrap { width: 100%; max-width: 480px; animation: winPop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
+  @keyframes winPop {
+    from { opacity: 0; transform: scale(0.85) translateY(14px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .win-title {
+    text-align: center; font-size: 38px; font-weight: 900; letter-spacing: 1px;
+    color: #ffd166; text-shadow: 0 0 24px rgba(255, 209, 102, 0.5), 0 2px 0 #00000066;
+    margin: 0 0 4px;
+  }
+  .win-champ-line { text-align: center; color: #fff; font-weight: 700; font-size: 16px; margin: 0 0 22px; }
+  .win-board { display: flex; flex-direction: column; gap: 10px; }
+  .win-row {
+    display: flex; align-items: center; gap: 12px; background: #161b3d;
+    border-radius: 14px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.06);
+  }
+  .win-row-champ {
+    background: linear-gradient(135deg, #2a2410 0%, #161b3d 70%);
+    border: 1px solid #ffd166; animation: champGlow 1.8s ease-in-out infinite;
+  }
+  @keyframes champGlow {
+    0%, 100% { box-shadow: 0 0 0px rgba(255, 209, 102, 0.0); }
+    50% { box-shadow: 0 0 22px rgba(255, 209, 102, 0.55); }
+  }
+  .win-rank { font-weight: 900; font-size: 18px; color: #6a72a8; min-width: 26px; }
+  .win-row-champ .win-rank { color: #ffd166; }
+  .win-name { flex: 1; font-weight: 800; font-size: 16px; color: #fff; }
+  .win-score { font-weight: 900; font-size: 18px; color: #aab0d8; }
+  .win-row-champ .win-score { color: #ffd166; }
+  .win-actions { display: flex; gap: 10px; margin-top: 24px; }
 </style>
 </head>
 <body>
@@ -286,6 +347,8 @@ var state = {
   finalWagers: {},
   finalWagerInput: "",
   finalResults: {},
+  muted: false,
+  endSoundPlayed: false,
 };
 
 function currentBoard() {
@@ -328,6 +391,62 @@ function isAllUsed() {
   return Object.keys(state.used).length === totalTiles;
 }
 
+// ---- sound effects (generated tones, no audio files) ----
+var audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function beep(freq, duration, type, volume) {
+  if (state.muted) return;
+  try {
+    var ctx = getAudioCtx();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.value = volume || 0.15;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {}
+}
+function sndSelect() { beep(440, 0.1, "triangle", 0.12); }
+function sndReveal() { beep(660, 0.18, "sine", 0.14); }
+function sndCorrect() {
+  beep(523.25, 0.12, "sine", 0.16);
+  setTimeout(function () { beep(784, 0.18, "sine", 0.16); }, 110);
+}
+function sndEnd() {
+  beep(523.25, 0.15, "sine", 0.18);
+  setTimeout(function () { beep(659.25, 0.15, "sine", 0.18); }, 150);
+  setTimeout(function () { beep(783.99, 0.32, "sine", 0.2); }, 300);
+}
+
+// ---- score tick animation ----
+function tickScoreDisplay(elId, from, to) {
+  var el = document.getElementById(elId);
+  if (!el || from === to) return;
+  el.classList.add(to >= from ? "score-pulse-up" : "score-pulse-down");
+  var start = null;
+  var duration = 500;
+  function step(ts) {
+    if (!start) start = ts;
+    var progress = Math.min((ts - start) / duration, 1);
+    el.textContent = Math.round(from + (to - from) * progress);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.textContent = to;
+      setTimeout(function () { el.classList.remove("score-pulse-up", "score-pulse-down"); }, 250);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 // ---- actions ----
 function toggleMenu() { state.menuOpen = !state.menuOpen; render(); }
 function addPlayer() {
@@ -350,6 +469,7 @@ function selectBoard(id) {
   state.players.forEach(function (p) { p.score = 0; });
   state.dailyDouble = pickDailyDouble(currentBoard());
   state.finalDone = false;
+  state.endSoundPlayed = false;
   state.menuOpen = false;
   state.phase = "board";
   render();
@@ -390,9 +510,11 @@ function newPlayers() {
   render();
 }
 function toggleTimer() { state.timerEnabled = !state.timerEnabled; render(); }
+function toggleMute() { state.muted = !state.muted; render(); }
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
   if (state.used[key]) return;
+  sndSelect();
   state.active = { catKey: catKey, qIndex: qIndex };
   state.revealed = false;
   state.answerHidden = false;
@@ -422,10 +544,14 @@ function activeValue() {
 }
 function scoreQuestion(i, correct) {
   var val = activeValue();
-  state.players[i].score += correct ? val : -val;
+  var old = state.players[i].score;
+  var next = old + (correct ? val : -val);
+  state.players[i].score = next;
+  if (correct) sndCorrect();
   render();
+  tickScoreDisplay("score-disp-" + i, old, next);
 }
-function reveal() { state.revealed = true; render(); }
+function reveal() { sndReveal(); state.revealed = true; render(); }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; render(); }
 function playVideo() { state.playing = true; render(); }
 function closeQuestion() {
@@ -457,6 +583,7 @@ function newRound() {
   state.turn = 0;
   state.dailyDouble = pickDailyDouble(currentBoard());
   state.finalDone = false;
+  state.endSoundPlayed = false;
   state.phase = "board";
   render();
 }
@@ -475,12 +602,16 @@ function submitFinalWager() {
   if (state.finalPlayerIndex >= state.players.length) state.finalStage = "clue";
   render();
 }
-function revealFinalAnswer() { state.finalStage = "answer"; render(); }
+function revealFinalAnswer() { sndReveal(); state.finalStage = "answer"; render(); }
 function markFinal(i, correct) {
   var wager = state.finalWagers[i] || 0;
-  state.players[i].score += correct ? wager : -wager;
+  var old = state.players[i].score;
+  var next = old + (correct ? wager : -wager);
+  state.players[i].score = next;
   state.finalResults[i] = correct ? "correct" : "incorrect";
+  if (correct) sndCorrect();
   render();
+  tickScoreDisplay("score-disp-f" + i, old, next);
 }
 function finishFinal() {
   state.finalDone = true;
@@ -566,6 +697,10 @@ function viewPlayers() {
         '<span style="font-weight:700;font-size:14px">Question Timer (20s)</span>' +
         '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
       '</button>' +
+      '<button data-action="toggleMute" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:8px;color:#fff;cursor:pointer">' +
+        '<span style="font-weight:700;font-size:14px">Sound Effects</span>' +
+        '<span style="font-weight:800;font-size:13px;color:' + (state.muted ? "#6a72a8" : "#7ee2b0") + '">' + (state.muted ? "MUTED" : "ON") + '</span>' +
+      '</button>' +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
     '</div>' +
   '</div></div>';
@@ -638,7 +773,7 @@ function viewQuestion() {
       return '<div class="row-item">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
         '<span style="flex:1;font-weight:700">' + esc(p.name) + '</span>' +
-        '<span style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
+        '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
         '<button class="plus-btn" data-action="plus" data-i="' + i + '">+' + value + '</button>' +
         '<button class="minus-btn" data-action="minus" data-i="' + i + '">&minus;' + value + '</button>' +
       '</div>';
@@ -660,19 +795,49 @@ function viewQuestion() {
   ]);
 
   return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
-    ddBanner +
-    '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">' + esc(catName.toUpperCase()) + '</div>' +
-    '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
-    media + hint + timerBar + revealBlock + scoreBlock +
+    '<div class="clue-enter">' +
+      ddBanner +
+      '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">' + esc(catName.toUpperCase()) + '</div>' +
+      '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
+      media + hint + timerBar +
+    '</div>' +
+    revealBlock + scoreBlock +
+  '</div></div>';
+}
+
+function viewWin() {
+  var ranked = state.players.slice().sort(function (a, b) { return b.score - a.score; });
+  var topScore = ranked.length ? ranked[0].score : 0;
+  var medals = ["🥇", "🥈", "🥉"];
+  var rows = ranked.map(function (p, idx) {
+    var isChamp = p.score === topScore;
+    return '<div class="win-row' + (isChamp ? " win-row-champ" : "") + '">' +
+      '<span class="win-rank">' + (medals[idx] || (idx + 1) + ".") + '</span>' +
+      '<span class="dot" style="background:' + p.color + '"></span>' +
+      '<span class="win-name">' + esc(p.name) + (isChamp ? " 🎉" : "") + '</span>' +
+      '<span class="win-score">' + p.score + '</span>' +
+    '</div>';
+  }).join("");
+  var champNames = ranked.filter(function (p) { return p.score === topScore; }).map(function (p) { return p.name; }).join(" & ");
+  var menu = renderMenu([
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+  return menu + '<div class="win-bg"><div class="win-wrap">' +
+    '<h1 class="win-title">🏆 Round Over!</h1>' +
+    '<p class="win-champ-line">' + esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!") + '</p>' +
+    '<div class="win-board">' + rows + '</div>' +
+    '<div class="win-actions">' +
+      '<button class="big-gold" style="margin-top:0" data-action="confirmNewRound">Play Again</button>' +
+      '<button class="big-disabled" style="margin-top:0;background:#2a2f55;color:#fff" data-action="confirmNewPlayers">New Game</button>' +
+    '</div>' +
   '</div></div>';
 }
 
 function viewBoard() {
   var board = currentBoard();
   var categories = getCategories();
-  var leader = state.players.reduce(function (b, p) { return p.score > b.score ? p : b; }, state.players[0]);
-  var totalTiles = categories.length * 5;
-  var allUsed = Object.keys(state.used).length === totalTiles;
 
   var chips = state.players.map(function (p, i) {
     var on = i === state.turn;
@@ -703,9 +868,6 @@ function viewBoard() {
     }
   }
 
-  var controls = "";
-  if (allUsed) controls += '<button class="btn-gold" style="padding:12px 20px" data-action="confirmNewRound">Play Again (reset scores)</button>';
-
   var menu = renderMenu([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
@@ -715,10 +877,9 @@ function viewBoard() {
   return menu + '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
-      (allUsed ? 'Round over. Leader: ' + esc(leader.name) + ' (' + leader.score + ')' : esc(state.players[state.turn].name) + "'s pick") +
+      esc(state.players[state.turn].name) + "'s pick" +
     '</div>' +
     '<div class="board-grid" style="grid-template-columns:repeat(' + categories.length + ',1fr)">' + heads + tiles + '</div>' +
-    '<div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">' + controls + '</div>' +
   '</div></div>';
 }
 
@@ -763,6 +924,7 @@ function viewFinalAnswerStage(fin) {
     return '<div class="row-item">' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
       '<span style="flex:1;font-weight:700">' + esc(p.name) + ' (wagered ' + wager + ')</span>' +
+      '<span class="score-num" id="score-disp-f' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
       status +
     '</div>';
   }).join("");
@@ -804,6 +966,10 @@ function render() {
   else if (state.phase === "boards") html = viewBoards();
   else if (state.phase === "final") html = viewFinal();
   else if (state.phase === "question" && state.active) html = viewQuestion();
+  else if (state.phase === "board" && isAllUsed()) {
+    html = viewWin();
+    if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); }
+  }
   else html = viewBoard();
   root.innerHTML = html + renderConfirm();
 
@@ -850,6 +1016,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "cancelConfirm") cancelConfirm();
   else if (action === "confirmYes") confirmYes();
   else if (action === "toggleTimer") toggleTimer();
+  else if (action === "toggleMute") toggleMute();
   else if (action === "submitWager") submitWager();
   else if (action === "submitFinalWager") submitFinalWager();
   else if (action === "revealFinalAnswer") revealFinalAnswer();
