@@ -56,7 +56,8 @@
   }
   .plus-btn { background: #2cb67d; border: none; color: #04210f; font-weight: 900; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
   .minus-btn { background: #ff5470; border: none; color: #2a0410; font-weight: 900; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-  .chip { display: flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 14px; }
+  .chip { display: flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 14px; max-width: 100%; min-width: 0; }
+  .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32vw; }
   .board-grid { display: grid; gap: 6px; }
   .cat-head {
     border-radius: 8px; padding: 8px 4px; text-align: center; font-weight: 800;
@@ -110,12 +111,12 @@
   .boards-subtitle { margin: 8px 0 0; color: #aab0d8; font-size: 15px; font-weight: 600; }
   .boards-grid { display: flex; flex-direction: column; gap: 16px; }
   .board-card {
-    position: relative; display: flex; align-items: center; gap: 16px;
+    position: relative; display: flex; align-items: flex-start; gap: 16px;
     width: 100%; text-align: left; border: none; cursor: pointer;
     background: linear-gradient(155deg, #1c2252 0%, #131838 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-left: 4px solid var(--accent);
-    border-radius: 18px; padding: 20px 18px 24px;
+    border-radius: 18px; padding: 18px;
     box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.6);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
@@ -126,14 +127,15 @@
   .board-card:active { transform: translateY(0); filter: brightness(0.96); }
   .board-card-icon {
     flex-shrink: 0; width: 50px; height: 50px; border-radius: 14px;
-    border: 1px solid var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 0 0 1px var(--accent);
     display: flex; align-items: center; justify-content: center; font-size: 24px;
   }
   .board-card-body { flex: 1; min-width: 0; }
   .board-card-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
   .board-card-tagline { margin-top: 4px; font-size: 13px; color: #aab0d8; line-height: 1.4; }
-  .board-card-cta { flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
-  .board-card-date { position: absolute; bottom: 7px; right: 18px; font-size: 10px; color: #5a6090; font-weight: 600; }
+  .board-card-cta { flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; margin-top: 2px; }
+  .board-card-date { margin-top: 8px; font-size: 10px; color: #5a6090; font-weight: 600; }
 
   /* ---- confirmation dialog ---- */
   .confirm-overlay {
@@ -224,7 +226,7 @@
 
   /* ---- board preview ---- */
   .preview-chip {
-    background: #0d1230; border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+    background: #0d1230; border: 1px solid rgba(255,255,255,0.35); border-radius: 999px;
     padding: 6px 12px; font-size: 12px; font-weight: 700; color: #aab0d8;
   }
 
@@ -475,12 +477,19 @@ function tickScoreDisplay(elId, from, to) {
 
 // ---- actions ----
 function toggleMenu() { state.menuOpen = !state.menuOpen; render(); }
+function nextAvailableColor() {
+  var used = state.players.map(function (p) { return p.color; });
+  for (var i = 0; i < PLAYER_COLORS.length; i++) {
+    if (used.indexOf(PLAYER_COLORS[i]) === -1) return PLAYER_COLORS[i];
+  }
+  return PLAYER_COLORS[state.players.length % PLAYER_COLORS.length];
+}
 function addPlayer() {
   var name = state.nameInput.trim();
   if (!name || state.players.length >= 6) return;
   var dupe = state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.nameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
-  state.players.push({ name: name, score: 0, color: PLAYER_COLORS[state.players.length] });
+  state.players.push({ name: name, score: 0, color: nextAvailableColor() });
   state.nameInput = "";
   state.nameError = "";
   render();
@@ -771,9 +780,9 @@ function viewBoards() {
       '<div class="board-card-body">' +
         '<div class="board-card-title">' + esc(b.name) + '</div>' +
         '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
+        '<div class="board-card-date">' + esc(b.date) + '</div>' +
       '</div>' +
       '<div class="board-card-cta">PREVIEW &rarr;</div>' +
-      '<div class="board-card-date">' + esc(b.date) + '</div>' +
     '</button>';
   }).join("");
 
@@ -804,8 +813,8 @@ function viewBoardPreview() {
   ]);
   return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px">' +
     '<div class="card">' +
-      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">' +
-        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid ' + b.accent + '">' + b.icon + '</div>' +
+      '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + b.accent + '">' + b.icon + '</div>' +
         '<div>' +
           '<div style="font-size:20px;font-weight:900;color:#fff">' + esc(b.name) + '</div>' +
           '<div style="font-size:13px;color:#aab0d8;margin-top:2px">' + esc(b.tagline) + '</div>' +
@@ -919,11 +928,11 @@ function viewQuestion() {
   }
 
   var scoreBlock = "";
-  if (state.revealed) {
+  if (state.revealed && !state.answerHidden) {
     var rows = state.players.map(function (p, i) {
       return '<div class="row-item">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
-        '<span style="flex:1;font-weight:700">' + esc(p.name) + '</span>' +
+        '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
         '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
         '<button class="plus-btn" data-action="plus" data-i="' + i + '">+' + value + '</button>' +
         '<button class="minus-btn" data-action="minus" data-i="' + i + '">&minus;' + value + '</button>' +
@@ -931,9 +940,9 @@ function viewQuestion() {
     }).join("");
     scoreBlock =
       '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Tap a player: green adds points, red subtracts.</p>' +
-      '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>' +
-      '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>';
+      '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>';
   }
+  var closeBlock = state.revealed ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>' : "";
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar"></div></div>' : "";
@@ -952,7 +961,7 @@ function viewQuestion() {
       '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
       media + hint + timerBar +
     '</div>' +
-    revealBlock + scoreBlock +
+    revealBlock + scoreBlock + closeBlock +
   '</div></div>';
 }
 
@@ -994,8 +1003,8 @@ function viewBoard() {
   var chips = state.players.map(function (p, i) {
     var on = i === state.turn;
     return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
-      '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? "#0b0f24" : p.color) + '"></span>' +
-      esc(p.name) + ': ' + p.score +
+      '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? "#0b0f24" : p.color) + ';flex-shrink:0"></span>' +
+      '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
     '</div>';
   }).join("");
 
@@ -1111,7 +1120,7 @@ function viewManagePlayers() {
     }
     return '<div class="manage-row">' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
-      '<span style="flex:1;font-weight:700">' + esc(p.name) + '</span>' +
+      '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
       '<span style="color:#aab0d8;font-weight:700;font-size:13px">' + p.score + '</span>' +
       '<button class="edit-icon-btn" data-action="startEditPlayerName" data-i="' + i + '">&#9998;</button>' +
       '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="confirmRemovePlayerInGame" data-i="' + i + '">&times;</button>' +
