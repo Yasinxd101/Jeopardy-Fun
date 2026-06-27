@@ -72,7 +72,6 @@
   }
   .video-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
   .strip-top { position: absolute; top: 0; left: 0; right: 0; height: 64px; background: #000; pointer-events: none; }
-  .strip-bot { position: absolute; bottom: 44px; right: 0; width: 140px; height: 74px; background: #000; pointer-events: none; }
   .play-cover {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     background: #080a18; color: #fff; cursor: pointer; display: flex; flex-direction: column;
@@ -251,7 +250,7 @@ function viewQuestion() {
       var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1";
       player =
         '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>' +
-        '<div class="strip-top"></div><div class="strip-bot"></div>';
+        '<div class="strip-top"></div>';
     } else {
       player =
         '<button class="play-cover" data-action="play">' +
