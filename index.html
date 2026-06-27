@@ -221,6 +221,26 @@
   .win-score { font-weight: 900; font-size: 18px; color: #aab0d8; }
   .win-row-champ .win-score { color: #ffd166; }
   .win-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+  /* ---- board preview ---- */
+  .preview-chip {
+    background: #0d1230; border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+    padding: 6px 12px; font-size: 12px; font-weight: 700; color: #aab0d8;
+  }
+
+  /* ---- manage players (mid-game) ---- */
+  .manage-overlay {
+    position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 40;
+  }
+  .manage-card {
+    width: 100%; max-width: 380px; background: #161b3d; border-radius: 16px;
+    padding: 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
+    max-height: 80vh; overflow-y: auto;
+  }
+  .manage-row { display: flex; align-items: center; gap: 8px; background: #0d1230; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .edit-icon-btn { background: none; border: none; color: #aab0d8; font-size: 15px; cursor: pointer; padding: 4px 6px; }
 </style>
 </head>
 <body>
@@ -349,6 +369,12 @@ var state = {
   finalResults: {},
   muted: false,
   endSoundPlayed: false,
+  lastScoreChange: null,  // {playerIndex, delta, finalReset}
+  previewBoardId: null,
+  managePlayers: false,
+  editingPlayerIndex: null,
+  editNameInput: "",
+  editNameError: "",
 };
 
 function currentBoard() {
@@ -462,6 +488,63 @@ function addPlayer() {
 function removePlayer(i) { state.players.splice(i, 1); render(); }
 function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
+function previewBoard(id) { state.previewBoardId = id; render(); }
+function cancelPreview() { state.previewBoardId = null; render(); }
+
+// ---- manage players mid-game (board screen) ----
+function openManagePlayers() {
+  state.menuOpen = false;
+  state.managePlayers = true;
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
+  render();
+}
+function closeManagePlayers() {
+  state.managePlayers = false;
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
+  render();
+}
+function startEditPlayerName(i) {
+  state.editingPlayerIndex = i;
+  state.editNameInput = state.players[i].name;
+  state.editNameError = "";
+  render();
+}
+function cancelEditPlayerName() {
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
+  render();
+}
+function savePlayerName(i) {
+  var name = state.editNameInput.trim();
+  if (!name) { state.editNameError = "Name can't be empty."; render(); return; }
+  var dupe = state.players.some(function (p, idx) { return idx !== i && p.name.toLowerCase() === name.toLowerCase(); });
+  if (dupe) { state.editNameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
+  state.players[i].name = name;
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
+  render();
+}
+function confirmRemovePlayerInGame(i) {
+  var p = state.players[i];
+  if (!p) return;
+  askConfirm("Remove " + p.name + "? Their score and progress in this round will be lost.", "removePlayerInGame", i);
+}
+function removePlayerInGame(i) {
+  state.players.splice(i, 1);
+  if (!state.players.length) { state.turn = 0; }
+  else { state.turn = state.turn % state.players.length; }
+  state.lastScoreChange = null;
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
+  render();
+}
 function selectBoard(id) {
   state.boardId = id;
   state.used = {};
@@ -470,6 +553,8 @@ function selectBoard(id) {
   state.dailyDouble = pickDailyDouble(currentBoard());
   state.finalDone = false;
   state.endSoundPlayed = false;
+  state.lastScoreChange = null;
+  state.previewBoardId = null;
   state.menuOpen = false;
   state.phase = "board";
   render();
@@ -482,6 +567,8 @@ function switchBoard() {
   state.players.forEach(function (p) { p.score = 0; });
   state.dailyDouble = null;
   state.finalDone = false;
+  state.lastScoreChange = null;
+  state.previewBoardId = null;
   state.phase = "boards";
   render();
 }
@@ -506,6 +593,12 @@ function newPlayers() {
   state.finalWagers = {};
   state.finalWagerInput = "";
   state.finalResults = {};
+  state.lastScoreChange = null;
+  state.previewBoardId = null;
+  state.managePlayers = false;
+  state.editingPlayerIndex = null;
+  state.editNameInput = "";
+  state.editNameError = "";
   state.phase = "players";
   render();
 }
@@ -545,11 +638,26 @@ function activeValue() {
 function scoreQuestion(i, correct) {
   var val = activeValue();
   var old = state.players[i].score;
-  var next = old + (correct ? val : -val);
+  var delta = correct ? val : -val;
+  var next = old + delta;
   state.players[i].score = next;
+  state.lastScoreChange = { playerIndex: i, delta: delta };
   if (correct) sndCorrect();
   render();
   tickScoreDisplay("score-disp-" + i, old, next);
+}
+function undoLastScore() {
+  var last = state.lastScoreChange;
+  if (!last || !state.players[last.playerIndex]) return;
+  var old = state.players[last.playerIndex].score;
+  var next = old - last.delta;
+  state.players[last.playerIndex].score = next;
+  if (last.finalReset) delete state.finalResults[last.playerIndex];
+  state.lastScoreChange = null;
+  state.menuOpen = false;
+  render();
+  tickScoreDisplay("score-disp-" + last.playerIndex, old, next);
+  tickScoreDisplay("score-disp-f" + last.playerIndex, old, next);
 }
 function reveal() { sndReveal(); state.revealed = true; render(); }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; render(); }
@@ -584,6 +692,7 @@ function newRound() {
   state.dailyDouble = pickDailyDouble(currentBoard());
   state.finalDone = false;
   state.endSoundPlayed = false;
+  state.lastScoreChange = null;
   state.phase = "board";
   render();
 }
@@ -606,9 +715,11 @@ function revealFinalAnswer() { sndReveal(); state.finalStage = "answer"; render(
 function markFinal(i, correct) {
   var wager = state.finalWagers[i] || 0;
   var old = state.players[i].score;
-  var next = old + (correct ? wager : -wager);
+  var delta = correct ? wager : -wager;
+  var next = old + delta;
   state.players[i].score = next;
   state.finalResults[i] = correct ? "correct" : "incorrect";
+  state.lastScoreChange = { playerIndex: i, delta: delta, finalReset: true };
   if (correct) sndCorrect();
   render();
   tickScoreDisplay("score-disp-f" + i, old, next);
@@ -620,14 +731,17 @@ function finishFinal() {
 }
 
 // ---- confirmation dialog ----
-function askConfirm(message, action) { state.menuOpen = false; state.confirm = { message: message, action: action }; render(); }
+function askConfirm(message, action, payload) { state.menuOpen = false; state.confirm = { message: message, action: action, payload: payload }; render(); }
 function cancelConfirm() { state.confirm = null; render(); }
 function confirmYes() {
-  var action = state.confirm ? state.confirm.action : null;
+  var c = state.confirm;
+  var action = c ? c.action : null;
+  var payload = c ? c.payload : null;
   state.confirm = null;
   if (action === "switchBoard") switchBoard();
   else if (action === "newRound") newRound();
   else if (action === "newPlayers") newPlayers();
+  else if (action === "removePlayerInGame") removePlayerInGame(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -645,15 +759,20 @@ function renderMenu(items) {
   return btn + panel;
 }
 
+function withUndo(items) {
+  if (!state.lastScoreChange) return items;
+  return [{ label: "Undo Last Score Change", action: "undoLastScore" }].concat(items);
+}
+
 function viewBoards() {
   var cards = BOARDS.map(function (b) {
-    return '<button class="board-card" style="--accent:' + b.accent + '" data-action="selectBoard" data-id="' + esc(b.id) + '">' +
+    return '<button class="board-card" style="--accent:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
       '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon + '</div>' +
       '<div class="board-card-body">' +
         '<div class="board-card-title">' + esc(b.name) + '</div>' +
         '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
       '</div>' +
-      '<div class="board-card-cta">PLAY &rarr;</div>' +
+      '<div class="board-card-cta">PREVIEW &rarr;</div>' +
       '<div class="board-card-date">' + esc(b.date) + '</div>' +
     '</button>';
   }).join("");
@@ -669,6 +788,38 @@ function viewBoards() {
       '<p class="boards-subtitle">Choose a board to start the game</p>' +
     '</div>' +
     '<div class="boards-grid">' + cards + '</div>' +
+  '</div></div>';
+}
+
+function viewBoardPreview() {
+  var b = BOARDS.filter(function (x) { return x.id === state.previewBoardId; })[0];
+  if (!b) { state.previewBoardId = null; return viewBoards(); }
+  var catChips = b.textBoard.map(function (c) {
+    return '<div class="preview-chip">' + esc(c.category) + '</div>';
+  });
+  if (b.videoSlots) catChips.push('<div class="preview-chip">' + esc(b.videoCategory || "Name That Opening") + '</div>');
+  var menu = renderMenu([
+    { label: "Edit Players", action: "editPlayers" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
+  return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px">' +
+    '<div class="card">' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid ' + b.accent + '">' + b.icon + '</div>' +
+        '<div>' +
+          '<div style="font-size:20px;font-weight:900;color:#fff">' + esc(b.name) + '</div>' +
+          '<div style="font-size:13px;color:#aab0d8;margin-top:2px">' + esc(b.tagline) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="lbl" style="display:block;margin-bottom:8px">Categories</p>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + catChips.join("") + '</div>' +
+      '<p class="lbl" style="display:block;margin-bottom:8px">Final Jeopardy Category</p>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px">' + '<div class="preview-chip" style="border-color:#ffd166;color:#ffd166">' + esc(b.final.category) + '</div>' + '</div>' +
+      '<div style="display:flex;gap:10px;margin-top:22px">' +
+        '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectBoard" data-id="' + esc(b.id) + '">Play This Board</button>' +
+      '</div>' +
+    '</div>' +
   '</div></div>';
 }
 
@@ -788,11 +939,11 @@ function viewQuestion() {
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar"></div></div>' : "";
   var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
 
-  var menu = renderMenu([
+  var menu = renderMenu(withUndo([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
     { label: "New Players", action: "confirmNewPlayers" },
-  ]);
+  ]));
 
   return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div class="clue-enter">' +
@@ -819,11 +970,12 @@ function viewWin() {
     '</div>';
   }).join("");
   var champNames = ranked.filter(function (p) { return p.score === topScore; }).map(function (p) { return p.name; }).join(" & ");
-  var menu = renderMenu([
+  var menu = renderMenu(withUndo([
+    { label: "Manage Players", action: "openManagePlayers" },
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
     { label: "New Players", action: "confirmNewPlayers" },
-  ]);
+  ]));
   return menu + '<div class="win-bg"><div class="win-wrap">' +
     '<h1 class="win-title">🏆 Round Over!</h1>' +
     '<p class="win-champ-line">' + esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!") + '</p>' +
@@ -868,11 +1020,12 @@ function viewBoard() {
     }
   }
 
-  var menu = renderMenu([
+  var menu = renderMenu(withUndo([
+    { label: "Manage Players", action: "openManagePlayers" },
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
     { label: "New Players", action: "confirmNewPlayers" },
-  ]);
+  ]));
 
   return menu + '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
@@ -934,6 +1087,7 @@ function viewFinalAnswerStage(fin) {
     '<div class="answer-box">' + esc(fin.a) + '</div>' +
     '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Mark each player correct or incorrect to apply their wager.</p>' +
     '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>' +
+    (state.lastScoreChange ? '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="undoLastScore">Undo Last Mark</button>' : '') +
     (allMarked ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="finishFinal">See Final Results</button>' : '') +
   '</div></div>';
 }
@@ -943,6 +1097,35 @@ function viewFinal() {
   if (state.finalStage === "clue") return viewFinalClue(fin);
   if (state.finalStage === "answer") return viewFinalAnswerStage(fin);
   return viewFinalWager(fin);
+}
+
+function viewManagePlayers() {
+  if (!state.managePlayers) return "";
+  var rows = state.players.map(function (p, i) {
+    if (state.editingPlayerIndex === i) {
+      return '<div class="manage-row">' +
+        '<input class="input" id="editNameInput" value="' + esc(state.editNameInput) + '" style="padding:8px 10px" />' +
+        '<button class="edit-icon-btn" style="color:#7ee2b0" data-action="savePlayerName" data-i="' + i + '">&#10003;</button>' +
+        '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="cancelEditPlayerName">&#10005;</button>' +
+      '</div>';
+    }
+    return '<div class="manage-row">' +
+      '<span class="dot" style="background:' + p.color + '"></span>' +
+      '<span style="flex:1;font-weight:700">' + esc(p.name) + '</span>' +
+      '<span style="color:#aab0d8;font-weight:700;font-size:13px">' + p.score + '</span>' +
+      '<button class="edit-icon-btn" data-action="startEditPlayerName" data-i="' + i + '">&#9998;</button>' +
+      '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="confirmRemovePlayerInGame" data-i="' + i + '">&times;</button>' +
+    '</div>';
+  }).join("");
+  if (!state.players.length) rows = '<p class="muted">No players left.</p>';
+  return '<div class="manage-overlay">' +
+    '<div class="manage-card">' +
+      '<p class="confirm-msg" style="margin-bottom:14px">Manage Players</p>' +
+      rows +
+      (state.editNameError ? '<p class="err">' + esc(state.editNameError) + '</p>' : '') +
+      '<button class="confirm-btn-cancel" style="width:100%;margin-top:14px" data-action="closeManagePlayers">Done</button>' +
+    '</div>' +
+  '</div>';
 }
 
 function renderConfirm() {
@@ -963,7 +1146,7 @@ function render() {
   var root = document.getElementById("root");
   var html;
   if (state.phase === "players") html = viewPlayers();
-  else if (state.phase === "boards") html = viewBoards();
+  else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
   else if (state.phase === "question" && state.active) html = viewQuestion();
   else if (state.phase === "board" && isAllUsed()) {
@@ -971,6 +1154,7 @@ function render() {
     if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); }
   }
   else html = viewBoard();
+  if (state.phase === "board") html += viewManagePlayers();
   root.innerHTML = html + renderConfirm();
 
   var nameField = document.getElementById("nameInput");
@@ -987,6 +1171,12 @@ function render() {
   if (finalWagerField) {
     finalWagerField.addEventListener("input", function (e) { state.finalWagerInput = e.target.value; });
     finalWagerField.addEventListener("keydown", function (e) { if (e.key === "Enter") submitFinalWager(); });
+  }
+  var editNameField = document.getElementById("editNameInput");
+  if (editNameField) {
+    editNameField.addEventListener("input", function (e) { state.editNameInput = e.target.value; });
+    editNameField.addEventListener("keydown", function (e) { if (e.key === "Enter") savePlayerName(state.editingPlayerIndex); });
+    editNameField.focus();
   }
 }
 
@@ -1022,6 +1212,15 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "revealFinalAnswer") revealFinalAnswer();
   else if (action === "markFinal") markFinal(+t.getAttribute("data-i"), t.getAttribute("data-correct") === "1");
   else if (action === "finishFinal") finishFinal();
+  else if (action === "undoLastScore") undoLastScore();
+  else if (action === "previewBoard") previewBoard(t.getAttribute("data-id"));
+  else if (action === "cancelPreview") cancelPreview();
+  else if (action === "openManagePlayers") openManagePlayers();
+  else if (action === "closeManagePlayers") closeManagePlayers();
+  else if (action === "startEditPlayerName") startEditPlayerName(+t.getAttribute("data-i"));
+  else if (action === "cancelEditPlayerName") cancelEditPlayerName();
+  else if (action === "savePlayerName") savePlayerName(+t.getAttribute("data-i"));
+  else if (action === "confirmRemovePlayerInGame") confirmRemovePlayerInGame(+t.getAttribute("data-i"));
 });
 
 render();
