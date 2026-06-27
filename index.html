@@ -146,6 +146,7 @@ var state = {
   turn: 0,
   active: null,         // {catKey, qIndex}
   revealed: false,
+  answerHidden: false,
   playing: false,
   used: {},
 };
@@ -174,6 +175,7 @@ function openQuestion(catKey, qIndex) {
   if (state.used[key]) return;
   state.active = { catKey: catKey, qIndex: qIndex };
   state.revealed = false;
+  state.answerHidden = false;
   state.playing = false;
   state.phase = "question";
   render();
@@ -189,11 +191,13 @@ function scoreQuestion(i, correct) {
   render();
 }
 function reveal() { state.revealed = true; render(); }
+function toggleAnswer() { state.answerHidden = !state.answerHidden; render(); }
 function playVideo() { state.playing = true; render(); }
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
   state.revealed = false;
+  state.answerHidden = false;
   state.playing = false;
   state.turn = (state.turn + 1) % state.players.length;
   state.phase = "board";
@@ -201,7 +205,7 @@ function closeQuestion() {
 }
 function resetGame() {
   state.phase = "setup"; state.players = []; state.turn = 0; state.active = null;
-  state.revealed = false; state.playing = false; state.used = {}; state.nameError = "";
+  state.revealed = false; state.answerHidden = false; state.playing = false; state.used = {}; state.nameError = "";
   render();
 }
 function newRound() {
@@ -268,8 +272,11 @@ function viewQuestion() {
   var revealBlock;
   if (!state.revealed) {
     revealBlock = '<button class="big-gold" data-action="reveal">Reveal Answer</button>';
+  } else if (state.answerHidden) {
+    revealBlock = '<button class="big-gold" data-action="toggleAnswer">Show Answer</button>';
   } else {
-    revealBlock = '<div class="answer-box">' + esc(item.a) + '</div>';
+    revealBlock = '<div class="answer-box">' + esc(item.a) + '</div>' +
+      '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="toggleAnswer">Hide Answer</button>';
   }
 
   var scoreBlock = "";
@@ -371,6 +378,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "start") startGame();
   else if (action === "open") openQuestion(t.getAttribute("data-cat") === VIDEO ? VIDEO : +t.getAttribute("data-cat"), +t.getAttribute("data-row"));
   else if (action === "reveal") reveal();
+  else if (action === "toggleAnswer") toggleAnswer();
   else if (action === "play") playVideo();
   else if (action === "plus") scoreQuestion(+t.getAttribute("data-i"), true);
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
