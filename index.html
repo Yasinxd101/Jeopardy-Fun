@@ -17,10 +17,11 @@
   a { color: #6a72a8; }
   .wrap {
     min-height: 100vh;
-    padding: 24px 16px;
+    padding: 64px 16px 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
   }
   .inner { width: 100%; }
   .title {
@@ -71,8 +72,10 @@
     position: relative; width: 100%; padding-bottom: 56.25%;
     border-radius: 14px; overflow: hidden; background: #000;
   }
-  .video-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-  .strip-top { position: absolute; top: 0; left: 0; right: 0; height: 64px; background: #000; pointer-events: none; }
+  .video-frame iframe {
+    position: absolute; top: 50%; left: 50%; width: 130%; height: 130%;
+    transform: translate(-50%, -50%); border: none;
+  }
   .play-cover {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     background: #080a18; color: #fff; cursor: pointer; display: flex; flex-direction: column;
@@ -122,7 +125,8 @@
   }
   .board-card:hover, .board-card:focus-visible {
     transform: translateY(-2px);
-    box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7), 0 0 0 2px var(--accent);
   }
   .board-card:active { transform: translateY(0); filter: brightness(0.96); }
   .board-card-icon {
@@ -135,7 +139,6 @@
   .board-card-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
   .board-card-tagline { margin-top: 4px; font-size: 13px; color: #aab0d8; line-height: 1.4; }
   .board-card-cta { flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; margin-top: 2px; }
-  .board-card-date { margin-top: 8px; font-size: 10px; color: #5a6090; font-weight: 600; }
 
   /* ---- confirmation dialog ---- */
   .confirm-overlay {
@@ -160,7 +163,7 @@
 
   /* ---- per-question timer ---- */
   .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
-  .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar 20s linear forwards; }
+  .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar linear forwards; animation-duration: var(--timer-duration, 20s); }
   @keyframes countdown-bar { from { width: 100%; } to { width: 0%; } }
 
   /* ---- tile feedback ---- */
@@ -325,13 +328,13 @@ var ONEPIECE_TEXT_BOARD = [
 ];
 
 var BOARDS = [
-  { id: "anime", name: "Anime Jeopardy", date: "2026-06-20", icon: "🎌", accent: "#a786df",
+  { id: "anime", name: "Anime Jeopardy", icon: "🎌", accent: "#a786df",
     tagline: "Heroes, villains, powers, and real opening songs.",
     textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening",
     final: { category: "Anime Endings & Legacy",
       q: "This 1997 mecha series, helmed by Hideaki Anno, ends with Shinji Ikari confronting his own self-worth in a famously abstract finale.",
       a: "What is Neon Genesis Evangelion?" } },
-  { id: "onepiece", name: "One Piece Jeopardy", date: "2026-06-27", icon: "🏴‍☠️", accent: "#3da9fc",
+  { id: "onepiece", name: "One Piece Jeopardy", icon: "🏴‍☠️", accent: "#3da9fc",
     tagline: "Straw Hats, Warlords, Devil Fruits, and Grand Line lore.",
     textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null,
     final: { category: "Grand Line History",
@@ -359,6 +362,7 @@ var state = {
   used: {},
   confirm: null,        // {message, action}
   timerEnabled: false,
+  timerDuration: 20,
   dailyDouble: null,    // {catKey, qIndex}
   wagering: false,
   wager: null,
@@ -397,14 +401,6 @@ function hexToRgba(hex, alpha) {
   var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
 }
-function maxTileValue() {
-  var board = currentBoard();
-  var max = 0;
-  board.textBoard.forEach(function (cat) {
-    cat.questions.forEach(function (q) { if (q.value > max) max = q.value; });
-  });
-  return max;
-}
 function pickDailyDouble(board) {
   var catIdx = Math.floor(Math.random() * board.textBoard.length);
   var rowIdx = Math.floor(Math.random() * 5);
@@ -422,7 +418,7 @@ function isAllUsed() {
 // ---- sound effects (generated tones, no audio files) ----
 var audioCtx = null;
 function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!audioCtx || audioCtx.state === "closed") audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === "suspended") audioCtx.resume();
   return audioCtx;
 }
@@ -430,23 +426,30 @@ function beep(freq, duration, type, volume) {
   if (state.muted) return;
   try {
     var ctx = getAudioCtx();
+    var detuned = freq * (0.97 + Math.random() * 0.06);
     var osc = ctx.createOscillator();
     var gain = ctx.createGain();
     osc.type = type || "sine";
-    osc.frequency.value = freq;
+    osc.frequency.value = detuned;
     gain.gain.value = volume || 0.15;
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
     osc.stop(ctx.currentTime + duration);
-  } catch (e) {}
+  } catch (e) {
+    audioCtx = null;
+  }
 }
 function sndSelect() { beep(440, 0.1, "triangle", 0.12); }
 function sndReveal() { beep(660, 0.18, "sine", 0.14); }
 function sndCorrect() {
   beep(523.25, 0.12, "sine", 0.16);
   setTimeout(function () { beep(784, 0.18, "sine", 0.16); }, 110);
+}
+function sndIncorrect() {
+  beep(392, 0.14, "sawtooth", 0.14);
+  setTimeout(function () { beep(294, 0.22, "sawtooth", 0.14); }, 110);
 }
 function sndEnd() {
   beep(523.25, 0.15, "sine", 0.18);
@@ -476,7 +479,11 @@ function tickScoreDisplay(elId, from, to) {
 }
 
 // ---- actions ----
-function toggleMenu() { state.menuOpen = !state.menuOpen; render(); }
+function toggleMenu() {
+  state.menuOpen = !state.menuOpen;
+  if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
+  else render();
+}
 function nextAvailableColor() {
   var used = state.players.map(function (p) { return p.color; });
   for (var i = 0; i < PLAYER_COLORS.length; i++) {
@@ -612,6 +619,10 @@ function newPlayers() {
   render();
 }
 function toggleTimer() { state.timerEnabled = !state.timerEnabled; render(); }
+function adjustTimerDuration(delta) {
+  state.timerDuration = Math.max(5, Math.min(120, state.timerDuration + delta));
+  render();
+}
 function toggleMute() { state.muted = !state.muted; render(); }
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
@@ -629,7 +640,7 @@ function openQuestion(catKey, qIndex) {
 }
 function submitWager() {
   var player = state.players[state.turn];
-  var cap = Math.max(player.score, maxTileValue());
+  var cap = Math.max(player.score, 0);
   var amt = parseInt(state.wagerInput, 10);
   if (isNaN(amt)) amt = 0;
   amt = Math.max(0, Math.min(amt, cap));
@@ -644,6 +655,10 @@ function activeValue() {
   if (state.active.catKey === VIDEO) return board.videoSlots[state.active.qIndex].value;
   return board.textBoard[state.active.catKey].questions[state.active.qIndex].value;
 }
+function renderOrUpdateClue() {
+  if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
+  else render();
+}
 function scoreQuestion(i, correct) {
   var val = activeValue();
   var old = state.players[i].score;
@@ -651,8 +666,8 @@ function scoreQuestion(i, correct) {
   var next = old + delta;
   state.players[i].score = next;
   state.lastScoreChange = { playerIndex: i, delta: delta };
-  if (correct) sndCorrect();
-  render();
+  if (correct) sndCorrect(); else sndIncorrect();
+  renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + i, old, next);
 }
 function undoLastScore() {
@@ -664,12 +679,12 @@ function undoLastScore() {
   if (last.finalReset) delete state.finalResults[last.playerIndex];
   state.lastScoreChange = null;
   state.menuOpen = false;
-  render();
+  renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + last.playerIndex, old, next);
   tickScoreDisplay("score-disp-f" + last.playerIndex, old, next);
 }
-function reveal() { sndReveal(); state.revealed = true; render(); }
-function toggleAnswer() { state.answerHidden = !state.answerHidden; render(); }
+function reveal() { sndReveal(); state.revealed = true; renderOrUpdateClue(); }
+function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
 function playVideo() { state.playing = true; render(); }
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
@@ -729,7 +744,7 @@ function markFinal(i, correct) {
   state.players[i].score = next;
   state.finalResults[i] = correct ? "correct" : "incorrect";
   state.lastScoreChange = { playerIndex: i, delta: delta, finalReset: true };
-  if (correct) sndCorrect();
+  if (correct) sndCorrect(); else sndIncorrect();
   render();
   tickScoreDisplay("score-disp-f" + i, old, next);
 }
@@ -764,8 +779,9 @@ function renderMenu(items) {
   var rows = items.map(function (it) {
     return '<button data-action="' + it.action + '" style="display:block;width:100%;text-align:left;padding:12px 14px;border:none;background:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;border-radius:8px">' + esc(it.label) + '</button>';
   }).join("");
+  var backdrop = '<div data-action="toggleMenu" style="position:fixed;inset:0;background:rgba(4,6,16,0.55);z-index:29"></div>';
   var panel = '<div style="position:fixed;top:60px;right:14px;background:#161b3d;border-radius:12px;padding:6px;box-shadow:0 8px 30px #00000066;z-index:30;min-width:220px">' + rows + '</div>';
-  return btn + panel;
+  return btn + backdrop + panel;
 }
 
 function withUndo(items) {
@@ -780,7 +796,6 @@ function viewBoards() {
       '<div class="board-card-body">' +
         '<div class="board-card-title">' + esc(b.name) + '</div>' +
         '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
-        '<div class="board-card-date">' + esc(b.date) + '</div>' +
       '</div>' +
       '<div class="board-card-cta">PREVIEW &rarr;</div>' +
     '</button>';
@@ -791,7 +806,7 @@ function viewBoards() {
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
-  return menu + '<div class="boards-bg"><div class="boards-wrap">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title">JEOPARDY</h1>' +
       '<p class="boards-subtitle">Choose a board to start the game</p>' +
@@ -811,7 +826,7 @@ function viewBoardPreview() {
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
-  return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px;' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="card">' +
       '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
         '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + b.accent + '">' + b.icon + '</div>' +
@@ -853,10 +868,14 @@ function viewPlayers() {
       '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
-      '<button data-action="toggleTimer" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:14px;color:#fff;cursor:pointer">' +
-        '<span style="font-weight:700;font-size:14px">Question Timer (20s)</span>' +
-        '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
-      '</button>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px;margin-top:14px">' +
+        '<button data-action="toggleTimer" style="background:none;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;text-align:left;padding:0">Question Timer (' + state.timerDuration + 's)</button>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<button data-action="decTimerDuration" aria-label="Decrease timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
+          '<button data-action="incTimerDuration" aria-label="Increase timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
+          '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
+        '</div>' +
+      '</div>' +
       '<button data-action="toggleMute" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:8px;color:#fff;cursor:pointer">' +
         '<span style="font-weight:700;font-size:14px">Sound Effects</span>' +
         '<span style="font-weight:800;font-size:13px;color:' + (state.muted ? "#6a72a8" : "#7ee2b0") + '">' + (state.muted ? "MUTED" : "ON") + '</span>' +
@@ -868,7 +887,7 @@ function viewPlayers() {
 
 function viewDailyDoubleWager() {
   var player = state.players[state.turn];
-  var cap = Math.max(player.score, maxTileValue());
+  var cap = Math.max(player.score, 0);
   var menu = renderMenu([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
@@ -887,35 +906,39 @@ function viewDailyDoubleWager() {
   '</div></div>';
 }
 
-function viewQuestion() {
-  if (state.wagering) return viewDailyDoubleWager();
+function isActiveVideoPlaying() {
+  return !!state.active && state.active.catKey === VIDEO && state.playing;
+}
+function questionItem() {
   var board = currentBoard();
   var isVideo = state.active.catKey === VIDEO;
-  var value = activeValue();
-  var catName = isVideo ? (board.videoCategory || "Name That Opening") : board.textBoard[state.active.catKey].category;
-  var item = isVideo ? board.videoSlots[state.active.qIndex] : board.textBoard[state.active.catKey].questions[state.active.qIndex];
-
-  var media;
-  if (isVideo) {
-    var player;
-    if (state.playing) {
-      var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1";
-      player =
-        '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>' +
-        '<div class="strip-top"></div>';
-    } else {
-      player =
-        '<button class="play-cover" data-action="play">' +
-          '<span class="play-circle">&#9654;</span>' +
-          '<span style="font-weight:800;color:#aab0d8">Play the opening</span>' +
-        '</button>';
-    }
-    media = '<div><div class="video-frame">' + player + '</div>' +
-      (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
-    '</div>';
-  } else {
-    media = '<div style="background:#1d2455;border-radius:16px;padding:28px 22px;font-size:21px;line-height:1.5;text-align:center;font-weight:600;min-height:90px;display:flex;align-items:center;justify-content:center">' + esc(item.q) + '</div>';
+  return isVideo ? board.videoSlots[state.active.qIndex] : board.textBoard[state.active.catKey].questions[state.active.qIndex];
+}
+function viewClueMedia() {
+  var isVideo = state.active.catKey === VIDEO;
+  var item = questionItem();
+  if (!isVideo) {
+    return '<div style="background:#1d2455;border-radius:16px;padding:28px 22px;font-size:21px;line-height:1.5;text-align:center;font-weight:600;min-height:90px;display:flex;align-items:center;justify-content:center">' + esc(item.q) + '</div>';
   }
+  var player;
+  if (state.playing) {
+    var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1";
+    player = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  } else {
+    player =
+      '<button class="play-cover" data-action="play">' +
+        '<span class="play-circle">&#9654;</span>' +
+        '<span style="font-weight:800;color:#aab0d8">Play the opening</span>' +
+      '</button>';
+  }
+  return '<div><div class="video-frame">' + player + '</div>' +
+    (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
+  '</div>';
+}
+function viewClueFooter() {
+  var isVideo = state.active.catKey === VIDEO;
+  var value = activeValue();
+  var item = questionItem();
 
   var revealBlock;
   if (!state.revealed) {
@@ -945,24 +968,41 @@ function viewQuestion() {
   var closeBlock = state.revealed ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>' : "";
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
-  var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar"></div></div>' : "";
-  var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
+  var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
-  var menu = renderMenu(withUndo([
+  return hint + timerBar + revealBlock + scoreBlock + closeBlock;
+}
+function viewQuestionMenu() {
+  return renderMenu(withUndo([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]));
+}
+function viewQuestion() {
+  if (state.wagering) return viewDailyDoubleWager();
+  var board = currentBoard();
+  var value = activeValue();
+  var catName = state.active.catKey === VIDEO ? (board.videoCategory || "Name That Opening") : board.textBoard[state.active.catKey].category;
+  var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
 
-  return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
+  return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' +
+    '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div class="clue-enter">' +
       ddBanner +
       '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">' + esc(catName.toUpperCase()) + '</div>' +
       '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:28px;margin-bottom:14px">' + value + ' pts</div>' +
-      media + hint + timerBar +
+      '<div id="clueMedia">' + viewClueMedia() + '</div>' +
     '</div>' +
-    revealBlock + scoreBlock + closeBlock +
+    '<div id="clueFooter">' + viewClueFooter() + '</div>' +
   '</div></div>';
+}
+function updateClueFooter() {
+  var footerEl = document.getElementById("clueFooter");
+  var menuEl = document.getElementById("clueMenuWrap");
+  if (!footerEl || !menuEl) { render(); return; }
+  footerEl.innerHTML = viewClueFooter();
+  menuEl.innerHTML = viewQuestionMenu();
 }
 
 function viewWin() {
@@ -985,7 +1025,7 @@ function viewWin() {
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]));
-  return menu + '<div class="win-bg"><div class="win-wrap">' +
+  return menu + '<div class="win-bg"><div class="win-wrap" style="' + (state.menuOpen ? "margin-top:180px;" : "") + '">' +
     '<h1 class="win-title">🏆 Round Over!</h1>' +
     '<p class="win-champ-line">' + esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!") + '</p>' +
     '<div class="win-board">' + rows + '</div>' +
@@ -1036,7 +1076,7 @@ function viewBoard() {
     { label: "New Players", action: "confirmNewPlayers" },
   ]));
 
-  return menu + '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
+  return menu + '<div style="min-height:100vh;padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div style="max-width:820px;margin:0 auto">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(state.players[state.turn].name) + "'s pick" +
@@ -1215,6 +1255,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "cancelConfirm") cancelConfirm();
   else if (action === "confirmYes") confirmYes();
   else if (action === "toggleTimer") toggleTimer();
+  else if (action === "incTimerDuration") adjustTimerDuration(5);
+  else if (action === "decTimerDuration") adjustTimerDuration(-5);
   else if (action === "toggleMute") toggleMute();
   else if (action === "submitWager") submitWager();
   else if (action === "submitFinalWager") submitFinalWager();
