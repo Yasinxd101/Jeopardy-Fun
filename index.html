@@ -134,6 +134,27 @@
   .board-card-tagline { margin-top: 4px; font-size: 13px; color: #aab0d8; line-height: 1.4; }
   .board-card-cta { flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
   .board-card-date { position: absolute; bottom: 7px; right: 18px; font-size: 10px; color: #5a6090; font-weight: 600; }
+
+  /* ---- confirmation dialog ---- */
+  .confirm-overlay {
+    position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 50;
+  }
+  .confirm-card {
+    width: 100%; max-width: 340px; background: #161b3d; border-radius: 16px;
+    padding: 22px 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .confirm-msg { margin: 0 0 18px; font-size: 15px; line-height: 1.5; color: #fff; font-weight: 600; text-align: center; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-btn-cancel {
+    flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    background: #2a2f55; color: #aab0d8; font-weight: 800; font-size: 14px;
+  }
+  .confirm-btn-yes {
+    flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    background: #ff5470; color: #2a0410; font-weight: 800; font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -242,6 +263,7 @@ var state = {
   answerHidden: false,
   playing: false,
   used: {},
+  confirm: null,        // {message, action}
 };
 
 function currentBoard() {
@@ -351,6 +373,21 @@ function newRound() {
   state.turn = 0; state.phase = "board"; render();
 }
 
+// ---- confirmation dialog ----
+function askConfirm(message, action) { state.menuOpen = false; state.confirm = { message: message, action: action }; render(); }
+function cancelConfirm() { state.confirm = null; render(); }
+function confirmYes() {
+  var action = state.confirm ? state.confirm.action : null;
+  state.confirm = null;
+  if (action === "switchBoard") switchBoard();
+  else if (action === "newRound") newRound();
+  else if (action === "newPlayers") newPlayers();
+  else render();
+}
+function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
+function confirmNewRound() { askConfirm("Start a new game? All scores and used questions on this board will reset.", "newRound"); }
+function confirmNewPlayers() { askConfirm("Clear all players? This removes everyone and all progress, and takes you back to the start.", "newPlayers"); }
+
 // ---- views ----
 function renderMenu(items) {
   var btn = '<button data-action="toggleMenu" aria-label="Menu" style="position:fixed;top:14px;right:14px;width:42px;height:42px;border-radius:10px;border:none;background:#161b3d;color:#fff;font-size:20px;cursor:pointer;z-index:30">&#9776;</button>';
@@ -377,7 +414,7 @@ function viewBoards() {
 
   var menu = renderMenu([
     { label: "Edit Players", action: "editPlayers" },
-    { label: "New Players", action: "newPlayers" },
+    { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
   return menu + '<div class="boards-bg"><div class="boards-wrap">' +
@@ -474,9 +511,9 @@ function viewQuestion() {
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
 
   var menu = renderMenu([
-    { label: "Switch Board (Keep Players)", action: "switchBoard" },
-    { label: "New Game (Reset Scores)", action: "newRound" },
-    { label: "New Players", action: "newPlayers" },
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
   return menu + '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
@@ -523,12 +560,12 @@ function viewBoard() {
   }
 
   var controls = "";
-  if (allUsed) controls += '<button class="btn-gold" style="padding:12px 20px" data-action="newRound">Play Again (reset scores)</button>';
+  if (allUsed) controls += '<button class="btn-gold" style="padding:12px 20px" data-action="confirmNewRound">Play Again (reset scores)</button>';
 
   var menu = renderMenu([
-    { label: "Switch Board (Keep Players)", action: "switchBoard" },
-    { label: "New Game (Reset Scores)", action: "newRound" },
-    { label: "New Players", action: "newPlayers" },
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
   return menu + '<div style="min-height:100vh;padding:16px 12px"><div style="max-width:820px;margin:0 auto">' +
@@ -541,6 +578,19 @@ function viewBoard() {
   '</div></div>';
 }
 
+function renderConfirm() {
+  if (!state.confirm) return "";
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card">' +
+      '<p class="confirm-msg">' + esc(state.confirm.message) + '</p>' +
+      '<div class="confirm-actions">' +
+        '<button class="confirm-btn-cancel" data-action="cancelConfirm">Cancel</button>' +
+        '<button class="confirm-btn-yes" data-action="confirmYes">Yes, Continue</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 // ---- render + events ----
 function render() {
   var root = document.getElementById("root");
@@ -549,7 +599,7 @@ function render() {
   else if (state.phase === "boards") html = viewBoards();
   else if (state.phase === "question" && state.active) html = viewQuestion();
   else html = viewBoard();
-  root.innerHTML = html;
+  root.innerHTML = html + renderConfirm();
 
   var nameField = document.getElementById("nameInput");
   if (nameField) {
@@ -578,6 +628,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
   else if (action === "close") closeQuestion();
   else if (action === "newRound") newRound();
+  else if (action === "confirmSwitchBoard") confirmSwitchBoard();
+  else if (action === "confirmNewRound") confirmNewRound();
+  else if (action === "confirmNewPlayers") confirmNewPlayers();
+  else if (action === "cancelConfirm") cancelConfirm();
+  else if (action === "confirmYes") confirmYes();
 });
 
 render();
