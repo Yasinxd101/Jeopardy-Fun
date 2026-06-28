@@ -246,6 +246,36 @@
   }
   .manage-row { display: flex; align-items: center; gap: 8px; background: #0d1230; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
   .edit-icon-btn { background: none; border: none; color: #aab0d8; font-size: 15px; cursor: pointer; padding: 4px 6px; }
+
+  /* ---- settings panel (setup screen) ---- */
+  .settings-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+  /* ---- wheel of chaos ---- */
+  .wheel-overlay {
+    position: fixed; inset: 0; background: rgba(4, 6, 16, 0.78);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 60;
+  }
+  .wheel-card {
+    width: 100%; max-width: 420px; background: #161b3d; border-radius: 16px;
+    padding: 22px 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .wheel-wrap { position: relative; width: 220px; height: 220px; margin: 8px auto 0; }
+  .wheel-pointer {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent;
+    border-top: 18px solid #ffd166; z-index: 2;
+  }
+  .wheel-spinner {
+    width: 220px; height: 220px; border-radius: 50%; position: relative;
+    border: 6px solid #ffd166; box-shadow: 0 0 30px rgba(255, 209, 102, 0.35);
+    transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.15, 1);
+  }
+  .wheel-marker { position: absolute; font-size: 20px; transform: translate(-50%, -50%); filter: drop-shadow(0 1px 2px #00000088); }
+  .wheel-result { margin-top: 10px; }
+  .wheel-summary { text-align: center; font-weight: 800; color: #7ee2b0; margin-top: 10px; }
+  .wheel-summary-bad { color: #ff8aa0; }
 </style>
 </head>
 <body>
@@ -381,7 +411,37 @@ var state = {
   editingPlayerIndex: null,
   editNameInput: "",
   editNameError: "",
+  settingsOpen: false,
+  wheelOfChaosEnabled: false,
+  wheel: null,            // {stage, targetIndex, outcomeIndex, rotation, triviaQ, showTriviaAnswer, judged, summary, opponentIndex}
 };
+
+// ---- wheel of chaos: editable outcome list ----
+var WHEEL_OUTCOMES = [
+  { label: "Jackpot!", type: "auto", effect: "gain", amount: 400, weight: 6, icon: "\u{1F4B0}", desc: "Instant +400 points." },
+  { label: "Oof.", type: "auto", effect: "lose", amount: 300, weight: 6, icon: "\u{1F480}", desc: "Instant -300 points." },
+  { label: "Highway Robbery", type: "auto", effect: "steal", amount: 250, weight: 5, icon: "\u{1F977}", desc: "Steals 250 points from a random opponent." },
+  { label: "Score Swap", type: "auto", effect: "swap", weight: 4, icon: "\u{1F504}", desc: "Swaps scores with a random opponent." },
+  { label: "Double Up", type: "auto", effect: "double", weight: 3, icon: "⬆️", desc: "Their score is doubled!" },
+  { label: "Halved!", type: "auto", effect: "halve", weight: 4, icon: "⬇️", desc: "Their score is cut in half." },
+  { label: "Bonus Trivia", type: "trivia", amount: 200, weight: 8, icon: "\u{1F9E0}", desc: "A snap bonus trivia question for extra points." },
+  { label: "Wordle Wager", type: "host-judged", amount: 300, failAmount: 0, weight: 5, icon: "\u{1F7E9}", desc: "Solve today's Wordle in 4 tries or fewer to win 300 points." },
+  { label: "Versus Challenge", type: "host-judged", amount: 300, failAmount: -200, weight: 5, icon: "⚔️", desc: "Pick an opponent and face off at something of your choosing (thumb war, staring contest, rock-paper-scissors-best-of-three). Win for 300 points — lose and they steal 200 from you." },
+  { label: "Silly Dare", type: "host-judged", amount: 250, failAmount: 0, weight: 5, icon: "\u{1F92A}", desc: "Pull off a silly dare picked by the group (impression, dance move, weird noise) for 250 points." },
+  { label: "Anime Opening Karaoke", type: "host-judged", amount: 300, failAmount: 0, weight: 4, icon: "\u{1F3A4}", desc: "Sing or hum an anime opening for everyone else to guess. Guessed correctly within 20 seconds for 300 points." },
+  { label: "Speed Round", type: "host-judged", amount: 250, failAmount: 0, weight: 4, icon: "⚡", desc: "Answer 3 rapid-fire questions from the host in 15 seconds. 2 or more correct wins 250 points." },
+];
+
+var BONUS_TRIVIA = [
+  { q: "This is the only planet in our solar system not named after a god.", a: "What is Earth?" },
+  { q: "This baked good gives its name to a slang term for a large amount of money.", a: "What is dough / bread?" },
+  { q: "The shortest war in recorded history, between Britain and this country, lasted under 40 minutes.", a: "What is Zanzibar?" },
+  { q: "This is the only food that never spoils.", a: "What is honey?" },
+  { q: "Octopuses have this many hearts.", a: "What is three?" },
+  { q: "This country has no rivers at all.", a: "What is Saudi Arabia?" },
+  { q: "A group of flamingos is called this.", a: "What is a flamboyance?" },
+  { q: "This is the loudest animal on Earth relative to its size.", a: "What is the pistol shrimp (or water boatman)?" },
+];
 
 function currentBoard() {
   return BOARDS.filter(function (b) { return b.id === state.boardId; })[0];
@@ -455,6 +515,24 @@ function sndEnd() {
   beep(523.25, 0.15, "sine", 0.18);
   setTimeout(function () { beep(659.25, 0.15, "sine", 0.18); }, 150);
   setTimeout(function () { beep(783.99, 0.32, "sine", 0.2); }, 300);
+}
+function sndWheelSpin() {
+  var ticks = 20;
+  var delay = 0;
+  for (var i = 0; i < ticks; i++) {
+    delay += 50 + i * 14;
+    setTimeout(function () { beep(300 + Math.random() * 80, 0.05, "square", 0.08); }, delay);
+  }
+}
+function sndWheelLand(outcome) {
+  var bad = outcome.type === "auto" && (outcome.effect === "lose" || outcome.effect === "halve");
+  if (bad) {
+    beep(392, 0.16, "sawtooth", 0.16);
+    setTimeout(function () { beep(261.63, 0.22, "sawtooth", 0.16); }, 120);
+  } else {
+    beep(587.33, 0.14, "sine", 0.18);
+    setTimeout(function () { beep(880, 0.22, "sine", 0.18); }, 130);
+  }
 }
 
 // ---- score tick animation ----
@@ -624,6 +702,153 @@ function adjustTimerDuration(delta) {
   render();
 }
 function toggleMute() { state.muted = !state.muted; render(); }
+function toggleSettings() { state.settingsOpen = !state.settingsOpen; render(); }
+function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; render(); }
+
+// ---- wheel of chaos ----
+function wheelSegments() {
+  var total = WHEEL_OUTCOMES.reduce(function (s, o) { return s + o.weight; }, 0);
+  var acc = 0;
+  return WHEEL_OUTCOMES.map(function (o, i) {
+    var start = acc / total * 360;
+    acc += o.weight;
+    var end = acc / total * 360;
+    return { outcome: o, index: i, start: start, end: end, mid: (start + end) / 2 };
+  });
+}
+function wheelColor(o) {
+  if (o.type === "trivia") return "#3da9fc";
+  if (o.type === "host-judged") return "#ff8906";
+  if (o.effect === "gain" || o.effect === "double") return "#2cb67d";
+  if (o.effect === "lose" || o.effect === "halve") return "#ff5470";
+  return "#a786df";
+}
+function openWheel() {
+  if (!state.wheelOfChaosEnabled || !state.players.length) return;
+  state.menuOpen = false;
+  state.wheel = { stage: "choose", targetIndex: null, outcomeIndex: null, rotation: 0, triviaQ: null, showTriviaAnswer: false, judged: false, summary: "", opponentIndex: null };
+  render();
+}
+function closeWheel() { state.wheel = null; render(); }
+function chooseWheelTarget(mode) {
+  if (!state.wheel) return;
+  var idx = mode === "current" ? state.turn : Math.floor(Math.random() * state.players.length);
+  state.wheel.targetIndex = idx;
+  state.wheel.stage = "spinning";
+  state.wheel.rotation = 0;
+  render();
+  spinWheel();
+}
+function spinWheel() {
+  var segs = wheelSegments();
+  var r = Math.random() * 360;
+  var seg = segs[segs.length - 1];
+  for (var i = 0; i < segs.length; i++) {
+    if (r >= segs[i].start && r < segs[i].end) { seg = segs[i]; break; }
+  }
+  state.wheel.outcomeIndex = seg.index;
+  var spins = 5 + Math.floor(Math.random() * 2);
+  state.wheel.rotation = spins * 360 + (360 - seg.mid);
+  sndWheelSpin();
+  var el = document.getElementById("wheelSpinner");
+  if (el) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        el.style.transform = "rotate(" + state.wheel.rotation + "deg)";
+      });
+    });
+  }
+  setTimeout(landWheel, 2600);
+}
+function applyAutoOutcome(outcome) {
+  var w = state.wheel;
+  var idx = w.targetIndex;
+  var target = state.players[idx];
+  var old = target.score;
+  var summary;
+  var good = true;
+  if (outcome.effect === "gain") {
+    target.score += outcome.amount;
+    summary = target.name + ": +" + outcome.amount + " (" + old + " → " + target.score + ")";
+  } else if (outcome.effect === "lose") {
+    target.score -= outcome.amount;
+    summary = target.name + ": -" + outcome.amount + " (" + old + " → " + target.score + ")";
+    good = false;
+  } else if (outcome.effect === "double") {
+    target.score = target.score * 2;
+    summary = target.name + ": " + old + " → " + target.score + " (doubled!)";
+    good = target.score >= old;
+  } else if (outcome.effect === "halve") {
+    target.score = Math.round(target.score / 2);
+    summary = target.name + ": " + old + " → " + target.score + " (halved)";
+    good = target.score >= old;
+  } else if (outcome.effect === "steal" || outcome.effect === "swap") {
+    var others = [];
+    for (var i = 0; i < state.players.length; i++) { if (i !== idx) others.push(i); }
+    if (!others.length) {
+      summary = "No other players to target — nothing happens.";
+    } else {
+      var oppIdx = others[Math.floor(Math.random() * others.length)];
+      w.opponentIndex = oppIdx;
+      var opp = state.players[oppIdx];
+      var oppOld = opp.score;
+      if (outcome.effect === "steal") {
+        var amt = Math.min(outcome.amount, Math.max(opp.score, 0));
+        opp.score -= amt;
+        target.score += amt;
+        summary = target.name + " steals " + amt + " from " + opp.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + opp.name + ": " + oppOld + " → " + opp.score + ")";
+      } else {
+        var tmp = target.score; target.score = opp.score; opp.score = tmp;
+        summary = target.name + " and " + opp.name + " swap scores! (" + target.name + ": " + old + " → " + target.score + ", " + opp.name + ": " + oppOld + " → " + opp.score + ")";
+        good = target.score >= old;
+      }
+    }
+  }
+  w.summary = summary;
+  w.summaryGood = good;
+}
+function landWheel() {
+  if (!state.wheel) return;
+  state.wheel.stage = "result";
+  var outcome = WHEEL_OUTCOMES[state.wheel.outcomeIndex];
+  sndWheelLand(outcome);
+  if (outcome.type === "auto") {
+    applyAutoOutcome(outcome);
+    state.wheel.judged = true;
+  } else if (outcome.type === "trivia") {
+    state.wheel.triviaQ = BONUS_TRIVIA[Math.floor(Math.random() * BONUS_TRIVIA.length)];
+  }
+  render();
+}
+function revealWheelTriviaAnswer() { state.wheel.showTriviaAnswer = true; render(); }
+function judgeWheelTrivia(correct) {
+  var w = state.wheel;
+  var outcome = WHEEL_OUTCOMES[w.outcomeIndex];
+  var target = state.players[w.targetIndex];
+  var old = target.score;
+  var delta = correct ? outcome.amount : 0;
+  target.score += delta;
+  w.judged = true;
+  w.summary = correct
+    ? target.name + " earns +" + outcome.amount + " points! (" + old + " → " + target.score + ")"
+    : target.name + " didn't get it — no points awarded.";
+  w.summaryGood = correct;
+  if (correct) sndCorrect(); else sndIncorrect();
+  render();
+}
+function judgeWheelChallenge(pass) {
+  var w = state.wheel;
+  var outcome = WHEEL_OUTCOMES[w.outcomeIndex];
+  var target = state.players[w.targetIndex];
+  var old = target.score;
+  var delta = pass ? outcome.amount : (outcome.failAmount != null ? outcome.failAmount : 0);
+  target.score += delta;
+  w.judged = true;
+  w.summary = target.name + ": " + (delta >= 0 ? "+" : "") + delta + " points (" + old + " → " + target.score + ")";
+  w.summaryGood = delta >= 0;
+  if (pass) sndCorrect(); else sndIncorrect();
+  render();
+}
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
   if (state.used[key]) return;
@@ -868,18 +1093,30 @@ function viewPlayers() {
       '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px;margin-top:14px">' +
-        '<button data-action="toggleTimer" style="background:none;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;text-align:left;padding:0">Question Timer (' + state.timerDuration + 's)</button>' +
-        '<div style="display:flex;align-items:center;gap:8px">' +
-          '<button data-action="decTimerDuration" aria-label="Decrease timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
-          '<button data-action="incTimerDuration" aria-label="Increase timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
-          '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<button data-action="toggleMute" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:8px;color:#fff;cursor:pointer">' +
-        '<span style="font-weight:700;font-size:14px">Sound Effects</span>' +
-        '<span style="font-weight:800;font-size:13px;color:' + (state.muted ? "#6a72a8" : "#7ee2b0") + '">' + (state.muted ? "MUTED" : "ON") + '</span>' +
+      '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:14px;color:#fff;cursor:pointer">' +
+        '<span style="font-weight:700;font-size:14px">⚙ Settings</span>' +
+        '<span style="font-weight:800;font-size:13px;color:#aab0d8">' + (state.settingsOpen ? "▲" : "▼") + '</span>' +
       '</button>' +
+      (state.settingsOpen ?
+        '<div class="settings-panel">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px">' +
+            '<button data-action="toggleTimer" style="background:none;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;text-align:left;padding:0">Question Timer (' + state.timerDuration + 's)</button>' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+              '<button data-action="decTimerDuration" aria-label="Decrease timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
+              '<button data-action="incTimerDuration" aria-label="Increase timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
+              '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button data-action="toggleMute" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
+            '<span style="font-weight:700;font-size:14px">Sound Effects</span>' +
+            '<span style="font-weight:800;font-size:13px;color:' + (state.muted ? "#6a72a8" : "#7ee2b0") + '">' + (state.muted ? "MUTED" : "ON") + '</span>' +
+          '</button>' +
+          '<button data-action="toggleWheelOfChaos" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
+            '<span style="font-weight:700;font-size:14px">🎡 Wheel of Chaos</span>' +
+            '<span style="font-weight:800;font-size:13px;color:' + (state.wheelOfChaosEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.wheelOfChaosEnabled ? "ON" : "OFF") + '</span>' +
+          '</button>' +
+        '</div>'
+      : "") +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
     '</div>' +
   '</div></div>';
@@ -1081,6 +1318,11 @@ function viewBoard() {
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(state.players[state.turn].name) + "'s pick" +
     '</div>' +
+    (state.wheelOfChaosEnabled ?
+      '<div style="text-align:center;margin-bottom:14px">' +
+        '<button class="btn-gold" style="padding:10px 22px;border-radius:999px" data-action="openWheel">🎡 Spin the Wheel of Chaos</button>' +
+      '</div>'
+    : "") +
     '<div class="board-grid" style="grid-template-columns:repeat(' + categories.length + ',1fr)">' + heads + tiles + '</div>' +
   '</div></div>';
 }
@@ -1177,6 +1419,79 @@ function viewManagePlayers() {
   '</div>';
 }
 
+function wheelSummaryHtml(w) {
+  return '<p class="wheel-summary' + (w.summaryGood === false ? " wheel-summary-bad" : "") + '">' + esc(w.summary) + '</p>';
+}
+function wheelOutcomeControls(w, outcome) {
+  if (outcome.type === "auto") {
+    return (w.summary ? wheelSummaryHtml(w) : "") +
+      '<button class="big-gold" data-action="closeWheel">Done</button>';
+  }
+  if (outcome.type === "trivia") {
+    if (!w.judged) {
+      return '<div class="answer-box" style="margin-top:14px">' + esc(w.triviaQ.q) + '</div>' +
+        (w.showTriviaAnswer
+          ? '<p style="text-align:center;color:#aab0d8;margin-top:8px;font-weight:700">' + esc(w.triviaQ.a) + '</p>'
+          : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>') +
+        '<div style="display:flex;gap:10px;margin-top:12px">' +
+          '<button class="plus-btn" style="flex:1;padding:12px" data-action="judgeWheelTrivia" data-correct="1">Correct (+' + outcome.amount + ')</button>' +
+          '<button class="minus-btn" style="flex:1;padding:12px" data-action="judgeWheelTrivia" data-correct="0">Incorrect</button>' +
+        '</div>';
+    }
+    return wheelSummaryHtml(w) +
+      '<button class="big-gold" data-action="closeWheel">Done</button>';
+  }
+  // host-judged
+  if (!w.judged) {
+    return '<div style="display:flex;gap:10px;margin-top:14px">' +
+      '<button class="plus-btn" style="flex:1;padding:12px" data-action="judgeWheelChallenge" data-pass="1">Pass</button>' +
+      '<button class="minus-btn" style="flex:1;padding:12px" data-action="judgeWheelChallenge" data-pass="0">Fail</button>' +
+    '</div>';
+  }
+  return wheelSummaryHtml(w) +
+    '<button class="big-gold" data-action="closeWheel">Done</button>';
+}
+function viewWheel() {
+  var w = state.wheel;
+  if (!w) return "";
+  var segs = wheelSegments();
+  var gradient = segs.map(function (s) { return wheelColor(s.outcome) + " " + s.start + "deg " + s.end + "deg"; }).join(",");
+  var markers = segs.map(function (s) {
+    var rad = s.mid * Math.PI / 180;
+    var x = 110 + 78 * Math.sin(rad);
+    var y = 110 - 78 * Math.cos(rad);
+    return '<span class="wheel-marker" style="left:' + x + 'px;top:' + y + 'px">' + s.outcome.icon + '</span>';
+  }).join("");
+  var wheelHtml = '<div class="wheel-pointer"></div>' +
+    '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)">' + markers + '</div>';
+
+  var body;
+  if (w.stage === "choose") {
+    body = '<p class="confirm-msg">Who gets targeted by the Wheel of Chaos?</p>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<button class="big-gold" style="margin-top:0" data-action="chooseWheelTarget" data-mode="current">Current Player (' + esc(state.players[state.turn].name) + ')</button>' +
+        '<button class="big-gold" style="margin-top:0;background:#3da9fc;color:#04203a" data-action="chooseWheelTarget" data-mode="random">Random Player</button>' +
+        '<button class="confirm-btn-cancel" data-action="closeWheel">Cancel</button>' +
+      '</div>';
+  } else {
+    var target = state.players[w.targetIndex];
+    var targetLine = '<p class="confirm-msg" style="margin-bottom:14px">Targeting: <span style="color:' + gold + '">' + esc(target.name) + '</span></p>';
+    if (w.stage === "spinning") {
+      body = targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' + '<p class="muted" style="margin-top:18px">Spinning...</p>';
+    } else {
+      var outcome = WHEEL_OUTCOMES[w.outcomeIndex];
+      body = targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' +
+        '<div class="wheel-result">' +
+          '<div style="font-size:32px;text-align:center">' + outcome.icon + '</div>' +
+          '<div style="text-align:center;font-weight:900;font-size:18px;color:' + gold + ';margin-top:4px">' + esc(outcome.label) + '</div>' +
+          '<p style="text-align:center;color:#aab0d8;margin-top:6px">' + esc(outcome.desc) + '</p>' +
+          wheelOutcomeControls(w, outcome) +
+        '</div>';
+    }
+  }
+  return '<div class="wheel-overlay"><div class="wheel-card">' + body + '</div></div>';
+}
+
 function renderConfirm() {
   if (!state.confirm) return "";
   return '<div class="confirm-overlay">' +
@@ -1203,7 +1518,7 @@ function render() {
     if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); }
   }
   else html = viewBoard();
-  if (state.phase === "board") html += viewManagePlayers();
+  if (state.phase === "board") html += viewManagePlayers() + viewWheel();
   root.innerHTML = html + renderConfirm();
 
   var nameField = document.getElementById("nameInput");
@@ -1272,6 +1587,14 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "cancelEditPlayerName") cancelEditPlayerName();
   else if (action === "savePlayerName") savePlayerName(+t.getAttribute("data-i"));
   else if (action === "confirmRemovePlayerInGame") confirmRemovePlayerInGame(+t.getAttribute("data-i"));
+  else if (action === "toggleSettings") toggleSettings();
+  else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
+  else if (action === "openWheel") openWheel();
+  else if (action === "closeWheel") closeWheel();
+  else if (action === "chooseWheelTarget") chooseWheelTarget(t.getAttribute("data-mode"));
+  else if (action === "revealWheelTriviaAnswer") revealWheelTriviaAnswer();
+  else if (action === "judgeWheelTrivia") judgeWheelTrivia(t.getAttribute("data-correct") === "1");
+  else if (action === "judgeWheelChallenge") judgeWheelChallenge(t.getAttribute("data-pass") === "1");
 });
 
 render();
