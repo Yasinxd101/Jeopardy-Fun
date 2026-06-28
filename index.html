@@ -75,6 +75,13 @@
   .video-frame iframe {
     position: absolute; top: 50%; left: 50%; width: 130%; height: 130%;
     transform: translate(-50%, -50%); border: none;
+    filter: blur(0px); transition: filter 0.35s ease;
+  }
+  .video-frame.video-blurred iframe { filter: blur(32px) brightness(0.85); }
+  .clue-box {
+    background: #1d2455; border-radius: 16px; padding: 28px 22px; font-size: 21px;
+    line-height: 1.5; text-align: center; font-weight: 600; min-height: 90px;
+    display: flex; align-items: center; justify-content: center;
   }
   .play-cover {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
@@ -427,47 +434,47 @@ var state = {
 // Main Chaos Wheel: "auto" segments resolve instantly; "challenge" segments are judged
 // by the host (Pass/Fail), which then auto-spins the Success or Failure wheel.
 var CHAOS_OUTCOMES = [
-  { id: "c_gain_small", label: "Small Boost", type: "auto", effect: "gain", amount: 150, weight: 6, desc: "Instant +150 points." },
-  { id: "c_gain_big", label: "Jackpot", type: "auto", effect: "gain", amount: 400, weight: 3, desc: "Instant +400 points." },
-  { id: "c_lose_small", label: "Minor Setback", type: "auto", effect: "lose", amount: 150, weight: 6, desc: "Instant -150 points." },
-  { id: "c_lose_big", label: "Major Setback", type: "auto", effect: "lose", amount: 350, weight: 3, desc: "Instant -350 points." },
-  { id: "c_steal", label: "Highway Robbery", type: "auto", effect: "steal", amount: 250, weight: 5, desc: "Steals 250 points from a random opponent." },
-  { id: "c_swap", label: "Score Swap", type: "auto", effect: "swap", weight: 4, desc: "Swaps scores with a random opponent." },
-  { id: "c_double", label: "Double Up", type: "auto", effect: "double", weight: 3, desc: "Score is doubled." },
-  { id: "c_halve", label: "Halved", type: "auto", effect: "halve", weight: 4, desc: "Score is cut in half." },
-  { id: "c_wordle", label: "Wordle Wager", type: "challenge", weight: 5, desc: "Solve today's Wordle in 4 tries or fewer." },
-  { id: "c_versus", label: "Versus Challenge", type: "challenge", weight: 5, desc: "Pick an opponent and face off at something of your choosing (thumb war, staring contest, rock-paper-scissors best of three)." },
-  { id: "c_dare", label: "Silly Dare", type: "challenge", weight: 5, desc: "Pull off a dare picked by the group (impression, dance move, weird noise)." },
-  { id: "c_anime", label: "Anime Opening Karaoke", type: "challenge", weight: 4, desc: "Sing or hum an anime opening for everyone else to guess within 20 seconds." },
-  { id: "c_speed", label: "Speed Trivia Burst", type: "challenge", weight: 4, desc: "Answer 3 rapid-fire questions from the host in 15 seconds. 2 or more correct counts as a pass." },
-  { id: "c_bonus_trivia", label: "Bonus Trivia", type: "challenge", trivia: true, weight: 6, desc: "A snap bonus trivia question." },
-  { id: "c_impression", label: "Impression Contest", type: "challenge", weight: 4, desc: "Do an impression of a character chosen by the group; the group votes pass or fail." },
-  { id: "c_tongue", label: "Tongue Twister", type: "challenge", weight: 4, desc: "Say a tongue twister picked by the host three times fast without messing up." },
-  { id: "c_charades", label: "Charades Flash", type: "challenge", weight: 4, desc: "Act out a word or phrase from the host for others to guess in 30 seconds." },
-  { id: "c_lightning", label: "Lightning Round", type: "challenge", weight: 4, desc: "Answer 5 quickfire trivia questions; 3 or more correct counts as a pass." },
+  { id: "c_gain_small", label: "Small Boost", short: "Boost", type: "auto", effect: "gain", amount: 150, weight: 6, desc: "Instant +150 points." },
+  { id: "c_gain_big", label: "Jackpot", short: "Jackpot", type: "auto", effect: "gain", amount: 400, weight: 3, desc: "Instant +400 points." },
+  { id: "c_lose_small", label: "Minor Setback", short: "Minor Loss", type: "auto", effect: "lose", amount: 150, weight: 6, desc: "Instant -150 points." },
+  { id: "c_lose_big", label: "Major Setback", short: "Major Loss", type: "auto", effect: "lose", amount: 350, weight: 3, desc: "Instant -350 points." },
+  { id: "c_steal", label: "Highway Robbery", short: "Robbery", type: "auto", effect: "steal", amount: 250, weight: 5, desc: "Steals 250 points from a random opponent." },
+  { id: "c_swap", label: "Score Swap", short: "Swap", type: "auto", effect: "swap", weight: 4, desc: "Swaps scores with a random opponent." },
+  { id: "c_double", label: "Double Up", short: "Double", type: "auto", effect: "double", weight: 3, desc: "Score is doubled." },
+  { id: "c_halve", label: "Halved", short: "Halved", type: "auto", effect: "halve", weight: 4, desc: "Score is cut in half." },
+  { id: "c_wordle", label: "Wordle Wager", short: "Wordle", type: "challenge", weight: 5, desc: "Solve today's Wordle in 4 tries or fewer." },
+  { id: "c_versus", label: "Versus Challenge", short: "Versus", type: "challenge", weight: 5, desc: "Pick an opponent and face off at something of your choosing (thumb war, staring contest, rock-paper-scissors best of three)." },
+  { id: "c_dare", label: "Silly Dare", short: "Dare", type: "challenge", weight: 5, desc: "Pull off a dare picked by the group (impression, dance move, weird noise)." },
+  { id: "c_anime", label: "Anime Opening Karaoke", short: "Karaoke", type: "challenge", weight: 4, desc: "Sing or hum an anime opening for everyone else to guess within 20 seconds." },
+  { id: "c_speed", label: "Speed Trivia Burst", short: "Speed Trivia", type: "challenge", weight: 4, desc: "Answer 3 rapid-fire questions from the host in 15 seconds. 2 or more correct counts as a pass." },
+  { id: "c_bonus_trivia", label: "Bonus Trivia", short: "Trivia", type: "challenge", trivia: true, weight: 6, desc: "A snap bonus trivia question." },
+  { id: "c_impression", label: "Impression Contest", short: "Impression", type: "challenge", weight: 4, desc: "Do an impression of a character chosen by the group; the group votes pass or fail." },
+  { id: "c_tongue", label: "Tongue Twister", short: "Twister", type: "challenge", weight: 4, desc: "Say a tongue twister picked by the host three times fast without messing up." },
+  { id: "c_charades", label: "Charades Flash", short: "Charades", type: "challenge", weight: 4, desc: "Act out a word or phrase from the host for others to guess in 30 seconds." },
+  { id: "c_lightning", label: "Lightning Round", short: "Lightning", type: "challenge", weight: 4, desc: "Answer 5 quickfire trivia questions; 3 or more correct counts as a pass." },
 ];
 
 // Success Wheel: rewards of varying size, auto-spun after a Pass on the Chaos Wheel.
 var SUCCESS_OUTCOMES = [
-  { id: "s_gain_small", label: "Small Reward", type: "auto", effect: "gain", amount: 150, weight: 6, desc: "Instant +150 points." },
-  { id: "s_gain_medium", label: "Solid Reward", type: "auto", effect: "gain", amount: 300, weight: 5, desc: "Instant +300 points." },
-  { id: "s_gain_big", label: "Big Reward", type: "auto", effect: "gain", amount: 500, weight: 2, desc: "Instant +500 points." },
-  { id: "s_steal_leader", label: "Steal From the Leader", type: "auto", effect: "stealLeader", amount: 250, weight: 4, desc: "Steals 250 points from whoever is currently in the lead." },
-  { id: "s_immunity", label: "Immunity", type: "auto", effect: "immunity", weight: 3, desc: "Protected from the next negative effect against them." },
-  { id: "s_free_tile", label: "Free Tile Pick", type: "auto", effect: "freeTilePick", weight: 3, desc: "Gets to pick the next tile, regardless of turn order." },
-  { id: "s_double", label: "Double Up", type: "auto", effect: "double", weight: 2, desc: "Score is doubled." },
-  { id: "s_steal_rand", label: "Lucky Steal", type: "auto", effect: "steal", amount: 200, weight: 4, desc: "Steals 200 points from a random opponent." },
+  { id: "s_gain_small", label: "Small Reward", short: "Small Win", type: "auto", effect: "gain", amount: 150, weight: 6, desc: "Instant +150 points." },
+  { id: "s_gain_medium", label: "Solid Reward", short: "Solid Win", type: "auto", effect: "gain", amount: 300, weight: 5, desc: "Instant +300 points." },
+  { id: "s_gain_big", label: "Big Reward", short: "Big Win", type: "auto", effect: "gain", amount: 500, weight: 2, desc: "Instant +500 points." },
+  { id: "s_steal_leader", label: "Steal From the Leader", short: "Steal Lead", type: "auto", effect: "stealLeader", amount: 250, weight: 4, desc: "Steals 250 points from whoever is currently in the lead." },
+  { id: "s_immunity", label: "Immunity", short: "Immunity", type: "auto", effect: "immunity", weight: 3, desc: "Protected from the next negative effect against them." },
+  { id: "s_free_tile", label: "Free Tile Pick", short: "Free Tile", type: "auto", effect: "freeTilePick", weight: 3, desc: "Gets to pick the next tile, regardless of turn order." },
+  { id: "s_double", label: "Double Up", short: "Double", type: "auto", effect: "double", weight: 2, desc: "Score is doubled." },
+  { id: "s_steal_rand", label: "Lucky Steal", short: "Lucky Steal", type: "auto", effect: "steal", amount: 200, weight: 4, desc: "Steals 200 points from a random opponent." },
 ];
 
 // Failure Wheel: punishments of varying size, auto-spun after a Fail on the Chaos Wheel.
 var FAILURE_OUTCOMES = [
-  { id: "f_lose_small", label: "Small Setback", type: "auto", effect: "lose", amount: 150, weight: 6, desc: "Instant -150 points." },
-  { id: "f_lose_medium", label: "Rough Setback", type: "auto", effect: "lose", amount: 300, weight: 5, desc: "Instant -300 points." },
-  { id: "f_lose_big", label: "Brutal Setback", type: "auto", effect: "lose", amount: 500, weight: 2, desc: "Instant -500 points." },
-  { id: "f_give_rival", label: "Give to a Rival", type: "auto", effect: "giveRival", amount: 200, weight: 4, desc: "Hands 200 points to a random opponent." },
-  { id: "f_skip_turn", label: "Skip Next Turn", type: "auto", effect: "skipTurn", weight: 4, desc: "Skips their next turn picking a tile." },
-  { id: "f_halve", label: "Halved", type: "auto", effect: "halve", weight: 3, desc: "Score is cut in half." },
-  { id: "f_robbed", label: "Robbed", type: "auto", effect: "robbed", amount: 200, weight: 4, desc: "A random opponent steals 200 points from them." },
+  { id: "f_lose_small", label: "Small Setback", short: "Small Loss", type: "auto", effect: "lose", amount: 150, weight: 6, desc: "Instant -150 points." },
+  { id: "f_lose_medium", label: "Rough Setback", short: "Rough Loss", type: "auto", effect: "lose", amount: 300, weight: 5, desc: "Instant -300 points." },
+  { id: "f_lose_big", label: "Brutal Setback", short: "Big Loss", type: "auto", effect: "lose", amount: 500, weight: 2, desc: "Instant -500 points." },
+  { id: "f_give_rival", label: "Give to a Rival", short: "Give Away", type: "auto", effect: "giveRival", amount: 200, weight: 4, desc: "Hands 200 points to a random opponent." },
+  { id: "f_skip_turn", label: "Skip Next Turn", short: "Skip Turn", type: "auto", effect: "skipTurn", weight: 4, desc: "Skips their next turn picking a tile." },
+  { id: "f_halve", label: "Halved", short: "Halved", type: "auto", effect: "halve", weight: 3, desc: "Score is cut in half." },
+  { id: "f_robbed", label: "Robbed", short: "Robbed", type: "auto", effect: "robbed", amount: 200, weight: 4, desc: "A random opponent steals 200 points from them." },
 ];
 
 var WHEELS = { chaos: CHAOS_OUTCOMES, success: SUCCESS_OUTCOMES, failure: FAILURE_OUTCOMES };
@@ -781,7 +788,7 @@ function wheelGradient(segs) {
   return parts.join(",");
 }
 function openWheel() {
-  if (!state.wheelOfChaosEnabled || !state.players.length) return;
+  if (!state.wheelOfChaosEnabled || !state.players.length || state.wheel) return;
   state.menuOpen = false;
   state.wheel = {
     activeWheel: "chaos", stage: "choose", targetIndex: null, segmentId: null, rotation: 0,
@@ -792,7 +799,7 @@ function openWheel() {
 }
 function closeWheel() { state.wheel = null; render(); }
 function chooseWheelTarget(mode) {
-  if (!state.wheel) return;
+  if (!state.wheel || state.wheel.stage !== "choose") return;
   var idx = mode === "current" ? state.turn : Math.floor(Math.random() * state.players.length);
   state.wheel.targetIndex = idx;
   state.wheel.stage = "spinning";
@@ -950,7 +957,9 @@ function landActiveWheel() {
 function revealWheelTriviaAnswer() { state.wheel.showTriviaAnswer = true; render(); }
 function judgeMainChallenge(pass) {
   var w = state.wheel;
+  if (!w || w.activeWheel !== "chaos" || w.stage !== "result" || w.judged) return;
   var outcome = findSegment("chaos", w.segmentId);
+  if (!outcome) return;
   w.chainNote = outcome.label + " — " + (pass ? "Passed" : "Failed");
   w.activeWheel = pass ? "success" : "failure";
   w.stage = "spinning";
@@ -967,14 +976,14 @@ function judgeMainChallenge(pass) {
 }
 function removeLandedSegment() {
   var w = state.wheel;
-  if (!w || !w.segmentId) return;
+  if (!w || w.stage !== "result" || !w.segmentId) return;
   var key = w.activeWheel;
   if (state.wheelRemoved[key].indexOf(w.segmentId) === -1) state.wheelRemoved[key].push(w.segmentId);
   render();
 }
 function respinWheel() {
   var w = state.wheel;
-  if (!w) return;
+  if (!w || w.stage !== "result") return;
   if (w.activeWheel !== "chaos") {
     w.activeWheel = "chaos";
     w.chainNote = "";
@@ -1062,7 +1071,7 @@ function advanceTurn() {
 }
 function reveal() { sndReveal(); state.revealed = true; renderOrUpdateClue(); }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
-function playVideo() { state.playing = true; render(); }
+function playVideo() { if (state.playing) return; state.playing = true; render(); }
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
@@ -1308,7 +1317,7 @@ function viewClueMedia() {
   var isVideo = state.active.catKey === VIDEO;
   var item = questionItem();
   if (!isVideo) {
-    return '<div style="background:#1d2455;border-radius:16px;padding:28px 22px;font-size:21px;line-height:1.5;text-align:center;font-weight:600;min-height:90px;display:flex;align-items:center;justify-content:center">' + esc(item.q) + '</div>';
+    return '<div class="clue-box">' + esc(item.q) + '</div>';
   }
   var player;
   if (state.playing) {
@@ -1321,7 +1330,8 @@ function viewClueMedia() {
         '<span style="font-weight:800;color:#aab0d8">Play the opening</span>' +
       '</button>';
   }
-  return '<div><div class="video-frame">' + player + '</div>' +
+  var blurred = !state.revealed;
+  return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '</div>' +
     (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
   '</div>';
 }
@@ -1387,10 +1397,16 @@ function viewQuestion() {
     '<div id="clueFooter">' + viewClueFooter() + '</div>' +
   '</div></div>';
 }
+function syncVideoBlur() {
+  var frame = document.querySelector(".video-frame");
+  if (!frame) return;
+  frame.classList.toggle("video-blurred", !state.revealed);
+}
 function updateClueFooter() {
   var footerEl = document.getElementById("clueFooter");
   var menuEl = document.getElementById("clueMenuWrap");
   if (!footerEl || !menuEl) { render(); return; }
+  syncVideoBlur();
   footerEl.innerHTML = viewClueFooter();
   menuEl.innerHTML = viewQuestionMenu();
 }
@@ -1585,34 +1601,41 @@ function wheelOutcomeControls(w, outcome) {
   if (!outcome) {
     return '<button class="big-gold" data-action="closeWheel">Done</button>';
   }
-  if (w.activeWheel === "chaos" && outcome.type === "challenge" && !w.judged) {
-    var triviaBlock = "";
-    if (outcome.trivia && w.triviaQ) {
-      triviaBlock = '<div class="answer-box" style="margin-top:14px">' + esc(w.triviaQ.q) + '</div>' +
-        (w.showTriviaAnswer
-          ? '<p style="text-align:center;color:#aab0d8;margin-top:8px;font-weight:700">' + esc(w.triviaQ.a) + '</p>'
-          : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>');
-    }
-    return triviaBlock +
-      '<div style="display:flex;gap:10px;margin-top:14px">' +
-        '<button class="plus-btn" style="flex:1;padding:12px" data-action="judgeMainChallenge" data-pass="1">Pass</button>' +
-        '<button class="minus-btn" style="flex:1;padding:12px" data-action="judgeMainChallenge" data-pass="0">Fail</button>' +
-      '</div>' +
-      wheelActionsRow();
-  }
   return (w.summary ? wheelSummaryHtml(w) : "") +
     wheelActionsRow() +
     '<button class="big-gold" data-action="closeWheel">Done</button>';
+}
+function viewWheelChallengeClue(w, outcome) {
+  var target = state.players[w.targetIndex];
+  var triviaBlock = "";
+  if (outcome.trivia && w.triviaQ) {
+    triviaBlock = '<div class="answer-box" style="margin-top:14px">' + esc(w.triviaQ.q) + '</div>' +
+      (w.showTriviaAnswer
+        ? '<p style="text-align:center;color:#aab0d8;margin-top:8px;font-weight:700">' + esc(w.triviaQ.a) + '</p>'
+        : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>');
+  }
+  return '<p class="muted" style="margin-bottom:2px">Chaos Wheel Challenge</p>' +
+    '<p class="confirm-msg" style="margin-bottom:6px">Targeting: <span style="color:' + gold + '">' + esc(target.name) + '</span></p>' +
+    '<div class="clue-box" style="margin-top:6px;flex-direction:column;gap:10px">' +
+      '<div style="font-weight:900;color:' + gold + ';font-size:18px">' + esc(outcome.label) + '</div>' +
+      '<div>' + esc(outcome.desc) + '</div>' +
+    '</div>' +
+    triviaBlock +
+    '<div style="display:flex;gap:10px;margin-top:14px">' +
+      '<button class="plus-btn" style="flex:1;padding:14px;font-size:16px" data-action="judgeMainChallenge" data-pass="1">Right</button>' +
+      '<button class="minus-btn" style="flex:1;padding:14px;font-size:16px" data-action="judgeMainChallenge" data-pass="0">Wrong</button>' +
+    '</div>';
 }
 function viewWheel() {
   var w = state.wheel;
   if (!w) return "";
   var segs = wheelSegments(w.activeWheel);
   var gradient = segs.length ? wheelGradient(segs) : "#1d2455 0deg 360deg";
-  var labelFontSize = segs.length > 14 ? 6.5 : segs.length > 9 ? 7.5 : segs.length > 5 ? 9 : 10.5;
+  var labelFontSize = segs.length > 14 ? 9 : segs.length > 9 ? 10 : segs.length > 5 ? 11.5 : 13;
   var labelsHtml = segs.map(function (s) {
     var rot = s.mid - 90;
-    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(16px,-50%)">' + esc(s.outcome.label) + '</span>';
+    var text = s.outcome.short || s.outcome.label;
+    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(16px,-50%)">' + esc(text) + '</span>';
   }).join("");
   var wheelHtml = '<div class="wheel-pointer"></div>' +
     '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)">' + labelsHtml + '</div>';
@@ -1635,14 +1658,18 @@ function viewWheel() {
       body = titleLine + chainLine + targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' + '<p class="muted" style="margin-top:18px">Spinning...</p>';
     } else {
       var outcome = w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
-      body = titleLine + chainLine + targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' +
-        '<div class="wheel-result">' +
-          (outcome
-            ? '<div style="text-align:center;font-weight:900;font-size:18px;color:' + gold + ';margin-top:4px">' + esc(outcome.label) + '</div>' +
-              '<p style="text-align:center;color:#aab0d8;margin-top:6px">' + esc(outcome.desc) + '</p>'
-            : '<p class="muted" style="text-align:center">No options left on this wheel.</p>') +
-          wheelOutcomeControls(w, outcome) +
-        '</div>';
+      if (outcome && w.activeWheel === "chaos" && outcome.type === "challenge" && !w.judged) {
+        body = viewWheelChallengeClue(w, outcome);
+      } else {
+        body = titleLine + chainLine + targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' +
+          '<div class="wheel-result">' +
+            (outcome
+              ? '<div style="text-align:center;font-weight:900;font-size:22px;color:' + gold + ';margin-top:6px">' + esc(outcome.label) + '</div>' +
+                '<p style="text-align:center;color:#aab0d8;margin-top:6px;font-size:15px">' + esc(outcome.desc) + '</p>'
+              : '<p class="muted" style="text-align:center">No options left on this wheel.</p>') +
+            wheelOutcomeControls(w, outcome) +
+          '</div>';
+      }
     }
   }
   return '<div class="wheel-overlay"><div class="wheel-card">' + body + '</div></div>';
