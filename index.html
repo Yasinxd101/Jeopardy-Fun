@@ -272,6 +272,12 @@
     border: 6px solid #ffd166; box-shadow: 0 0 30px rgba(255, 209, 102, 0.35);
     transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.15, 1);
   }
+  .wheel-label {
+    position: absolute; left: 50%; top: 50%; transform-origin: 0 0;
+    white-space: nowrap; font-weight: 700; letter-spacing: -0.2px; line-height: 1;
+    color: #f5f3ff; text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
   .wheel-result { margin-top: 10px; }
   .wheel-summary { text-align: center; font-weight: 800; color: #7ee2b0; margin-top: 10px; }
   .wheel-summary-bad { color: #ff8aa0; }
@@ -755,12 +761,10 @@ function wheelSegments(wheelKey) {
   var removed = state.wheelRemoved[wheelKey];
   var list = WHEELS[wheelKey].filter(function (o) { return removed.indexOf(o.id) === -1; });
   if (!list.length) return [];
-  var total = list.reduce(function (s, o) { return s + o.weight; }, 0);
-  var acc = 0;
-  return list.map(function (o) {
-    var start = acc / total * 360;
-    acc += o.weight;
-    var end = acc / total * 360;
+  var slice = 360 / list.length;
+  return list.map(function (o, i) {
+    var start = i * slice;
+    var end = start + slice;
     return { outcome: o, start: start, end: end, mid: (start + end) / 2 };
   });
 }
@@ -971,6 +975,10 @@ function removeLandedSegment() {
 function respinWheel() {
   var w = state.wheel;
   if (!w) return;
+  if (w.activeWheel !== "chaos") {
+    w.activeWheel = "chaos";
+    w.chainNote = "";
+  }
   w.stage = "spinning";
   w.segmentId = null;
   w.rotation = 0;
@@ -1601,8 +1609,13 @@ function viewWheel() {
   if (!w) return "";
   var segs = wheelSegments(w.activeWheel);
   var gradient = segs.length ? wheelGradient(segs) : "#1d2455 0deg 360deg";
+  var labelFontSize = segs.length > 14 ? 6.5 : segs.length > 9 ? 7.5 : segs.length > 5 ? 9 : 10.5;
+  var labelsHtml = segs.map(function (s) {
+    var rot = s.mid - 90;
+    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(16px,-50%)">' + esc(s.outcome.label) + '</span>';
+  }).join("");
   var wheelHtml = '<div class="wheel-pointer"></div>' +
-    '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)"></div>';
+    '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)">' + labelsHtml + '</div>';
 
   var titleLine = '<p class="muted" style="margin-bottom:2px">' + WHEEL_TITLES[w.activeWheel] + '</p>';
   var chainLine = w.chainNote ? '<p class="muted" style="margin-bottom:2px;color:#aab0d8">' + esc(w.chainNote) + '</p>' : "";
