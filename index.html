@@ -86,8 +86,20 @@
   .video-frame.video-blurred .video-blur-overlay { opacity: 1; }
   .video-blur-hint {
     position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 10px;
-    color: #fff; font-weight: 700; font-size: 13px; text-align: center;
+    align-items: center; justify-content: center; gap: 14px;
+    color: #fff; text-align: center; padding: 0 20px;
+  }
+  .play-circle.video-blur-hint-icon {
+    width: 64px; height: 64px; font-size: 24px;
+    animation: video-hint-pulse 1.4s ease-in-out infinite;
+  }
+  .video-blur-hint-text {
+    font-weight: 900; font-size: 17px; color: #ffd166;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  }
+  @keyframes video-hint-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.5); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 14px rgba(255, 209, 102, 0); }
   }
   .clue-box {
     background: #1d2455; border-radius: 16px; padding: 28px 22px; font-size: 21px;
@@ -1082,7 +1094,39 @@ function advanceTurn() {
 }
 function reveal() { sndReveal(); state.revealed = true; renderOrUpdateClue(); }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
-function playVideo() { if (state.playing) return; state.playing = true; render(); }
+var activeYtPlayer = null;
+var ytReadyQueue = [];
+function ensureYoutubeApi(cb) {
+  if (window.YT && window.YT.Player) { cb(); return; }
+  ytReadyQueue.push(cb);
+  if (window.__ytApiLoading) return;
+  window.__ytApiLoading = true;
+  var prevReady = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function () {
+    if (prevReady) prevReady();
+    ytReadyQueue.forEach(function (fn) { fn(); });
+    ytReadyQueue = [];
+  };
+  var tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+}
+function attachYoutubeVolumeControl() {
+  ensureYoutubeApi(function () {
+    var el = document.getElementById("ytplayer");
+    if (!el) return;
+    if (activeYtPlayer) { try { activeYtPlayer.destroy(); } catch (e) {} }
+    activeYtPlayer = new YT.Player("ytplayer", {
+      events: { onReady: function (e) { e.target.setVolume(40); } },
+    });
+  });
+}
+function playVideo() {
+  if (state.playing) return;
+  state.playing = true;
+  render();
+  attachYoutubeVolumeControl();
+}
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
@@ -1332,8 +1376,8 @@ function viewClueMedia() {
   }
   var player;
   if (state.playing) {
-    var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1";
-    player = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=" + encodeURIComponent(window.location.origin);
+    player = '<iframe id="ytplayer" src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
   } else {
     player =
       '<button class="play-cover" data-action="play">' +
@@ -1343,7 +1387,7 @@ function viewClueMedia() {
   }
   var blurred = isVideoBlurred();
   var overlayHint = blurred && state.playing
-    ? '<div class="video-blur-hint"><span class="play-circle" style="width:48px;height:48px;font-size:18px">&#9654;</span><span>Tap video if it didn\'t start</span></div>'
+    ? '<div class="video-blur-hint"><span class="play-circle video-blur-hint-icon">&#9654;</span><span class="video-blur-hint-text">Tap Here to Start the Video</span></div>'
     : "";
   return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
     (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
