@@ -81,6 +81,11 @@
     background: rgba(8, 10, 24, 0.4); transition: opacity 0.35s ease;
   }
   .video-frame.video-blurred .video-blur-overlay { opacity: 1; }
+  .video-blur-hint {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    color: #fff; font-weight: 700; font-size: 13px; text-align: center;
+  }
   .clue-box {
     background: #1d2455; border-radius: 16px; padding: 28px 22px; font-size: 21px;
     line-height: 1.5; text-align: center; font-weight: 600; min-height: 90px;
@@ -1333,8 +1338,11 @@ function viewClueMedia() {
         '<span style="font-weight:800;color:#aab0d8">Play the opening</span>' +
       '</button>';
   }
-  var blurred = !state.revealed;
-  return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay"></div></div>' +
+  var blurred = isVideoBlurred();
+  var overlayHint = blurred && state.playing
+    ? '<div class="video-blur-hint"><span class="play-circle" style="width:48px;height:48px;font-size:18px">&#9654;</span><span>Tap video if it didn\'t start</span></div>'
+    : "";
+  return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
     (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
   '</div>';
 }
@@ -1400,10 +1408,13 @@ function viewQuestion() {
     '<div id="clueFooter">' + viewClueFooter() + '</div>' +
   '</div></div>';
 }
+function isVideoBlurred() {
+  return !state.revealed || state.answerHidden;
+}
 function syncVideoBlur() {
   var frame = document.querySelector(".video-frame");
   if (!frame) return;
-  frame.classList.toggle("video-blurred", !state.revealed);
+  frame.classList.toggle("video-blurred", isVideoBlurred());
 }
 function updateClueFooter() {
   var footerEl = document.getElementById("clueFooter");
