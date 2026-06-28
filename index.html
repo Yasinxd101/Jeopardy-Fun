@@ -280,26 +280,26 @@
   /* ---- settings panel (setup screen) ---- */
   .settings-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 
-  /* ---- wheel of chaos ---- */
-  .wheel-overlay {
-    position: fixed; inset: 0; background: rgba(4, 6, 16, 0.78);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px; z-index: 60;
+  /* ---- wheel of chaos (dedicated full-screen) ---- */
+  .wheel-screen {
+    min-height: 100vh; padding: 28px 16px 32px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
   }
-  .wheel-card {
-    width: 100%; max-width: 420px; background: #161b3d; border-radius: 16px;
-    padding: 22px 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
-    max-height: 90vh; overflow-y: auto;
+  .wheel-screen-inner { width: 100%; max-width: 480px; margin: 0 auto; }
+  .wheel-target-banner {
+    font-weight: 900; font-size: 22px; color: #ffd166; margin-bottom: 4px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
   }
-  .wheel-wrap { position: relative; width: 220px; height: 220px; margin: 8px auto 0; }
+  .wheel-size { width: min(82vw, 380px); height: min(82vw, 380px); margin: 14px auto 0; }
+  .wheel-wrap { position: relative; width: 100%; height: 100%; }
   .wheel-pointer {
-    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-    width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent;
-    border-top: 18px solid #ffd166; z-index: 2;
+    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent;
+    border-top: 26px solid #ffd166; z-index: 2;
   }
   .wheel-spinner {
-    width: 220px; height: 220px; border-radius: 50%; position: relative;
-    border: 6px solid #ffd166; box-shadow: 0 0 30px rgba(255, 209, 102, 0.35);
+    width: 100%; height: 100%; border-radius: 50%; position: relative;
+    border: 8px solid #ffd166; box-shadow: 0 0 40px rgba(255, 209, 102, 0.35);
     transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.15, 1);
   }
   .wheel-label {
@@ -308,9 +308,15 @@
     color: #f5f3ff; text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8);
     pointer-events: none;
   }
-  .wheel-result { margin-top: 10px; }
-  .wheel-summary { text-align: center; font-weight: 800; color: #7ee2b0; margin-top: 10px; }
+  .wheel-result { margin-top: 18px; }
+  .wheel-result-label { font-weight: 900; font-size: 30px; color: #ffd166; margin-top: 10px; }
+  .wheel-result-desc { color: #aab0d8; margin-top: 8px; font-size: 17px; }
+  .wheel-summary { text-align: center; font-weight: 800; color: #7ee2b0; margin-top: 10px; font-size: 17px; }
   .wheel-summary-bad { color: #ff8aa0; }
+  .wheel-big-btn {
+    flex: 1; padding: 18px; font-size: 18px; border-radius: 12px; font-weight: 800;
+    border: none; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -1653,18 +1659,18 @@ function wheelSummaryHtml(w) {
   return '<p class="wheel-summary' + (w.summaryGood === false ? " wheel-summary-bad" : "") + '">' + esc(w.summary) + '</p>';
 }
 function wheelActionsRow() {
-  return '<div class="confirm-actions" style="margin-top:12px">' +
-    '<button class="confirm-btn-cancel" style="flex:1" data-action="removeLandedSegment">Remove This Option</button>' +
-    '<button class="confirm-btn-cancel" style="flex:1" data-action="respinWheel">Respin</button>' +
+  return '<div class="confirm-actions" style="margin-top:14px">' +
+    '<button class="wheel-big-btn confirm-btn-cancel" data-action="removeLandedSegment">Remove This Option</button>' +
+    '<button class="wheel-big-btn confirm-btn-cancel" data-action="respinWheel">Respin</button>' +
   '</div>';
 }
 function wheelOutcomeControls(w, outcome) {
   if (!outcome) {
-    return '<button class="big-gold" data-action="closeWheel">Done</button>';
+    return '<button class="big-gold" style="width:100%;padding:18px;font-size:18px" data-action="closeWheel">Done</button>';
   }
   return (w.summary ? wheelSummaryHtml(w) : "") +
     wheelActionsRow() +
-    '<button class="big-gold" data-action="closeWheel">Done</button>';
+    '<button class="big-gold" style="width:100%;padding:18px;font-size:18px;margin-top:12px" data-action="closeWheel">Done</button>';
 }
 function viewWheelChallengeClue(w, outcome) {
   var target = state.players[w.targetIndex];
@@ -1673,18 +1679,18 @@ function viewWheelChallengeClue(w, outcome) {
     triviaBlock = '<div class="answer-box" style="margin-top:14px">' + esc(w.triviaQ.q) + '</div>' +
       (w.showTriviaAnswer
         ? '<p style="text-align:center;color:#aab0d8;margin-top:8px;font-weight:700">' + esc(w.triviaQ.a) + '</p>'
-        : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>');
+        : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px;padding:16px;font-size:17px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>');
   }
   return '<p class="muted" style="margin-bottom:2px">Chaos Wheel Challenge</p>' +
-    '<p class="confirm-msg" style="margin-bottom:6px">Targeting: <span style="color:' + gold + '">' + esc(target.name) + '</span></p>' +
-    '<div class="clue-box" style="margin-top:6px;flex-direction:column;gap:10px">' +
-      '<div style="font-weight:900;color:' + gold + ';font-size:18px">' + esc(outcome.label) + '</div>' +
-      '<div>' + esc(outcome.desc) + '</div>' +
+    '<div class="wheel-target-banner">' + esc(target.name) + '</div>' +
+    '<div class="clue-box" style="margin-top:10px;flex-direction:column;gap:10px">' +
+      '<div style="font-weight:900;color:' + gold + ';font-size:22px">' + esc(outcome.label) + '</div>' +
+      '<div style="font-size:17px">' + esc(outcome.desc) + '</div>' +
     '</div>' +
     triviaBlock +
-    '<div style="display:flex;gap:10px;margin-top:14px">' +
-      '<button class="plus-btn" style="flex:1;padding:14px;font-size:16px" data-action="judgeMainChallenge" data-pass="1">Right</button>' +
-      '<button class="minus-btn" style="flex:1;padding:14px;font-size:16px" data-action="judgeMainChallenge" data-pass="0">Wrong</button>' +
+    '<div style="display:flex;gap:12px;margin-top:18px">' +
+      '<button class="plus-btn wheel-big-btn" data-action="judgeMainChallenge" data-pass="1">Right</button>' +
+      '<button class="minus-btn wheel-big-btn" data-action="judgeMainChallenge" data-pass="0">Wrong</button>' +
     '</div>';
 }
 function viewWheel() {
@@ -1692,48 +1698,50 @@ function viewWheel() {
   if (!w) return "";
   var segs = wheelSegments(w.activeWheel);
   var gradient = segs.length ? wheelGradient(segs) : "#1d2455 0deg 360deg";
-  var labelFontSize = segs.length > 14 ? 9 : segs.length > 9 ? 10 : segs.length > 5 ? 11.5 : 13;
+  var diameter = Math.min(window.innerWidth * 0.82, 380);
+  var labelOffset = Math.round(diameter * 0.073);
+  var labelFontSize = segs.length > 14 ? 13 : segs.length > 9 ? 15 : segs.length > 5 ? 17 : 19;
   var labelsHtml = segs.map(function (s) {
     var rot = s.mid - 90;
     var text = s.outcome.short || s.outcome.label;
-    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(16px,-50%)">' + esc(text) + '</span>';
+    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(' + labelOffset + 'px,-50%)">' + esc(text) + '</span>';
   }).join("");
   var wheelHtml = '<div class="wheel-pointer"></div>' +
     '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)">' + labelsHtml + '</div>';
 
-  var titleLine = '<p class="muted" style="margin-bottom:2px">' + WHEEL_TITLES[w.activeWheel] + '</p>';
+  var titleLine = '<p class="muted" style="margin-bottom:2px;font-size:15px">' + WHEEL_TITLES[w.activeWheel] + '</p>';
   var chainLine = w.chainNote ? '<p class="muted" style="margin-bottom:2px;color:#aab0d8">' + esc(w.chainNote) + '</p>' : "";
 
   var body;
   if (w.stage === "choose") {
-    body = '<p class="confirm-msg">Who gets targeted by the Wheel of Chaos?</p>' +
-      '<div style="display:flex;flex-direction:column;gap:10px">' +
-        '<button class="big-gold" style="margin-top:0" data-action="chooseWheelTarget" data-mode="current">Current Player (' + esc(state.players[state.turn].name) + ')</button>' +
-        '<button class="big-gold" style="margin-top:0;background:#3da9fc;color:#04203a" data-action="chooseWheelTarget" data-mode="random">Random Player</button>' +
-        '<button class="confirm-btn-cancel" data-action="closeWheel">Cancel</button>' +
+    body = titleLine + '<p class="confirm-msg" style="font-size:19px">Who gets targeted by the Wheel of Chaos?</p>' +
+      '<div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">' +
+        '<button class="big-gold" style="margin-top:0;padding:18px;font-size:18px" data-action="chooseWheelTarget" data-mode="current">Current Player (' + esc(state.players[state.turn].name) + ')</button>' +
+        '<button class="big-gold" style="margin-top:0;padding:18px;font-size:18px;background:#3da9fc;color:#04203a" data-action="chooseWheelTarget" data-mode="random">Random Player</button>' +
+        '<button class="confirm-btn-cancel" style="padding:16px;font-size:17px" data-action="closeWheel">Cancel</button>' +
       '</div>';
   } else {
     var target = state.players[w.targetIndex];
-    var targetLine = '<p class="confirm-msg" style="margin-bottom:6px">Targeting: <span style="color:' + gold + '">' + esc(target.name) + '</span></p>';
+    var targetLine = titleLine + chainLine + '<div class="wheel-target-banner">' + esc(target.name) + '</div>';
     if (w.stage === "spinning") {
-      body = titleLine + chainLine + targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' + '<p class="muted" style="margin-top:18px">Spinning...</p>';
+      body = targetLine + '<div class="wheel-size"><div class="wheel-wrap">' + wheelHtml + '</div></div>' + '<p class="muted" style="margin-top:18px;font-size:16px">Spinning...</p>';
     } else {
       var outcome = w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
       if (outcome && w.activeWheel === "chaos" && outcome.type === "challenge" && !w.judged) {
         body = viewWheelChallengeClue(w, outcome);
       } else {
-        body = titleLine + chainLine + targetLine + '<div class="wheel-wrap">' + wheelHtml + '</div>' +
+        body = targetLine + '<div class="wheel-size"><div class="wheel-wrap">' + wheelHtml + '</div></div>' +
           '<div class="wheel-result">' +
             (outcome
-              ? '<div style="text-align:center;font-weight:900;font-size:22px;color:' + gold + ';margin-top:6px">' + esc(outcome.label) + '</div>' +
-                '<p style="text-align:center;color:#aab0d8;margin-top:6px;font-size:15px">' + esc(outcome.desc) + '</p>'
+              ? '<div class="wheel-result-label">' + esc(outcome.label) + '</div>' +
+                '<p class="wheel-result-desc">' + esc(outcome.desc) + '</p>'
               : '<p class="muted" style="text-align:center">No options left on this wheel.</p>') +
             wheelOutcomeControls(w, outcome) +
           '</div>';
       }
     }
   }
-  return '<div class="wheel-overlay"><div class="wheel-card">' + body + '</div></div>';
+  return '<div class="wheel-screen"><div class="wheel-screen-inner">' + body + '</div></div>';
 }
 
 function renderConfirm() {
@@ -1753,7 +1761,8 @@ function renderConfirm() {
 function render() {
   var root = document.getElementById("root");
   var html;
-  if (state.phase === "players") html = viewPlayers();
+  if (state.wheel) html = viewWheel();
+  else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
   else if (state.phase === "question" && state.active) html = viewQuestion();
@@ -1762,7 +1771,7 @@ function render() {
     if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); }
   }
   else html = viewBoard();
-  if (state.phase === "board") html += viewManagePlayers() + viewWheel();
+  if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
   root.innerHTML = html + renderConfirm();
 
   var nameField = document.getElementById("nameInput");
