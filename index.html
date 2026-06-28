@@ -78,7 +78,8 @@
   .video-blur-overlay {
     position: absolute; inset: 0; opacity: 0; pointer-events: none;
     -webkit-backdrop-filter: blur(28px); backdrop-filter: blur(28px);
-    background: rgba(8, 10, 24, 0.4); transition: opacity 0.35s ease;
+    background: radial-gradient(circle, rgba(20, 24, 56, 0.94), rgba(8, 10, 24, 0.98));
+    transition: opacity 0.35s ease;
   }
   .video-frame.video-blurred .video-blur-overlay { opacity: 1; }
   .video-blur-hint {
