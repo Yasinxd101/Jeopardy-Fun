@@ -1629,12 +1629,18 @@ function viewClueMedia() {
       '</button>';
   }
   var blurred = isVideoBlurred();
-  var overlayHint = blurred && state.playing ? videoBlurHintHtml() : "";
+  var overlayHint = blurred ? videoBlurHintHtml() : "";
   return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
     videoFallbackLinkHtml(item) +
   '</div>';
 }
 function videoBlurHintHtml() {
+  if (!state.playing) {
+    return '<div class="video-blur-hint">' +
+      '<span class="play-circle video-blur-hint-icon">&#9654;</span>' +
+      '<span class="video-blur-hint-text">Press to Play</span>' +
+    '</div>';
+  }
   if (state.videoStatus === "stalled") {
     return '<div class="video-blur-hint">' +
       '<span class="play-circle video-blur-hint-icon video-blur-hint-stalled">&#33;</span>' +
