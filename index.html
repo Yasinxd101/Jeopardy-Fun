@@ -444,58 +444,56 @@ var ONEPIECE_TEXT_BOARD = [
 
 var WORM_TEXT_BOARD = [
   { category: "Guess the Cape by Their Power", questions: [
-    { value: 100, q: "This cape controls and commands swarms of insects within a wide radius, the protagonist's signature ability.", a: "Who is Skitter (Taylor)?" },
-    { value: 200, q: "This cape can transform into a towering, regenerating dragon-like form that grows stronger the longer a fight continues.", a: "Who is Lung?" },
-    { value: 300, q: "This cape's power lets them know exactly how any fight or conflict will go, granting near-perfect combat precognition, but it isolates them socially.", a: "Who is Contessa?", note: "Power is 'Path to Victory' — step-by-step precognition toward any goal, not just combat. Cauldron operative." },
-    { value: 400, q: "This cape projects a field that reduces the strength of powers used inside it, making them a key anti-parahuman asset rather than a direct fighter.", a: "Who is a power-dampening cape? (host-adjudicated)", note: "Accept the specific power-nullifying cape your group names — the role (a field that weakens powers inside it) is the point, not one fixed name." },
-    { value: 500, q: "This minor cape can perfectly replicate the voice of anyone they have heard speak, a narrow, easily overlooked Stranger-adjacent ability that rarely gets the spotlight.", a: "Who is a voice-mimic cape? (host-adjudicated)", note: "A deliberately deep cut: a narrow, low-profile power on a background cape. Accept whichever minor voice-mimic cape your group surfaces." },
+    { value: 100, q: "He becomes a dragon as the fight drags on.", a: "Who is Lung?", note: "Endless escalation of size, scales, regeneration, and fire the longer combat continues." },
+    { value: 200, q: "His clones crumble to ash seconds after he leaves them.", a: "Who is Oni Lee?", note: "Teleports and leaves an acting ash duplicate that disintegrates after a few seconds. ABB lieutenant." },
+    { value: 300, q: "His real specialty was antigravity, not lasers.", a: "Who is Kid Win?", note: "Spent ages assuming his Tinker focus was guns. It was modular gear and antigravity. Tinker 4." },
+    { value: 400, q: "He pilots a steam-driven body he built himself.", a: "Who is Trainwreck?", note: "A Case-53 Tinker who operates a crude engine-powered metal frame of his own making. Barely appears." },
+    { value: 500, q: "Her telekinesis only turns counter-clockwise.", a: "Who is Whirligig?", note: "A minor Merchant cape whose telekinesis spins debris one way, counter-clockwise, around herself. Deep cut." },
   ]},
   { category: "What's Their Real Name", questions: [
-    { value: 100, q: "The civilian name of the bug-controlling protagonist, narrator of the story.", a: "Who is Taylor Hebert?", note: "Skitter / Weaver. The narrator — a gimme for any reader." },
-    { value: 200, q: "The real name of the Undersiders' team leader, who runs the group from behind a calm, calculating front.", a: "Who is Brian Laborn?", note: "Grue, the Undersiders' darkness-generating de facto leader." },
-    { value: 300, q: "The civilian name of the Undersiders' information-broker member, whose power gives her uncanny deductive insight.", a: "Who is Lisa (Sarah Livsey)?", note: "Tattletale. Goes by Lisa Wilbourn in-team; born Sarah Livsey. Accept either." },
-    { value: 400, q: "The real name of the precognitive Cauldron agent who is almost never referred to by any civilian identity at all.", a: "Who is Fortuna?", note: "Contessa's only known given name, from before Cauldron. Most readers only know her cape name." },
-    { value: 500, q: "A member of the Travelers whose true civilian identity is tied to the team's central tragic secret, separate from the body the team publicly treats as that member.", a: "Who is Noelle Meyer? (host-adjudicated)", note: "The Travelers' secret: 'Genesis' is a remote avatar controlled by Noelle Meyer, whose real body mutated into a monster the team kept hidden and contained. Accept Noelle Meyer, or any answer naming her as the cape behind Genesis." },
+    { value: 100, q: "The girl who narrates the story.", a: "Who is Taylor Hebert?", note: "Goes by Skitter, then Weaver, then Khepri." },
+    { value: 200, q: "Empire's leader runs a pharmaceutical company by day.", a: "Who is Max Anders?", note: "Leads Empire Eighty-Eight, drawing blades from any surface. Son of the previous leader." },
+    { value: 300, q: "He faked his death to seize the city.", a: "Who is Thomas Calvert?", note: "Operates as Coil. Former PRT field agent turned paid consultant. Skitter kills him in Arc 14." },
+    { value: 400, q: "Regent was one of Heartbreaker's sons.", a: "Who is Jean-Paul Vasil?", note: "Regent, born Jean-Paul Vasil, a son of the master cape Heartbreaker (Nikos Vasil). The lineage is the key." },
+    { value: 500, q: "Hookwolf's name never appears in the actual text.", a: "Who is Brad Meadows?", note: "This name comes only from Wildbow outside the serial, never within it, so it counts as Word-of-God fact." },
   ]},
-  { category: "Trigger Classification", questions: [
-    { value: 100, q: "A cape who throws blasts of energy and hits hard at range would primarily fall under this classification.", a: "What is a Blaster?" },
-    { value: 200, q: "A cape who controls other people or creatures, commanding minions, falls under this classification.", a: "What is a Master?", note: "Skitter's bug control makes her a Master/Thinker blend — a reminder classes can overlap." },
-    { value: 300, q: "A cape who builds advanced devices they don't fully understand, drawing on specialized inspiration, gets this classification.", a: "What is a Tinker?" },
-    { value: 400, q: "A cape whose power makes them difficult to perceive, remember, or notice would be filed under this classification.", a: "What is a Stranger?", note: "Often confused with Master or plain invisibility. The defining trait is evading notice/memory, not just being unseen." },
-    { value: 500, q: "A cape who passively alters or breaks the powers and ratings of other capes near them, neither attacking nor defending directly, is classified as this.", a: "What is a Trump?", note: "The most abstract class — powers that affect powers (granting, dampening, altering). Easy to misfile as Shaker or Tinker." },
+  { category: "What Class Would This Trigger Make", questions: [
+    { value: 100, q: "Danger kept striking from far off.", a: "What is a Blaster?", note: "Distant, ranged, approaching threats bias the shard toward ranged offense." },
+    { value: 200, q: "Cast out and betrayed, they were left utterly alone.", a: "What is a Master?", note: "Isolation, alienation, and betrayal map to control of others. Skitter's locker trigger is the model case." },
+    { value: 300, q: "They fled a childhood family, and the power fires the moment they leave.", a: "What is a Takeoff Mover?", note: "A close, familial relationship driving escape, with the effect produced on departure, is the canonical Takeoff Mover trigger." },
+    { value: 400, q: "Alone, they manifested one monstrous minion shaped from an exaggerated version of themselves.", a: "What is a Throne (Master subtype)?", note: "A Weaver Dice Master subtype: a single powerful minion drawn from the host's ideal self, made monstrous." },
+    { value: 500, q: "Powers themselves warped a relationship in their trigger, leaving them able to pour abilities into minions or vehicles.", a: "What is a Vector (Trump subtype)?", note: "A Weaver Dice Trump subtype: triggered by powers distorting an interpersonal relationship, channeling abilities into minions or vehicles." },
   ]},
   { category: "Hero, Villain, or Other", questions: [
-    { value: 100, format: "alignmentChoice", q: "A member of the Protectorate who fights publicly to protect Brockton Bay under official sanction. Hero, villain, or other?", a: "Hero" },
-    { value: 200, format: "alignmentChoice", q: "The dragon-formed leader of a gang that runs drugs and territory by force in the Bay. Hero, villain, or other?", a: "Villain" },
-    { value: 300, format: "alignmentChoice", q: "An Endbringer: a colossal, near-unstoppable monster that periodically attacks cities worldwide. Hero, villain, or other?", a: "Other", note: "Endbringers aren't capes in the villain sense — they're world-threat forces of nature. Players often reflexively say Villain." },
-    { value: 400, format: "alignmentChoice", q: "A team that openly commits robberies and works for pay, yet repeatedly protects ordinary people and acts with restraint compared to true monsters. Hero, villain, or other?", a: "Other", note: "The Undersiders. Technically Villains by PRT label, but function as sympathetic anti-heroes. Accept a well-defended 'Villain' answer too." },
-    { value: 500, format: "alignmentChoice", q: "A clandestine organization that commits atrocities and experiments on people, while secretly working to prevent the end of all worlds. Hero, villain, or other?", a: "Other", note: "Cauldron: monstrous methods toward a world-saving goal. Genuinely debated in fandom — accept a well-defended Hero or Villain answer too." },
+    { value: 100, format: "alignmentChoice", q: "A cape who works for the government and patrols the city on assignment.", a: "Hero", note: "A sanctioned Protectorate member is a Hero by the PRT's own labels." },
+    { value: 200, format: "alignmentChoice", q: "He runs an organization in the city and draws metal blades from any surface.", a: "Villain", note: "Kaiser, leading Empire Eighty-Eight. A Villain." },
+    { value: 300, format: "alignmentChoice", q: "An enormous being that appears at intervals, then withdraws.", a: "Other", note: "An Endbringer, filed as Other, outside the hero and villain framework. The neutral wording hides that most assume Villain." },
+    { value: 400, format: "alignmentChoice", q: "A teenager who joined a sanctioned youth team as an alternative to detention.", a: "Hero", note: "Shadow Stalker. Officially a Ward, so labeled Hero, regardless of conduct out of costume. The label is the trick." },
+    { value: 500, format: "alignmentChoice", q: "A secret group that works behind the scenes toward humanity's long-term survival.", a: "Other", note: "Cauldron. A hidden conspiracy outside the hero/villain frame. The neutral phrasing removes any tone clue." },
   ]},
-  { category: "Name the Cape by Trait & MO", questions: [
-    { value: 100, q: "A hero in metal armor who flies and is among the Protectorate's most recognizable public faces in the Bay.", a: "Who is Armsmaster?" },
-    { value: 200, q: "A villain who generates clouds of impenetrable darkness that also muffle sound and senses.", a: "Who is Grue?" },
-    { value: 300, q: "A small, fast-moving Undersider who rides an ever-growing monstrous creature shaped from flesh.", a: "Who is Bitch / Hellhound (Rachel)?", note: "Rachel Lindt, cape name Hellhound, called Bitch. Accept any of the three names." },
-    { value: 400, q: "A Ward whose power lets them project force-fields in flat planes, often used defensively in Endbringer fights.", a: "Who is a forcefield-projecting cape? (host-adjudicated, not Glory Girl)", note: "Glory Girl's actual power is flight/strength/aura, so that answer is wrong here. Accept whichever flat-forcefield cape your group names." },
-    { value: 500, q: "A background Protectorate or Ward cape defined by a single narrow utility power that appears briefly and is easy to forget entirely.", a: "Who is a minor utility cape? (host-adjudicated)", note: "Deliberately deep: accept the specific minor, one-note utility cape your group surfaces. Rewards remembering the deep cuts." },
+  { category: "Order These Events", questions: [
+    { value: 100, format: "sequence", q: "Put these in order, earliest first.",
+      items: ["Taylor's locker trigger", "Leviathan attacks Brockton Bay", "Gold Morning begins"],
+      correctOrder: [0, 1, 2], a: "Locker trigger, then Leviathan, then Gold Morning",
+      note: "Beginning, middle, end. Wide spacing makes it easy." },
+    { value: 200, format: "sequence", q: "Put these in order, earliest first.",
+      items: ["The first Lung fight", "The bank robbery", "The Undersiders become warlords"],
+      correctOrder: [0, 1, 2], a: "Lung fight, then bank robbery, then warlords",
+      note: "Arc 1, then Arc 3, then Arc 11. Clear gaps." },
+    { value: 300, format: "sequence", q: "Put these in order, earliest first.",
+      items: ["Leviathan attacks", "Coil is killed", "Taylor is outed as Skitter", "Taylor kills Alexandria"],
+      correctOrder: [0, 1, 2, 3], a: "Leviathan, Coil dies, outed, kills Alexandria",
+      note: "Arc 8, then 14, then 20, then 22. Four spread-out events." },
+    { value: 400, format: "sequence", q: "Put these in order, earliest first.",
+      items: ["The Slaughterhouse Nine arrive", "The Echidna incident", "The Behemoth fight", "The time-skip"],
+      correctOrder: [0, 1, 2, 3], a: "Nine arrive, Echidna, Behemoth, time-skip",
+      note: "Arc 11, then 19, then 23 to 24, then 25." },
+    { value: 500, format: "sequence", q: "Put these in order, earliest first.",
+      items: ["The Nine pick their candidates", "The cape factions hold a truce meeting", "Shatterbird's citywide glass attack", "The Nine's tests begin", "Grue's second trigger"],
+      correctOrder: [0, 1, 2, 3, 4], a: "Candidates picked, truce meeting, Shatterbird's attack, tests begin, Grue's second trigger",
+      note: "Arc 11, then early Arc 12, then later Arc 12, then Arc 13, then end of Arc 13. The truce meeting precedes Shatterbird's attack within Arc 12. Five tightly packed events, hard to separate but fixed by canon." },
   ]},
 ];
-
-var WORM_FINAL_CHALLENGE = {
-  category: "Order These Events",
-  prompt: "Put these major Worm events in the order they happen in the story, earliest first.",
-  items: [
-    "Taylor's locker trigger event",
-    "The bank robbery where the Undersiders first work together publicly",
-    "Leviathan attacks Brockton Bay",
-    "The Slaughterhouse Nine arrive in the city",
-    "The reveal and confrontation involving the city's secret manipulator broker",
-  ],
-  correctOrder: [0, 1, 2, 3, 4],
-  key:
-    "Order: (1) Taylor triggers in the locker, kicking off the story. (2) The Undersiders' bank robbery is her first real " +
-    "outing with the team. (3) Leviathan's Endbringer attack devastates the Bay. (4) The Slaughterhouse Nine roll into the " +
-    "weakened city afterward. (5) The broker/manipulator's scheme (Coil's plot) comes to a head later.",
-};
 
 var BOARDS = [
   { id: "anime", name: "Anime Jeopardy", icon: "🎌", accent: "#a786df",
@@ -511,12 +509,11 @@ var BOARDS = [
       q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
   { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
-    tagline: "Capes, triggers, and Brockton Bay. For readers of the serial.",
+    tagline: "Capes, triggers, and Brockton Bay. For readers of the serial. (Updated 2026-06-29)",
     textBoard: WORM_TEXT_BOARD, videoSlots: null,
-    finalChallenge: WORM_FINAL_CHALLENGE,
-    final: { category: "Worm's Endgame",
-      q: "This Cycle-spanning entity, whose dying counterpart's death first triggers Earth Bet's parahumans, ultimately becomes the final, world-ending threat heroes and villains must unite against.",
-      a: "What is Scion?" } },
+    final: { category: "Deep Cuts",
+      q: "A slow, rarely-seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
+      a: "Who is Ziggurat (Tōng Líng Tǎ)?" } },
 ];
 
 var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
@@ -1191,6 +1188,16 @@ function openQuestion(catKey, qIndex) {
   state.wager = null;
   state.wagerInput = "";
   state.phase = "question";
+  state.seqOrder = null;
+  var openedItem = questionItem();
+  if (openedItem.format === "sequence") {
+    var seqOrder = openedItem.items.map(function (_, i) { return i; });
+    for (var si = seqOrder.length - 1; si > 0; si--) {
+      var sj = Math.floor(Math.random() * (si + 1));
+      var stmp = seqOrder[si]; seqOrder[si] = seqOrder[sj]; seqOrder[sj] = stmp;
+    }
+    state.seqOrder = seqOrder;
+  }
   render();
 }
 function submitWager() {
@@ -1316,6 +1323,7 @@ function closeQuestion() {
   state.chosenAlignment = null;
   state.wagering = false;
   state.wager = null;
+  state.seqOrder = null;
   advanceTurn();
   var board = currentBoard();
   if (isAllUsed() && board.final && !state.finalDone) {
@@ -1561,6 +1569,32 @@ function chooseAlignment(choice) {
   state.chosenAlignment = choice;
   renderOrUpdateClue();
 }
+function seqMove(pos, dir) {
+  if (!state.seqOrder || state.revealed) return;
+  var order = state.seqOrder;
+  var swapWith = pos + dir;
+  if (swapWith < 0 || swapWith >= order.length) return;
+  var tmp = order[pos]; order[pos] = order[swapWith]; order[swapWith] = tmp;
+  renderOrUpdateClue();
+}
+function viewSequenceClue(item) {
+  var order = state.seqOrder;
+  var rows = order.map(function (itemIdx, pos) {
+    var correctPos = item.correctOrder.indexOf(itemIdx);
+    var statusCls = state.revealed ? (correctPos === pos ? " sequence-row-correct" : " sequence-row-wrong") : "";
+    var arrows = state.revealed ? "" :
+      '<div class="sequence-arrows">' +
+        '<button class="sequence-arrow-btn" data-action="seqMove" data-i="' + pos + '" data-dir="-1"' + (pos === 0 ? " disabled" : "") + '>&#9650;</button>' +
+        '<button class="sequence-arrow-btn" data-action="seqMove" data-i="' + pos + '" data-dir="1"' + (pos === order.length - 1 ? " disabled" : "") + '>&#9660;</button>' +
+      '</div>';
+    return '<div class="sequence-row' + statusCls + '">' +
+      '<span class="sequence-num">' + (pos + 1) + '</span>' +
+      '<span class="sequence-text">' + esc(item.items[itemIdx]) + '</span>' +
+      arrows +
+    '</div>';
+  }).join("");
+  return '<div class="sequence-list" style="margin-top:14px">' + rows + '</div>';
+}
 function viewAlignmentChoices(item) {
   var correct = alignmentAnswerWord(item.a);
   var buttons = ["Hero", "Villain", "Other"].map(function (opt) {
@@ -1580,7 +1614,8 @@ function viewClueMedia() {
   var item = questionItem();
   if (!isVideo) {
     return '<div class="clue-box">' + esc(item.q) + '</div>' +
-      (item.format === "alignmentChoice" ? viewAlignmentChoices(item) : "");
+      (item.format === "alignmentChoice" ? viewAlignmentChoices(item) :
+        item.format === "sequence" ? viewSequenceClue(item) : "");
   }
   var player;
   if (state.playing) {
@@ -2120,6 +2155,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "chooseWheelTarget") chooseWheelTarget(t.getAttribute("data-mode"));
   else if (action === "revealWheelTriviaAnswer") revealWheelTriviaAnswer();
   else if (action === "chooseAlignment") chooseAlignment(t.getAttribute("data-choice"));
+  else if (action === "seqMove") seqMove(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
   else if (action === "openSequenceChallenge") openSequenceChallenge();
   else if (action === "moveSequenceItem") moveSequenceItem(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
   else if (action === "submitSequenceOrder") submitSequenceOrder();
