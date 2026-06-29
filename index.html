@@ -101,6 +101,26 @@
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.5); }
     50% { transform: scale(1.12); box-shadow: 0 0 0 14px rgba(255, 209, 102, 0); }
   }
+  .play-circle.video-blur-hint-playing {
+    background: #7ee2b0;
+    animation: video-hint-pulse-green 1.4s ease-in-out infinite;
+  }
+  @keyframes video-hint-pulse-green {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(126, 226, 176, 0.5); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 14px rgba(126, 226, 176, 0); }
+  }
+  .play-circle.video-blur-hint-stalled {
+    background: #ff8aa0; animation: none;
+  }
+  .video-fallback-link {
+    text-align: center; margin-top: 8px; font-size: 12px;
+  }
+  .video-fallback-link-stalled {
+    font-size: 14px; font-weight: 800;
+  }
+  .video-fallback-link-stalled a {
+    color: #ff8aa0;
+  }
   .clue-box {
     background: #1d2455; border-radius: 16px; padding: 28px 22px; font-size: 21px;
     line-height: 1.5; text-align: center; font-weight: 600; min-height: 90px;
@@ -516,6 +536,7 @@ var state = {
   revealed: false,
   answerHidden: false,
   playing: false,
+  videoStatus: null,     // null | "loading" | "playing" | "stalled"
   used: {},
   confirm: null,        // {message, action}
   timerEnabled: false,
@@ -848,6 +869,8 @@ function newPlayers() {
   state.revealed = false;
   state.answerHidden = false;
   state.playing = false;
+  state.videoStatus = null;
+  clearVideoLoadTimer();
   state.used = {};
   state.nameError = "";
   state.dailyDouble = null;
@@ -1161,6 +1184,8 @@ function openQuestion(catKey, qIndex) {
   state.revealed = false;
   state.answerHidden = false;
   state.playing = false;
+  state.videoStatus = null;
+  clearVideoLoadTimer();
   state.chosenAlignment = null;
   state.wagering = isDailyDoubleTile(catKey, qIndex);
   state.wager = null;
@@ -1249,15 +1274,36 @@ function attachYoutubeVolumeControl() {
     if (!el) return;
     if (activeYtPlayer) { try { activeYtPlayer.destroy(); } catch (e) {} }
     activeYtPlayer = new YT.Player("ytplayer", {
-      events: { onReady: function (e) { e.target.setVolume(40); } },
+      events: {
+        onReady: function (e) { e.target.setVolume(40); },
+        onStateChange: function (e) {
+          if (e.data === YT.PlayerState.PLAYING && state.videoStatus !== "playing") {
+            state.videoStatus = "playing";
+            clearVideoLoadTimer();
+            syncVideoStatus();
+          }
+        },
+      },
     });
   });
+}
+var videoLoadTimer = null;
+function clearVideoLoadTimer() {
+  if (videoLoadTimer) { clearTimeout(videoLoadTimer); videoLoadTimer = null; }
 }
 function playVideo() {
   if (state.playing) return;
   state.playing = true;
+  state.videoStatus = "loading";
   render();
   attachYoutubeVolumeControl();
+  clearVideoLoadTimer();
+  videoLoadTimer = setTimeout(function () {
+    if (state.videoStatus === "loading") {
+      state.videoStatus = "stalled";
+      syncVideoStatus();
+    }
+  }, 6000);
 }
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
@@ -1265,6 +1311,8 @@ function closeQuestion() {
   state.revealed = false;
   state.answerHidden = false;
   state.playing = false;
+  state.videoStatus = null;
+  clearVideoLoadTimer();
   state.chosenAlignment = null;
   state.wagering = false;
   state.wager = null;
@@ -1546,12 +1594,37 @@ function viewClueMedia() {
       '</button>';
   }
   var blurred = isVideoBlurred();
-  var overlayHint = blurred && state.playing
-    ? '<div class="video-blur-hint"><span class="play-circle video-blur-hint-icon">&#9654;</span><span class="video-blur-hint-text">Tap Here to Start the Video</span></div>'
-    : "";
+  var overlayHint = blurred && state.playing ? videoBlurHintHtml() : "";
   return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
-    (state.playing ? '<p style="text-align:center;margin-top:8px;font-size:12px"><a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">Video not loading? Tap to open it on YouTube</a></p>' : '') +
+    videoFallbackLinkHtml(item) +
   '</div>';
+}
+function videoBlurHintHtml() {
+  if (state.videoStatus === "stalled") {
+    return '<div class="video-blur-hint">' +
+      '<span class="play-circle video-blur-hint-icon video-blur-hint-stalled">&#33;</span>' +
+      '<span class="video-blur-hint-text">Video Not Loading</span>' +
+    '</div>';
+  }
+  if (state.videoStatus === "playing") {
+    return '<div class="video-blur-hint">' +
+      '<span class="play-circle video-blur-hint-icon video-blur-hint-playing">&#9834;</span>' +
+      '<span class="video-blur-hint-text">Video Playing</span>' +
+    '</div>';
+  }
+  return '<div class="video-blur-hint">' +
+    '<span class="play-circle video-blur-hint-icon">&#9654;</span>' +
+    '<span class="video-blur-hint-text">Loading Video&hellip;</span>' +
+  '</div>';
+}
+function videoFallbackLinkHtml(item) {
+  if (!state.playing) return "";
+  var stalled = state.videoStatus === "stalled";
+  return '<p class="video-fallback-link' + (stalled ? " video-fallback-link-stalled" : "") + '">' +
+    '<a href="https://www.youtube.com/watch?v=' + item.id + '" target="_blank" rel="noreferrer">' +
+      (stalled ? "Video not loading? Open it directly on YouTube" : "Video not loading? Tap to open it on YouTube") +
+    '</a>' +
+  '</p>';
 }
 function viewClueFooter() {
   var isVideo = state.active.catKey === VIDEO;
@@ -1624,11 +1697,18 @@ function syncVideoBlur() {
   if (!frame) return;
   frame.classList.toggle("video-blurred", isVideoBlurred());
 }
+function syncVideoStatus() {
+  var hint = document.querySelector(".video-blur-hint");
+  if (hint) hint.outerHTML = videoBlurHintHtml();
+  var link = document.querySelector(".video-fallback-link");
+  if (link) link.outerHTML = videoFallbackLinkHtml(questionItem());
+}
 function updateClueFooter() {
   var footerEl = document.getElementById("clueFooter");
   var menuEl = document.getElementById("clueMenuWrap");
   if (!footerEl || !menuEl) { render(); return; }
   syncVideoBlur();
+  syncVideoStatus();
   footerEl.innerHTML = viewClueFooter();
   menuEl.innerHTML = viewQuestionMenu();
 }
