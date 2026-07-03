@@ -453,34 +453,44 @@ var ANIME_MUSIC_BOARD = [
   ]},
 ];
 
+// One Piece board, rebuilt 2026-07-03: 100s/200s stay easy, 300-500 are
+// "thinker" clues that reward attention to detail, callbacks, and cause-and-
+// effect rather than raw name recall.
 var ONEPIECE_TEXT_BOARD = [
   { category: "Straw Hat Crew", questions: [
     { value: 100, q: "This captain wears a straw hat and dreams of becoming Pirate King.", a: "Who is Monkey D. Luffy?" },
-    { value: 200, q: "This swordsman aims to become the world's greatest swordsman and fights with three blades.", a: "Who is Roronoa Zoro?" },
-    { value: 300, q: "This navigator of the Straw Hats has a talent for cartography and a love of money.", a: "Who is Nami?" },
-    { value: 400, q: "This sniper of the crew claims to have 8,000 men under his command back home.", a: "Who is Usopp?" },
-    { value: 500, q: "This skeleton musician, despite having no skin, often jokes about wanting to see panties.", a: "Who is Brook?" },
+    { value: 200, q: "This Straw Hat left the crew over the fate of the Going Merry, then rejoined after Enies Lobby with a shouted apology at the docks.", a: "Who is Usopp?", note: "He challenged Luffy to a duel for the Merry and lost. Zoro insisted the crew could not take him back until he apologized as the one at fault." },
+    { value: 300, q: "Zoro's vow to become the world's greatest swordsman is half of a two-person promise. Name the childhood rival he made it with, and how she died.", a: "Who is Kuina — who died falling down a flight of stairs?", note: "The mundane death is the point: she beat Zoro in all 2,001 of their duels, and the white sword he carries in his mouth, Wado Ichimonji, was hers." },
+    { value: 400, q: "Sanji fights exclusively with kicks. What is the in-story reason he refuses to use his hands in a fight?", a: "His hands are a chef's — he will not risk the tools of his cooking.", note: "Inherited from his mentor Zeff, the 'Red-Leg' pirate chef who fought the same way for the same reason." },
+    { value: 500, q: "The Thousand Sunny is built from legendary Adam Wood bought for 200 million berries. Trace the money: where did Franky get it?", a: "He stole it from the Straw Hats — the Franky Family mugged Usopp for the crew's gold-exchange cash at Water 7.", note: "So the Sunny was ultimately paid for by the crew's own Skypiea gold. The theft that broke the crew apart is what built their ship." },
   ]},
   { category: "Villains & Warlords", questions: [
-    { value: 100, q: "This former Whitebeard Pirates commander killed his own captain and took his place as a Yonko.", a: "Who is Marshall D. Teach (Blackbeard)?" },
-    { value: 200, q: "This former Warlord leads the Donquixote Pirates and secretly orchestrated Dressrosa's takeover.", a: "Who is Donquixote Doflamingo?" },
-    { value: 300, q: "This Yonko captains the Big Mom Pirates and can animate anything alive using her Devil Fruit power.", a: "Who is Charlotte Linlin (Big Mom)?" },
-    { value: 400, q: "This former Warlord, also called \"Hawk-Eyes,\" wields the black blade Yoru.", a: "Who is Dracule Mihawk?" },
-    { value: 500, q: "This Yonko rules over Wano Country and is known as the \"Strongest Creature.\"", a: "Who is Kaido?" },
+    { value: 100, q: "This clown-nosed pirate splits into floating pieces when sliced, making swords nearly useless against him.", a: "Who is Buggy?" },
+    { value: 200, q: "This Warlord posed as Alabasta's national hero while secretly running the criminal organization Baroque Works.", a: "Who is Crocodile?" },
+    { value: 300, q: "The murder that made Blackbeard a traitor to the Whitebeard Pirates: name his victim, and the prize he killed for.", a: "Who is Thatch, the 4th Division commander — killed for the Yami Yami no Mi?", note: "Killing a crewmate was the one unforgivable crime aboard the Moby Dick. Ace's pursuit of Teach over it is the road that ends at Marineford." },
+    { value: 400, q: "Arlong, Jinbe, and Fisher Tiger all flew the same flag once. Name the crew, and what its sun emblem was designed to hide.", a: "What are the Sun Pirates — whose sun brand covered the slave mark of the Celestial Dragons?", note: "Fisher Tiger burned the sun over freed slaves' brands so no one could ever tell who had been a slave and who had not." },
+    { value: 500, q: "Doflamingo was nearly untouchable because of what he supplied to a Yonko. Name the product, the buyer, and what it was made from.", a: "What is SMILE — artificial Zoan Devil Fruits sold to Kaido, manufactured from the chemical SAD?", note: "That supply chain is why Law's entire Dressrosa gambit targeted the SAD factory, and why Kaido's Gifters exist at all." },
   ]},
   { category: "Devil Fruits & Powers", questions: [
     { value: 100, q: "This is the general term for the mysterious fruits that grant superhuman powers at the cost of the ability to swim.", a: "What is a Devil Fruit?" },
-    { value: 200, q: "Luffy's Devil Fruit was eventually revealed to actually be this mythical Zoan fruit, not a simple rubber fruit.", a: "What is the Hito Hito no Mi, Model: Nika?" },
-    { value: 300, q: "This rare class of Devil Fruit grants control over a natural element like fire, ice, or magma.", a: "What is a Logia?" },
-    { value: 400, q: "Used by Trafalgar Law, this Devil Fruit power creates a spherical territory where he can manipulate anything inside it.", a: "What is the Ope Ope no Mi (Room)?" },
-    { value: 500, q: "This type of Haki lets its user sense the presence and emotions of others, even predicting attacks.", a: "What is Observation Haki (Kenbunshoku Haki)?" },
+    { value: 200, q: "Devil Fruit rule number one: what happens to anyone who eats a second one?", a: "What is death — the body is said to destroy itself?", note: "Which is why Blackbeard wielding two powers is treated in-world as an impossibility nobody can explain." },
+    { value: 300, q: "Chopper's fruit gives him three forms. This invention of his own unlocks four more — with a monstrous cost if he overdoses.", a: "What is the Rumble Ball?", note: "Pre-timeskip, three Rumble Balls within six minutes triggered the uncontrollable Monster Point." },
+    { value: 400, q: "Gear Second is not magic. What is Luffy physically doing to his own body, and why can only a rubber man survive doing it?", a: "What is pumping his blood at extreme speed — pressure that would burst normal vessels, but his are rubber?", note: "Lucci recognized it immediately as a doping technique that trades lifespan for speed." },
+    { value: 500, q: "The Ope Ope no Mi's ultimate operation can grant another person eternal youth. What does it cost the surgeon?", a: "What is the surgeon's own life?", note: "The Perennial Youth Operation kills its user — the real reason Doflamingo needed Law under his control." },
   ]},
   { category: "World & Lore", questions: [
     { value: 100, q: "This is the ultimate treasure left behind by the Pirate King, sought by pirates across the world.", a: "What is the One Piece?" },
-    { value: 200, q: "This brutal sea route is home to the most dangerous pirates and the four Yonko.", a: "What is the Grand Line?" },
-    { value: 300, q: "This organization of officers and admirals enforces World Government law across the seas.", a: "What is the Marines?" },
-    { value: 400, q: "This event, the execution of the Pirate King 22 years before the story begins, sparked the Golden Age of Pirates.", a: "What is the execution of Gol D. Roger?" },
-    { value: 500, q: "Scholars trained at Ohara, including Nico Robin, can read this mysterious ancient script.", a: "What is Poneglyph script?" },
+    { value: 200, q: "The Great Pirate Era began not with a battle but with an execution. Whose, and in what town?", a: "Who is Gol D. Roger, executed in Loguetown?", note: "His last words pointed the whole world toward the Grand Line." },
+    { value: 300, q: "Twenty kings founded the World Government 800 years ago. What are their descendants called today?", a: "Who are the Celestial Dragons (World Nobles)?", note: "Attention bonus: only nineteen families moved to Mary Geoise — the Nefertari of Alabasta famously stayed home." },
+    { value: 400, q: "Enel's lightning made him a god in Skypiea, yet Luffy shrugged it off without any Haki. Why was Luffy uniquely his worst possible matchup?", a: "What is rubber does not conduct electricity — the Goro Goro no Mi simply cannot hurt him?", note: "The series' favorite physics joke: an 'invincible' Logia undone by grade-school science." },
+    { value: 500, q: "Poneglyphs cannot be destroyed, and only one bloodline ever knew how to make them. Name the clan and its homeland.", a: "What is the Kozuki Clan of Wano?", note: "Which is exactly why Wano matters to every faction hunting the Road Poneglyphs." },
+  ]},
+  { category: "Did You Catch It?", questions: [
+    { value: 100, q: "In chapter one, Shanks pays a permanent price for saving young Luffy from the Lord of the Coast. What was it?", a: "What is his left arm?", note: "He would later describe the loss as a wager placed on the new era." },
+    { value: 200, q: "Nami's shoulder tattoo replaced one she carved off her own skin. What did the original mark represent, and what does the new one honor?", a: "What is the Arlong Pirates' mark — replaced by a pinwheel-and-tangerine design for Genzo and Bell-mere?", note: "The pinwheel is Genzo's hat; the tangerine is Bell-mere's grove." },
+    { value: 300, q: "At Reverse Mountain, something is painted across Laboon the whale's scarred head. What is it, and what does it promise?", a: "What is a crude Straw Hat Jolly Roger, painted by Luffy as a promise to return after crossing the Grand Line?", note: "Fifty years after the Rumbar Pirates broke the same promise, Brook is still sailing back to keep it — a setup that pays off hundreds of chapters later." },
+    { value: 400, q: "The world believes the Marines caught the Pirate King. What actually happened?", a: "What is Roger, dying of an incurable disease, disbanded his crew and turned himself in — his execution was his own plan?", note: "Rayleigh's account reframes the very first scene of the series: the Great Pirate Era was engineered by a dying man." },
+    { value: 500, q: "The series' longest con: Luffy's 'Gomu Gomu no Mi' was a lie hiding in plain sight since chapter one. Give the fruit's true name and the figure it embodies.", a: "What is the Hito Hito no Mi, Model: Nika — the legendary Sun God of liberation?", note: "The World Government renamed the fruit to bury the legend. Gear Five is its awakening." },
   ]},
 ];
 
@@ -532,7 +542,7 @@ var BOARDS = [
       q: "This composer's jazz-infused Cowboy Bebop soundtrack, opening with the big-band barnstormer 'Tank!', made her a legend of anime music.",
       a: "Who is Yoko Kanno?" } },
   { id: "onepiece", name: "One Piece Jeopardy", icon: "🏴‍☠️", accent: "#3da9fc",
-    tagline: "Straw Hats, Warlords, Devil Fruits, and Grand Line lore.",
+    tagline: "Easy starts, thinker finishes — details you only know if you paid attention. (Updated 2026-07-03)",
     textBoard: ONEPIECE_TEXT_BOARD,
     final: { category: "Grand Line History",
       q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
