@@ -131,6 +131,10 @@
   .play-circle.video-blur-hint-stalled {
     background: #ff8aa0; animation: none;
   }
+  .video-prompt {
+    text-align: center; color: #aab0d8; font-weight: 700; font-size: 14px;
+    margin: 0 0 10px;
+  }
   .video-fallback-link {
     text-align: center; margin-top: 8px; font-size: 12px;
   }
@@ -403,47 +407,50 @@
 //   format:"alignmentChoice"  - Hero/Villain/Other tap-to-answer buttons
 //   format:"sequence"         - items[] + correctOrder[]; shuffled on open,
 //                               reordered with arrows, graded on reveal
-// A board is { id, name, icon, accent, tagline, textBoard, videoSlots?, final }.
+//   id (YouTube video id)     - the clue is a playable clip instead of text
+// A board is { id, name, icon, accent, tagline, textBoard, final }.
 // ===========================================================================
 
-var ANIME_TEXT_BOARD = [
-  { category: "Heroes & Protagonists", questions: [
-    { value: 100, q: "This orange-clad ninja dreams of becoming Hokage.", a: "Who is Naruto Uzumaki?" },
-    { value: 200, q: "This pirate captain wears a straw hat and stretches like rubber.", a: "Who is Monkey D. Luffy?" },
-    { value: 300, q: "This Death Note protagonist writes names in a notebook to reshape the world.", a: "Who is Light Yagami?" },
-    { value: 400, q: "In Mob Psycho 100, this is the real name of the esper nicknamed Mob.", a: "Who is Shigeo Kageyama?" },
-    { value: 500, q: "This Fullmetal Alchemist protagonist loses an arm and a leg in a forbidden human transmutation.", a: "Who is Edward Elric?" },
+// Anime Music board: every clue is a YouTube clip (item.id). IDs were sourced
+// from official channels where possible and validated via YouTube's oEmbed
+// endpoint (a 200 response means the video exists and allows embedding).
+// Rebuilt 2026-07-03.
+var ANIME_MUSIC_BOARD = [
+  { category: "Openings", questions: [
+    { value: 100, id: "x1FV6IrjZCY", q: "Name the anime this opening belongs to.", a: 'What is Demon Slayer? ("Gurenge" by LiSA)' },
+    { value: 200, id: "ZRtdQ81jPUQ", q: "Name the anime this opening belongs to.", a: 'What is Oshi no Ko? ("Idol" by YOASOBI)' },
+    { value: 300, id: "NMA_isZYsYQ", q: "Name the anime this opening belongs to.", a: 'What is Chainsaw Man? ("KICK BACK" by Kenshi Yonezu)' },
+    { value: 400, id: "1tk1pqwrOys", q: "Name the anime this opening belongs to.", a: 'What is Jujutsu Kaisen? ("Kaikai Kitan" by Eve)' },
+    { value: 500, id: "FT0GKCuSaW0", q: "Name the anime this opening belongs to.", a: 'What is Ranking of Kings? ("Hadaka no Yuusha" by Vaundy)' },
   ]},
-  { category: "Villains & Rivals", questions: [
-    { value: 100, q: "Vegeta first arrives on Earth as a member of this warrior alien race.", a: "What is a Saiyan?" },
-    { value: 200, q: "This Naruto masked figure seeks to capture all nine tailed beasts.", a: "Who is Madara / Obito?" },
-    { value: 300, q: "This card-loving clown assassin in Hunter x Hunter is obsessed with strong opponents.", a: "Who is Hisoka?" },
-    { value: 400, q: "In Fairy Tail, this lightning Dragon Slayer fights Jura in a fan-favorite Grand Magic Games clash.", a: "Who is Laxus Dreyar?" },
-    { value: 500, q: "This Code Geass lead commands the power of Geass under the masked identity Zero.", a: "Who is Lelouch vi Britannia?" },
+  { category: "Endings", questions: [
+    { value: 100, id: "nRKJBpFFsuI", q: "Name the anime this ending belongs to.", a: 'What is Spy x Family? ("Comedy" by Gen Hoshino)' },
+    { value: 200, id: "wzoIZO8WbI8", q: "Name the anime this ending belongs to.", a: 'What is Naruto? ("Wind" by Akeboshi)' },
+    { value: 300, id: "6riDJMI-Y8U", q: "Name the anime this ending belongs to.", a: 'What is Jujutsu Kaisen? ("Lost in Paradise" by ALI feat. AKLO)' },
+    { value: 400, id: "Ru_H5PiyfSA", q: "Name the anime this ending belongs to.", a: 'What is Cowboy Bebop? ("The Real Folk Blues" by the Seatbelts)' },
+    { value: 500, id: "rFKKSQ8GgHk", q: "Name the anime this ending belongs to.", a: 'What is Clannad? ("Dango Daikazoku")' },
   ]},
-  { category: "Powers & Systems", questions: [
-    { value: 100, q: "In Naruto, this eye technique is the bloodline trait of the Uchiha clan.", a: "What is the Sharingan?" },
-    { value: 200, q: "In My Hero Academia, this is the general term for a person's superpower.", a: "What is a Quirk?" },
-    { value: 300, q: "In JoJo's Bizarre Adventure, these manifested spirit-fighters are summoned by their users.", a: "What are Stands?" },
-    { value: 400, q: "In Hunter x Hunter, this is the system of controlling one's life energy or aura.", a: "What is Nen?" },
-    { value: 500, q: "In Jujutsu Kaisen, characters trap foes inside these innate technique-amplifying domains.", a: "What is a Domain Expansion?" },
+  { category: "Name That OST", questions: [
+    { value: 100, id: "wEWF2xh5E8s", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: 'What is Naruto? ("Sadness and Sorrow")' },
+    { value: 200, id: "daFi4MScfl8", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: 'What is One Piece? ("Overtaken")' },
+    { value: 300, id: "E3bOruXptlg", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: "What is Death Note? (L's Theme)" },
+    { value: 400, id: "yyZV-btQmx8", q: "Name the anime this soundtrack piece is from.", a: 'What is Attack on Titan? ("YouSeeBIGGIRL/T:T" by Hiroyuki Sawano)', note: "The track behind the Reiner and Bertholdt reveal in Season 2." },
+    { value: 500, id: "sFzDQ2OjFko", q: "Name the anime this soundtrack piece is from.", a: 'What is Made in Abyss? ("Hanezeve Caradhina" by Kevin Penkin)', note: "Kevin Penkin's score is widely considered one of the best of the 2010s." },
   ]},
-  { category: "Deep Cuts", questions: [
-    { value: 100, q: "This series follows a yellow electric mouse and his trainer Ash.", a: "What is Pokemon?" },
-    { value: 200, q: "This thriller traps students in deadly killing games run by a bear named Monokuma.", a: "What is Danganronpa?" },
-    { value: 300, q: "This Trigun gunman carries a 60-billion double-dollar bounty.", a: "Who is Vash the Stampede?" },
-    { value: 400, q: "This Monogatari protagonist is a former vampire who helps girls afflicted by oddities.", a: "Who is Koyomi Araragi?" },
-    { value: 500, q: "This 1998 series follows bounty hunters Spike, Jet, Faye, and Ein aboard the Bebop.", a: "What is Cowboy Bebop?" },
+  { category: "Around the World", questions: [
+    { value: 100, id: "s2119-wrJo0", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: "What is Pokemon, in German?" },
+    { value: 200, id: "MEMoi0ETgP0", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is Dragon Ball Z, in Latin American Spanish? ("Cha-La Head-Cha-La")' },
+    { value: 300, id: "zZTlN3YkCuc", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: "What is Sailor Moon, in Italian? (Cristina D'Avena's sigla)", note: "Italy wrote brand-new theme songs for imported anime instead of translating them, and Cristina D'Avena sang hundreds of them." },
+    { value: 400, id: "EV_aHdpj23g", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is City Hunter, in French? (the "Nicky Larson" theme)', note: "France renamed the whole show after its hero, Nicky Larson, with an original French theme." },
+    { value: 500, id: "Nds9oPVLATc", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is Saint Seiya (Knights of the Zodiac), in Brazilian Portuguese? ("Pegasus Fantasy")', note: "A Brazilian TV legend — Saint Seiya was a bigger phenomenon in Brazil than almost anywhere outside Japan." },
   ]},
-];
-
-// Official artist/label uploads (embedding allowed). Scaled by recognizability.
-var ANIME_VIDEO_SLOTS = [
-  { value: 100, id: "x1FV6IrjZCY", a: 'What is Demon Slayer? ("Gurenge" by LiSA)' },
-  { value: 200, id: "ZRtdQ81jPUQ", a: 'What is Oshi no Ko? ("Idol" by YOASOBI)' },
-  { value: 300, id: "NMA_isZYsYQ", a: 'What is Chainsaw Man? ("KICK BACK" by Kenshi Yonezu)' },
-  { value: 400, id: "1tk1pqwrOys", a: 'What is Jujutsu Kaisen? ("Kaikai Kitan" by Eve)' },
-  { value: 500, id: "FT0GKCuSaW0", a: 'What is Ranking of Kings? ("Hadaka no Yuusha" by Vaundy)' },
+  { category: "Movie Themes", questions: [
+    { value: 100, id: "f7SS57LFPco", q: "Name the film this theme belongs to.", a: 'What is Howl\'s Moving Castle? ("Merry-Go-Round of Life" by Joe Hisaishi)' },
+    { value: 200, id: "TK1Ij_-mank", q: "Name the film this theme belongs to.", a: 'What is Spirited Away? ("One Summer\'s Day" by Joe Hisaishi)' },
+    { value: 300, id: "PDSkFeMVNFs", q: "Name the film this song is inseparable from.", a: 'What is Your Name (Kimi no Na wa)? ("Zenzenzense" by RADWIMPS)' },
+    { value: 400, id: "nBADF1LdP3g", q: "Name the film this theme belongs to.", a: "What is Princess Mononoke? (main theme by Joe Hisaishi)" },
+    { value: 500, id: "CAjtimRClYU", q: "Name the film this theme belongs to.", a: 'What is Akira? ("Kaneda" by Geinoh Yamashirogumi)', note: "The 1988 cyberpunk landmark; the score's Indonesian gamelan percussion is instantly recognizable once known." },
+  ]},
 ];
 
 var ONEPIECE_TEXT_BOARD = [
@@ -518,28 +525,27 @@ var WORM_TEXT_BOARD = [
 ];
 
 var BOARDS = [
-  { id: "anime", name: "Anime Jeopardy", icon: "🎌", accent: "#a786df",
-    tagline: "Heroes, villains, powers, and real opening songs.",
-    textBoard: ANIME_TEXT_BOARD, videoSlots: ANIME_VIDEO_SLOTS, videoCategory: "Name That Opening",
-    final: { category: "Anime Endings & Legacy",
-      q: "This 1997 mecha series, helmed by Hideaki Anno, ends with Shinji Ikari confronting his own self-worth in a famously abstract finale.",
-      a: "What is Neon Genesis Evangelion?" } },
+  { id: "anime", name: "Anime Music Jeopardy", icon: "🎌", accent: "#a786df",
+    tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
+    textBoard: ANIME_MUSIC_BOARD,
+    final: { category: "The Composers",
+      q: "This composer's jazz-infused Cowboy Bebop soundtrack, opening with the big-band barnstormer 'Tank!', made her a legend of anime music.",
+      a: "Who is Yoko Kanno?" } },
   { id: "onepiece", name: "One Piece Jeopardy", icon: "🏴‍☠️", accent: "#3da9fc",
     tagline: "Straw Hats, Warlords, Devil Fruits, and Grand Line lore.",
-    textBoard: ONEPIECE_TEXT_BOARD, videoSlots: null,
+    textBoard: ONEPIECE_TEXT_BOARD,
     final: { category: "Grand Line History",
       q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
   { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
     tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
-    textBoard: WORM_TEXT_BOARD, videoSlots: null,
+    textBoard: WORM_TEXT_BOARD,
     final: { category: "Deep Cuts",
       q: "A slow, rarely-seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
       a: "Who is Ziggurat (Tōng Líng Tǎ)?" } },
 ];
 
 var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
-var VIDEO = "VIDEO";
 var gold = "#ffd166";
 
 // ---- state ----
@@ -652,10 +658,11 @@ function currentBoard() {
   return BOARDS.filter(function (b) { return b.id === state.boardId; })[0];
 }
 function getCategories() {
-  var board = currentBoard();
-  var cats = board.textBoard.slice();
-  if (board.videoSlots) cats = cats.concat([{ category: board.videoCategory || "Name That Opening", isVideo: true }]);
-  return cats;
+  return currentBoard().textBoard;
+}
+// A column gets the "music" styling when any of its clues is a video clip.
+function categoryHasVideo(col) {
+  return col.questions.some(function (q) { return !!q.id; });
 }
 
 function esc(s) {
@@ -1201,9 +1208,7 @@ function submitWager() {
 function activeValue() {
   if (!state.active) return 0;
   if (state.wager != null) return state.wager;
-  var board = currentBoard();
-  if (state.active.catKey === VIDEO) return board.videoSlots[state.active.qIndex].value;
-  return board.textBoard[state.active.catKey].questions[state.active.qIndex].value;
+  return questionItem().value;
 }
 function renderOrUpdateClue() {
   if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
@@ -1451,7 +1456,6 @@ function viewBoardPreview() {
   var catChips = b.textBoard.map(function (c) {
     return '<div class="preview-chip">' + esc(c.category) + '</div>';
   });
-  if (b.videoSlots) catChips.push('<div class="preview-chip">' + esc(b.videoCategory || "Name That Opening") + '</div>');
   var menu = renderMenu([
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
@@ -1549,12 +1553,10 @@ function viewDailyDoubleWager() {
 }
 
 function isActiveVideoPlaying() {
-  return !!state.active && state.active.catKey === VIDEO && state.playing;
+  return !!state.active && state.playing && !!questionItem().id;
 }
 function questionItem() {
-  var board = currentBoard();
-  var isVideo = state.active.catKey === VIDEO;
-  return isVideo ? board.videoSlots[state.active.qIndex] : board.textBoard[state.active.catKey].questions[state.active.qIndex];
+  return currentBoard().textBoard[state.active.catKey].questions[state.active.qIndex];
 }
 function alignmentAnswerWord(a) {
   if (/^Hero/i.test(a)) return "Hero";
@@ -1607,13 +1609,14 @@ function viewAlignmentChoices(item) {
   return '<div class="alignment-row">' + buttons + '</div>';
 }
 function viewClueMedia() {
-  var isVideo = state.active.catKey === VIDEO;
   var item = questionItem();
+  var isVideo = !!item.id;
   if (!isVideo) {
     return '<div class="clue-box">' + esc(item.q) + '</div>' +
       (item.format === "alignmentChoice" ? viewAlignmentChoices(item) :
         item.format === "sequence" ? viewSequenceClue(item) : "");
   }
+  var prompt = item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "";
   var player;
   if (state.playing) {
     var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=" + encodeURIComponent(window.location.origin);
@@ -1622,12 +1625,13 @@ function viewClueMedia() {
     player =
       '<button class="play-cover" data-action="play">' +
         '<span class="play-circle">&#9654;</span>' +
-        '<span style="font-weight:800;color:#aab0d8">Play the opening</span>' +
+        '<span style="font-weight:800;color:#aab0d8">Play the clip</span>' +
       '</button>';
   }
   var blurred = isVideoBlurred() && state.playing;
   var overlayHint = blurred ? videoBlurHintHtml() : "";
-  return '<div><div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
+  return '<div>' + prompt +
+    '<div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
     videoFallbackLinkHtml(item) +
   '</div>';
 }
@@ -1659,9 +1663,9 @@ function videoFallbackLinkHtml(item) {
   '</p>';
 }
 function viewClueFooter() {
-  var isVideo = state.active.catKey === VIDEO;
   var value = activeValue();
   var item = questionItem();
+  var isVideo = !!item.id;
 
   var revealBlock;
   if (!state.revealed) {
@@ -1691,7 +1695,7 @@ function viewClueFooter() {
   }
   var closeBlock = state.revealed ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>' : "";
 
-  var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out the anime, then reveal when they have guessed.</p>' : '';
+  var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
   return hint + timerBar + revealBlock + scoreBlock + closeBlock;
@@ -1703,7 +1707,7 @@ function viewQuestion() {
   if (state.wagering) return viewDailyDoubleWager();
   var board = currentBoard();
   var value = activeValue();
-  var catName = state.active.catKey === VIDEO ? (board.videoCategory || "Name That Opening") : board.textBoard[state.active.catKey].category;
+  var catName = board.textBoard[state.active.catKey].category;
   var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
 
   return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' +
@@ -1780,22 +1784,21 @@ function viewBoard() {
   }).join("");
 
   var heads = categories.map(function (col) {
-    return '<div class="cat-head" style="background:' + (col.isVideo ? "#7a2f6f" : "#3a2f8f") + '">' + esc(col.category) + '</div>';
+    return '<div class="cat-head" style="background:' + (categoryHasVideo(col) ? "#7a2f6f" : "#3a2f8f") + '">' + esc(col.category) + '</div>';
   }).join("");
 
   var tiles = "";
   for (var row = 0; row < 5; row++) {
     for (var ci = 0; ci < categories.length; ci++) {
       var col = categories[ci];
-      var isVideoCol = !!col.isVideo;
-      var catKey = isVideoCol ? VIDEO : ci;
-      var key = catKey + "-" + row;
+      var isVideoTile = !!col.questions[row].id;
+      var key = ci + "-" + row;
       var isUsed = !!state.used[key];
-      var val = isVideoCol ? board.videoSlots[row].value : col.questions[row].value;
-      var bgc = isUsed ? "#10142e" : (isVideoCol ? "#3a1d3f" : "#1d2455");
+      var val = col.questions[row].value;
+      var bgc = isUsed ? "#10142e" : (isVideoTile ? "#3a1d3f" : "#1d2455");
       var fgc = isUsed ? "#2a2f55" : gold;
       tiles += '<button class="tile" style="background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
-        (isUsed ? "disabled" : 'data-action="open" data-cat="' + catKey + '" data-row="' + row + '"') + '>' +
+        (isUsed ? "disabled" : 'data-action="open" data-cat="' + ci + '" data-row="' + row + '"') + '>' +
         (isUsed ? "" : val) + '</button>';
     }
   }
@@ -2062,7 +2065,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleMenu") toggleMenu();
   else if (action === "add") addPlayer();
   else if (action === "remove") removePlayer(+t.getAttribute("data-i"));
-  else if (action === "open") openQuestion(t.getAttribute("data-cat") === VIDEO ? VIDEO : +t.getAttribute("data-cat"), +t.getAttribute("data-row"));
+  else if (action === "open") openQuestion(+t.getAttribute("data-cat"), +t.getAttribute("data-row"));
   else if (action === "reveal") reveal();
   else if (action === "toggleAnswer") toggleAnswer();
   else if (action === "play") playVideo();
