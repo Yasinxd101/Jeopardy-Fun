@@ -632,6 +632,46 @@ var NARUTO_TEXT_BOARD = [
   ]},
 ];
 
+// Zero Escape board, added 2026-07-03: one category per game plus the
+// recurring cast and the trilogy's rules. Spoils everything, by design.
+var ZEROESCAPE_TEXT_BOARD = [
+  { category: "999: Nine Doors", questions: [
+    { value: 100, q: "999's protagonist, who wakes up in a flooding third-class cabin with a bracelet on his wrist.", a: "Who is Junpei?" },
+    { value: 200, q: "Numbered doors only open for groups whose bracelets produce this — the series' signature arithmetic.", a: "What is the correct digital root — the bracelet numbers summed down to a single digit matching the door?", note: "The game teaches you modular arithmetic and then builds murder mysteries out of it." },
+    { value: 300, q: "Ace's real identity, and the neurological condition that motivated the original Nonary Project.", a: "Who is Gentarou Hongou, CEO of Cradle Pharmaceutical — driven by prosopagnosia, the inability to recognize faces?", note: "He ran experiments on children hoping the morphogenetic field could cure him. The 'cure' is also how he fails to notice who is standing right next to him nine years later." },
+    { value: 400, q: "The sinking ocean liner is a lie. Where is the second Nonary Game actually being played?", a: "What is Building Q — a landlocked replica of the Gigantic's interior, in the Nevada desert?", note: "The flooding, the countdown, the ship: staged. The original Gigantic hosted the first game nine years earlier." },
+    { value: 500, q: "On the original DS, the hardware itself was the twist. What had the second screen secretly been all along, and what physical act does the final puzzle demand?", a: "What is the perspective of young Akane, experiencing the game through the morphogenetic field — with the final sudoku forcing you to flip the DS upside down, trading Junpei's view for hers?", note: "A puzzle mechanic, a narrative reveal, and a physical gesture in one move. Widely considered the best use of the DS's two screens ever shipped." },
+  ]},
+  { category: "Virtue's Last Reward", questions: [
+    { value: 100, q: "The chipper cartoon rabbit who hosts the Nonary Game: Ambidex Edition.", a: "Who is Zero III (Zero Jr.)?" },
+    { value: 200, q: "The Ambidex Game's two choices, and the stakes on your bracelet.", a: "What are Ally and Betray — reach 9 bracelet points and you can leave; hit 0 and the bracelet kills you?", note: "Cooperation pays both sides modestly; betrayal pays the traitor out of the victim's hide. The trilogy's purest prisoner's dilemma." },
+    { value: 300, q: "The old man Tenmyouji, quietly protective of his grandson Quark, is somebody the series already introduced. Who?", a: "Who is Junpei — decades older, having spent a lifetime searching for Akane?", note: "The reveal lands harder because he spends the whole game refusing to talk about it." },
+    { value: 400, q: "Rhizome 9 is not where the players think it is. Where is the facility, and roughly when?", a: "What is on the moon — in 2074, nearly half a century after the Radical-6 pandemic devastated Earth?", note: "The lower gravity was under everyone's nose the entire game." },
+    { value: 500, q: "Two Ambidex players are not what they appear: the gentle nurse and the man in the armored suit. What is each of them really?", a: "What is Luna is a GAULEM — a robot — and K is Kyle Klim, Sigma's clone son?", note: "And the game's mastermind, Zero Sr., is Sigma himself, grown old: the player has been the villain's younger self all along." },
+  ]},
+  { category: "Zero Time Dilemma", questions: [
+    { value: 100, q: "The Decision Game opens with this 50/50 gamble — win it, and all nine players walk free immediately.", a: "What is the coin flip?" },
+    { value: 200, q: "Name the three teams of the Decision Game, and the facility where it takes place.", a: "What are C-Team, Q-Team, and D-Team — locked inside Dcom, the Mars mission test site in the Nevada desert?", note: "C for Carlos, Q for... well, that one turns out to be a lie too." },
+    { value: 300, q: "Sweet, affectless Mira has a hobby the other players should worry about. What is she?", a: "What is the Heart Ripper — a serial killer who cuts out her victims' hearts?", note: "Eric dates her anyway. Eric has problems." },
+    { value: 400, q: "The boy in the spherical helmet is called Q. What is he actually, and what is his real name?", a: "What is a robot — an artificial boy named Sean, built by Zero?", note: "The player assumes the helmet hides a face. It hides that there is no face." },
+    { value: 500, q: "Q-Team had a fourth member on camera the entire game. Who, and how did he perceive anything when he could neither see nor hear?", a: "Who is Delta — Zero himself, an old man in a wheelchair the player is never shown — blind and deaf, perceiving everything by reading minds?", note: "The trilogy's most audacious trick: he was in the room for every Q-Team scene, edited out by your own assumptions." },
+  ]},
+  { category: "Recurring Faces", questions: [
+    { value: 100, q: "The childhood friends at the emotional center of the trilogy, reunited in every entry.", a: "Who are Junpei and Akane?" },
+    { value: 200, q: "Clover appears in two of the three games. Name her blind older brother from 999, both his real name and his code name.", a: "Who is Light Field — code name Snake?", note: "The most dangerous person on the Gigantic, politely reading pewter with his fingertips." },
+    { value: 300, q: "Akane did not run the second Nonary Game alone. Her brother's code name in 999, and his role?", a: "What is Santa — Aoi Kurashiki, her older brother and co-conspirator behind Zero?", note: "He spends the whole game complaining about the mission he himself is running." },
+    { value: 400, q: "Sigma and Phi's true relationship, revealed in Zero Time Dilemma?", a: "What is father and daughter — Phi is Sigma and Diana's child, twin sister of Delta, sent into the past as an infant?", note: "Which makes the snarky partner dynamic of VLR retroactively very strange, and the series knows it." },
+    { value: 500, q: "Three games, three masterminds behind the mask. Name all three Zeros, in series order.", a: "Who are Akane Kurashiki (999), the elderly Sigma Klim (Virtue's Last Reward), and Delta, alias Brother (Zero Time Dilemma)?", note: "Each reveal reframes its whole game: the victim, the player, and the man you never saw." },
+  ]},
+  { category: "Rules of the Game", questions: [
+    { value: 100, q: "Every game in the trilogy is hosted by a masked mastermind operating under this alias.", a: "Who is Zero?" },
+    { value: 200, q: "The pseudoscience load-bearing wall of the whole series: minds sharing information across space and time through this.", a: "What is the morphogenetic field?", note: "Transmitters and receivers, resonance under mortal stress — the series' one big ask, borrowed from real fringe science." },
+    { value: 300, q: "Radical-6 does not just kill. What does it do to the infected, and what role does the outbreak play across the trilogy?", a: "What is it drives the infected to suicide — and its pandemic is the apocalypse the espers keep crossing timelines to prevent?", note: "Six billion dead in the history VLR inherits; preventing that history is the entire point of the AB Project and the Decision Game." },
+    { value: 400, q: "SHIFTing is the espers' real power. What does it move, and what is the uncomfortable catch about what happens to the other side?", a: "What is consciousness only — jumping between your own selves across timelines, which means the other you wakes up stranded in the history you abandoned?", note: "Every triumphant escape strands a version of the hero in the timeline that failed." },
+    { value: 500, q: "ZTD's transporter is misnamed. What does the machine actually do, and what family paradox did it make possible?", a: "What is it copies rather than moves — the original stays put — letting Diana and Sigma send duplicates of their newborn twins, Delta and Phi, into the past?", note: "The child grows up to become the mastermind who orchestrates his own conception: the trilogy's cleanest bootstrap loop." },
+  ]},
+];
+
 var BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", icon: "🎌", accent: "#a786df",
     tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
@@ -657,6 +697,12 @@ var BOARDS = [
     final: { category: "The First Chakra",
       q: "Every jutsu in history traces back to this woman — the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
       a: "Who is Kaguya Otsutsuki?" } },
+  { id: "zeroescape", name: "Zero Escape Jeopardy", icon: "9", accent: "#2cb67d",
+    tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously. (Updated 2026-07-03)",
+    textBoard: ZEROESCAPE_TEXT_BOARD,
+    final: { category: "Where It All Began",
+      q: "The entire trilogy pivots on one moment: a 12-year-old girl about to die in this location aboard the Gigantic, saved only by a puzzle her partner solves nine years in the future.",
+      a: "What is the incinerator?" } },
   { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
     tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
     textBoard: WORM_TEXT_BOARD,
