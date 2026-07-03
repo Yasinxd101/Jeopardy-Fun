@@ -576,6 +576,62 @@ var BLEACH_TEXT_BOARD = [
   ]},
 ];
 
+// Naruto board, added 2026-07-03. Mixes all three clue formats: text
+// categories, a Worm-style order-the-events sequence category, and a music
+// category of YouTube clips (validated via oEmbed like the anime board).
+var NARUTO_TEXT_BOARD = [
+  { category: "Village Politics", questions: [
+    { value: 100, q: "This title names the leader of the Hidden Leaf Village.", a: "What is the Hokage?" },
+    { value: 200, q: "Tsunade is a legendary medic, a princess of the Senju — and famous across gambling halls under this unflattering nickname.", a: "What is the Legendary Sucker?", note: "She loses so reliably that when she actually wins, she treats it as an omen of disaster. She's right." },
+    { value: 300, q: "The Uchiha massacre was a sanctioned operation, not a rogue act. Who ordered it, and what single condition did Itachi extract in return?", a: "What is the Leaf's leadership — pushed by Danzo and the village council — in exchange for Sasuke's life being spared?", note: "Hiruzen objected too slowly to matter. Itachi then spent the rest of his life playing the villain to protect the village that used him." },
+    { value: 400, q: "Danzo fights with a stolen arsenal. What is grafted into his right arm, and whose eye sits in his bandaged socket?", a: "What is an arm laced with Hashirama's cells and studded with stolen Sharingan — with Shisui Uchiha's eye in his socket?", note: "Shisui's other eye, and its ultimate genjutsu Kotoamatsukami, is the one Itachi entrusted to a crow." },
+    { value: 500, q: "The Hyuga Affair: after Hiashi killed the Kumo ambassador who tried to kidnap Hinata, Kumo demanded his corpse. Who died in his place, and what detail made the deception work?", a: "Who is Hizashi, his identical twin and Neji's father — whose branch-family curse seal destroyed his Byakugan at death, leaving Kumo nothing to study?", note: "The whole affair is why Neji spends the Chunin Exams lecturing everyone about fate." },
+  ]},
+  { category: "Forbidden & Forgotten Jutsu", questions: [
+    { value: 100, q: "Naruto's signature technique — which he learned by stealing the Scroll of Seals in the very first episode.", a: "What is the Shadow Clone Jutsu (Multi Shadow Clone Jutsu)?", note: "Technically a forbidden technique: the memory feedback and chakra split are dangerous to normal ninja." },
+    { value: 200, q: "The Reaper Death Seal wins any sealing contest, at a price no one pays twice. What is it?", a: "What is the caster's own soul — sealed into the Shinigami's stomach alongside the target's, forever?", note: "Minato paid it to seal the Kyubi; Hiruzen paid it to stop Orochimaru." },
+    { value: 300, q: "Edo Tensei resurrects the dead as unkillable soldiers. Name both ingredients each resurrection requires.", a: "What are a living human sacrifice, and DNA of the person being revived?", note: "The living body becomes the vessel. It is why Kabuto's war army was limited by the remains he could rob." },
+    { value: 400, q: "The Flying Thunder God is Minato's signature — but he did not invent it. Who did, and what two other infamous techniques share the same inventor?", a: "Who is Tobirama Senju, the Second Hokage — also the inventor of Edo Tensei and the Shadow Clone Jutsu?", note: "The most responsible-seeming Hokage quietly invented the series' most abused technique." },
+    { value: 500, q: "Izanagi and Izanami are paired Uchiha eye techniques with the same price. What does each do, and what is that price?", a: "What is Izanagi rewrites the user's own fate (briefly turning injury or death into illusion), Izanami locks a target in a repeating loop until they accept their fate — and each permanently blinds the eye that casts it?", note: "One deceives destiny, the other decides it: Itachi's framing when he uses Izanami on Kabuto." },
+  ]},
+  { category: "Behind the Mask", questions: [
+    { value: 100, q: "The Nine-Tailed Fox sealed inside Naruto has a real name. What is it?", a: "What is Kurama?" },
+    { value: 200, q: "Kakashi is never without his little orange book. Name the series, and its very famous author.", a: "What is Icha Icha (Make-Out Paradise) — written by Jiraiya?", note: "The eulogy detail: Kakashi tells Naruto the sequel's dedication made Jiraiya prouder than any battle." },
+    { value: 300, q: "'Tobi' spent years claiming to be Madara Uchiha. Who was actually under the mask, and what was keeping his broken body alive?", a: "Who is Obito Uchiha — half of his body replaced with Hashirama-cell White Zetsu material after the boulder crushed him at Kannabi Bridge?", note: "The white half is why Kakashi's Chidori through his chest at the bridge changes nothing." },
+    { value: 400, q: "Captain Yamato is the only shinobi alive who can suppress Naruto's tailed-beast state. Why him?", a: "What is he is the sole survivor of Orochimaru's sixty-child experiment to graft Hashirama's Wood Release DNA?", note: "Wood Release is the First Hokage's bloodline — the same power that let Hashirama tame tailed beasts." },
+    { value: 500, q: "The Akatsuki was not founded as a villain squad. Name all three founders and their war-ruined homeland.", a: "Who are Yahiko, Nagato, and Konan — war orphans of Amegakure, the Hidden Rain?", note: "It began as a peace movement by Jiraiya's own students. Every later member is wearing a dead idealist's uniform." },
+  ]},
+  { category: "Order the Timeline", questions: [
+    { value: 100, format: "sequence", q: "Put these in story order, earliest first.",
+      items: ["The Land of Waves mission (Zabuza and Haku)", "The Chunin Exams", "Sasuke defects from the Leaf"],
+      correctOrder: [0, 1, 2], a: "Waves, then the Chunin Exams, then Sasuke's defection",
+      note: "The spine of Part 1, in order." },
+    { value: 200, format: "sequence", q: "Put these in story order, earliest first.",
+      items: ["Naruto leaves to train with Jiraiya", "Gaara is kidnapped by the Akatsuki", "Asuma falls to Hidan"],
+      correctOrder: [0, 1, 2], a: "The training departure, then Gaara's kidnapping, then Asuma's death",
+      note: "End of Part 1, the Kazekage Rescue, then the Akatsuki Suppression arc." },
+    { value: 300, format: "sequence", q: "Put these in story order, earliest first.",
+      items: ["Jiraiya dies fighting Pain", "Itachi dies fighting Sasuke", "Pain levels the Hidden Leaf", "The Five Kage Summit convenes"],
+      correctOrder: [0, 1, 2, 3], a: "Jiraiya, then Itachi, then Pain's assault, then the Summit",
+      note: "The trap is the first two: Jiraiya falls in Amegakure just before Itachi falls to Sasuke." },
+    { value: 400, format: "sequence", q: "Put these war-arc events in story order, earliest first.",
+      items: ["Madara is revived by Edo Tensei", "Tobi is unmasked as Obito", "Neji dies shielding Naruto and Hinata", "The Infinite Tsukuyomi is cast"],
+      correctOrder: [0, 1, 2, 3], a: "Madara revived, then Obito unmasked, then Neji's death, then the Infinite Tsukuyomi",
+      note: "People reliably flip the first two: Edo Madara hits the battlefield well before the mask comes off." },
+    { value: 500, format: "sequence", q: "Now in-universe chronology, not airing order: put these in the order they happened in history, earliest first.",
+      items: ["Hashirama and Madara found the Hidden Leaf", "Their duel at the Valley of the End", "Obito is crushed at Kannabi Bridge", "The Nine-Tails attacks the Leaf", "The Uchiha massacre"],
+      correctOrder: [0, 1, 2, 3, 4], a: "Founding, the Valley duel, Kannabi Bridge, the Nine-Tails attack, the massacre",
+      note: "All of it is told out of order across flashbacks, which is exactly what makes reassembling it hard: the founding era, then the Third War, then Naruto's birth night, then Sasuke's childhood." },
+  ]},
+  { category: "Name That Naruto Tune", questions: [
+    { value: 100, id: "2upuBiEiXDk", q: "Name this Shippuden opening — title, and the arc-defining number it carries.", a: 'What is "Blue Bird" by Ikimonogakari — Shippuden opening 3?', note: "The most famous of them all; the 100 is a warm-up before this category turns cruel." },
+    { value: 200, id: "ScQKD9vS5ag", q: "Name this ending, famous for a dance that outlived the song.", a: 'What is "Bacchikoi!!!" by DEV PARADE — Shippuden ending 8?', note: "The full-cast dance ending. Everyone knows the moves; almost nobody knows the title." },
+    { value: 300, id: "zkPZkup8yhY", q: "Instrumental round: name this battle track, the sound of every Part 1 comeback.", a: 'What is "The Raising Fighting Spirit"?', note: "Be generous with close titles — but the exact name is the flex." },
+    { value: 400, id: "PCfiqY05BpA", q: "One chant, one character. Whose theme is this, and its track name?", a: 'What is "Girei" — Pain\'s theme?', note: "The chanting starts and the whole room says the same name. The track title is the hard half." },
+    { value: 500, id: "EJm-wpvWY3g", q: "Deep cut: name this early ending and its artist.", a: 'What is "Harmonia" by RYTHEM — Naruto ending 2?', note: "From 2003, back when the show ran wind-down acoustic endings nobody rewatched. Genuinely hard." },
+  ]},
+];
+
 var BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", icon: "🎌", accent: "#a786df",
     tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
@@ -595,6 +651,12 @@ var BOARDS = [
     final: { category: "Urahara's Regret",
       q: "Urahara's greatest creation and greatest mistake: this orb senses the hearts around it and makes their deepest desires real, and both he and Aizen buried one inside a soul to hide it.",
       a: "What is the Hogyoku?" } },
+  { id: "naruto", name: "Naruto Jeopardy", icon: "N", accent: "#f25f4c",
+    tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish. (Updated 2026-07-03)",
+    textBoard: NARUTO_TEXT_BOARD,
+    final: { category: "The First Chakra",
+      q: "Every jutsu in history traces back to this woman — the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
+      a: "Who is Kaguya Otsutsuki?" } },
   { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
     tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
     textBoard: WORM_TEXT_BOARD,
