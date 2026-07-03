@@ -3,18 +3,27 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Anime Jeopardy</title>
+<title>Jeopardy Fun</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
-    background: #0b0f24;
+    background:
+      radial-gradient(circle at 50% -20%, rgba(255, 209, 102, 0.06), transparent 50%),
+      #0b0f24;
     color: #fff;
     font-family: system-ui, -apple-system, sans-serif;
   }
-  button { font-family: inherit; }
+  button { font-family: inherit; transition: filter 0.15s ease, transform 0.12s ease; }
+  button:not(:disabled):active { transform: scale(0.97); }
+  button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
   input { font-family: inherit; }
+  input:focus-visible { outline: 2px solid #ffd16688; outline-offset: 1px; }
   a { color: #6a72a8; }
+  @media (hover: hover) {
+    .btn-gold:not(:disabled):hover, .big-gold:not(:disabled):hover,
+    .plus-btn:not(:disabled):hover, .minus-btn:not(:disabled):hover { filter: brightness(1.12); }
+  }
   .wrap {
     min-height: 100vh;
     padding: 64px 16px 32px;
@@ -63,11 +72,21 @@
   .cat-head {
     border-radius: 8px; padding: 8px 4px; text-align: center; font-weight: 800;
     font-size: 11px; min-height: 52px; display: flex; align-items: center; justify-content: center;
+    letter-spacing: 0.3px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
   }
   .tile {
     border: none; border-radius: 8px; padding: 16px 4px; font-weight: 900;
     font-size: 18px; min-height: 56px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    transition: filter 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
   }
+  @media (hover: hover) {
+    .tile:not(:disabled):hover {
+      filter: brightness(1.25);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 209, 102, 0.35) inset;
+    }
+  }
+  .tile:disabled { box-shadow: none; }
   .video-frame {
     position: relative; width: 100%; padding-bottom: 56.25%;
     border-radius: 14px; overflow: hidden; background: #000;
@@ -368,7 +387,23 @@
 
 <script>
 // ===========================================================================
-// ANIME JEOPARDY  (standalone HTML, plain JS, real YouTube embeds)
+// PARTY JEOPARDY  (standalone HTML, plain JS, real YouTube embeds)
+// ---------------------------------------------------------------------------
+// How this file is organized, top to bottom:
+//   1. BOARD DATA        - question sets (ANIME / ONEPIECE / WORM) + BOARDS list
+//   2. APP STATE         - one mutable `state` object drives everything
+//   3. WHEEL DATA        - editable outcome lists for the Wheel of Chaos
+//   4. SOUND             - small generated tones, no audio files
+//   5. GAME ACTIONS      - functions that mutate state, then call render()
+//   6. VIEWS             - view*() functions that return HTML strings
+//   7. RENDER + EVENTS   - render() rebuilds #root; one delegated click
+//                          listener dispatches on [data-action] attributes
+//
+// Clue formats: a question item is { value, q, a, note? }. Optional extras:
+//   format:"alignmentChoice"  - Hero/Villain/Other tap-to-answer buttons
+//   format:"sequence"         - items[] + correctOrder[]; shuffled on open,
+//                               reordered with arrows, graded on reveal
+// A board is { id, name, icon, accent, tagline, textBoard, videoSlots?, final }.
 // ===========================================================================
 
 var ANIME_TEXT_BOARD = [
@@ -442,56 +477,43 @@ var ONEPIECE_TEXT_BOARD = [
   ]},
 ];
 
+// Deep-cut Worm trivia, rebuilt 2026-07-03 from a source-checked reference set.
+// Sourcing caveats live in each clue's note where they apply.
 var WORM_TEXT_BOARD = [
-  { category: "Guess the Cape by Their Power", questions: [
-    { value: 100, q: "He becomes a dragon as the fight drags on.", a: "Who is Lung?", note: "Endless escalation of size, scales, regeneration, and fire the longer combat continues." },
-    { value: 200, q: "His clones crumble to ash seconds after he leaves them.", a: "Who is Oni Lee?", note: "Teleports and leaves an acting ash duplicate that disintegrates after a few seconds. ABB lieutenant." },
-    { value: 300, q: "His real specialty was antigravity, not lasers.", a: "Who is Kid Win?", note: "Spent ages assuming his Tinker focus was guns. It was modular gear and antigravity. Tinker 4." },
-    { value: 400, q: "He pilots a steam-driven body he built himself.", a: "Who is Trainwreck?", note: "A Case-53 Tinker who operates a crude engine-powered metal frame of his own making. Barely appears." },
-    { value: 500, q: "Her telekinesis only turns counter-clockwise.", a: "Who is Whirligig?", note: "A minor Merchant cape whose telekinesis spins debris one way, counter-clockwise, around herself. Deep cut." },
+  { category: "The Golden Man", questions: [
+    { value: 100, q: "Scion spent most of the story taking his orders from an unpowered homeless man in London. Name him.", a: "Who is Kevin Norton?", note: "A nobody the golden man singled out; Norton's offhand instructions quietly steered the world's greatest hero for years." },
+    { value: 200, q: "The name 'Scion' itself is a mishearing. What was he actually saying, and where did he get it?", a: "What is 'Zion'?", note: "Kevin Norton fixated on the name from a story about his childhood cousin; a bystander misheard the repetition as 'Scion,' and it stuck." },
+    { value: 300, q: "Before dying of a blood disease, Norton handed 'the most powerful position in the world' to a young woman. For how much money, and to whom?", a: "What is ten pounds, to Lisette?", note: "Norton, dying, sold his role as Scion's handler to Lisette for a ten-pound note." },
+    { value: 400, q: "Scion breaks Eidolon with one short sentence in their final confrontation. What did he say?", a: "What is 'You needed worthy opponents'?", note: "Four words implying Eidolon's own power created the Endbringers. The line happens off-page in the chapter; the exact wording is Wildbow-confirmed." },
+    { value: 500, q: "Per Bonesaw's analysis, Jack Slash's real power was never the blades. What hidden ability let him read every cape he met, and finally talk Scion into ending the world?", a: "What is his shard's broadcast connection to other parahumans' shards?", note: "Jack's shard quietly communicates with other shards, letting him anticipate and nudge parahumans. Useless against normal humans; decisive against capes, and the exact channel needed to reach Scion." },
   ]},
-  { category: "What's Their Real Name", questions: [
-    { value: 100, q: "The girl who narrates the story.", a: "Who is Taylor Hebert?", note: "Goes by Skitter, then Weaver, then Khepri." },
-    { value: 200, q: "Empire's leader runs a pharmaceutical company by day.", a: "Who is Max Anders?", note: "Leads Empire Eighty-Eight, drawing blades from any surface. Son of the previous leader." },
-    { value: 300, q: "He faked his death to seize the city.", a: "Who is Thomas Calvert?", note: "Operates as Coil. Former PRT field agent turned paid consultant. Skitter kills him in Arc 14." },
-    { value: 400, q: "Regent was one of Heartbreaker's sons.", a: "Who is Jean-Paul Vasil?", note: "Regent, born Jean-Paul Vasil, a son of the master cape Heartbreaker (Nikos Vasil). The lineage is the key." },
-    { value: 500, q: "Hookwolf's name never appears in the actual text.", a: "Who is Brad Meadows?", note: "This name comes only from Wildbow outside the serial, never within it, so it counts as Word-of-God fact." },
+  { category: "Monsters & Warlords", questions: [
+    { value: 100, q: "What was Jamie Rinke's profession before he became Nilbog, and what circumstance triggered him?", a: "What is a banker, who triggered alone in his apartment facing homelessness after being fired?", note: "The goblin king of Ellisburg started as a laid-off banker with no one to turn to." },
+    { value: 200, q: "Glaistig Uaine's real given name, mentioned in the Teneral epilogues, is what?", a: "Who is Ciara?", note: "The Faerie Queen's civilian name only surfaces after the story's climax." },
+    { value: 300, q: "Give Moord Nag's civilian name, translate her cape name and her creature Aasdier's name from Afrikaans, and state what she demanded from Cauldron to fight Scion.", a: "Lou Joubert; 'Murder Night' and 'Scavenger'; she demanded lives — living prisoners to feed her power.", note: "Namibia's warlord priced her help in human beings, and Cauldron paid." },
+    { value: 400, q: "Aasdier grows by consuming corpses. Per the text, how much mass does each corpse add, and how big did it start?", a: "About a tablespoon of mass per body — it started the size of a hand.", note: "Grim arithmetic: a building-sized scavenger beast represents an enormous body count." },
+    { value: 500, q: "The Three Blasphemies are credited with killing which royals — and which royal responded by revealing she had powers?", a: "A king and queen of the Netherlands — Ariane, Princess of Orange, then revealed her powers.", note: "European-lore deep cut from the background material on the Blasphemies' rampages." },
   ]},
-  { category: "What Class Would This Trigger Make", questions: [
-    { value: 100, q: "Danger kept striking from far off.", a: "What is a Blaster?", note: "Distant, ranged, approaching threats bias the shard toward ranged offense." },
-    { value: 200, q: "Cast out and betrayed, they were left utterly alone.", a: "What is a Master?", note: "Isolation, alienation, and betrayal map to control of others. Skitter's locker trigger is the model case." },
-    { value: 300, q: "They fled a childhood family, and the power fires the moment they leave.", a: "What is a Takeoff Mover?", note: "A close, familial relationship driving escape, with the effect produced on departure, is the canonical Takeoff Mover trigger." },
-    { value: 400, q: "Alone, they manifested one monstrous minion shaped from an exaggerated version of themselves.", a: "What is a Throne (Master subtype)?", note: "A Weaver Dice Master subtype: a single powerful minion drawn from the host's ideal self, made monstrous." },
-    { value: 500, q: "Powers themselves warped a relationship in their trigger, leaving them able to pour abilities into minions or vehicles.", a: "What is a Vector (Trump subtype)?", note: "A Weaver Dice Trump subtype: triggered by powers distorting an interpersonal relationship, channeling abilities into minions or vehicles." },
+  { category: "Brockton Bay Case Files", questions: [
+    { value: 100, q: "Name Bitch's original three dogs, and identify which one was a terrier missing an eye and part of an ear.", a: "Who are Brutus, Judas, and Angelica — Angelica is the terrier?", note: "All three named for betrayers, per Rachel's grim sense of humor." },
+    { value: 200, q: "After Skitter's surrender at Arcadia High, Dinah passed Taylor a note. Quote it.", a: "What is 'Cut ties.'?", note: "Two words that sent Taylor to her mother's grave, where she formed the plan that became Weaver." },
+    { value: 300, q: "Battery finally captured Madcap on which numbered encounter, and which Triumvirate member assisted?", a: "What is her eighth attempt, with Legend's help?", note: "Seven straight escapes made Madcap her personal white whale." },
+    { value: 400, q: "When Madcap became Assault, he negotiated exactly two concessions. Name both.", a: "What are a new identity, and being permanently stationed on the same team as Battery?", note: "He turned his own capture into a transfer request next to the hero who caught him." },
+    { value: 500, q: "Three capes were sealed in time-stop when defenders used one of Bakuda's leftover bombs against Leviathan. Name all three.", a: "Who are Dauntless, Alabaster, and Jotun?", note: "Jotun is the one nobody remembers — he barely exists outside this single moment." },
   ]},
-  { category: "Hero, Villain, or Other", questions: [
-    { value: 100, format: "alignmentChoice", q: "A cape who works for the government and patrols the city on assignment.", a: "Hero", note: "A sanctioned Protectorate member is a Hero by the PRT's own labels." },
-    { value: 200, format: "alignmentChoice", q: "He runs an organization in the city and draws metal blades from any surface.", a: "Villain", note: "Kaiser, leading Empire Eighty-Eight. A Villain." },
-    { value: 300, format: "alignmentChoice", q: "An enormous being that appears at intervals, then withdraws.", a: "Other", note: "An Endbringer, filed as Other, outside the hero and villain framework. The neutral wording hides that most assume Villain." },
-    { value: 400, format: "alignmentChoice", q: "A teenager who joined a sanctioned youth team as an alternative to detention.", a: "Hero", note: "Shadow Stalker. Officially a Ward, so labeled Hero, regardless of conduct out of costume. The label is the trick." },
-    { value: 500, format: "alignmentChoice", q: "A secret group that works behind the scenes toward humanity's long-term survival.", a: "Other", note: "Cauldron. A hidden conspiracy outside the hero/villain frame. The neutral phrasing removes any tone clue." },
+  { category: "Origins & Endings", questions: [
+    { value: 100, q: "At the very end of the story, who pulls the trigger on Khepri?", a: "Who is Contessa?", note: "The Path to Victory closes the book; the epilogue implies Taylor wakes powerless on Earth Aleph, with her father." },
+    { value: 200, q: "New Wave's unmasked-heroism movement died with Fleur. Who killed her, and why?", a: "An unpowered street criminal, who murdered her in her civilian identity to earn membership in Empire Eighty-Eight.", note: "One murder ended the accountability movement New Wave was built on." },
+    { value: 300, q: "The first public parahuman died in 1989, ending the Golden Age. Name him, the mundane way he died, and what he was trying to stop.", a: "Who is Vikare — clubbed over the head quelling a basketball riot in Michigan, dying of a brain embolism?", note: "The world's first superhero, killed by a blunt object and bad luck." },
+    { value: 400, q: "Dragon is an artificial intelligence. Name her creator, and how he died.", a: "Who is Andrew Richter, killed when Leviathan sank Newfoundland?", note: "Richter's death left Dragon shackled by his restrictions with no one alive to lift them." },
+    { value: 500, q: "The Number Man's former cape name, and the villain he served under in his youth?", a: "What is Harbinger, of the original Slaughterhouse Nine under King?", note: "Fan archives give his civilian name as Kurt Wynn, but that rests on thinner sourcing; the Harbinger/King history is rock solid." },
   ]},
-  { category: "Order These Events", questions: [
-    { value: 100, format: "sequence", q: "Put these in order, earliest first.",
-      items: ["Taylor's locker trigger", "Leviathan attacks Brockton Bay", "Gold Morning begins"],
-      correctOrder: [0, 1, 2], a: "Locker trigger, then Leviathan, then Gold Morning",
-      note: "Beginning, middle, end. Wide spacing makes it easy." },
-    { value: 200, format: "sequence", q: "Put these in order, earliest first.",
-      items: ["The first Lung fight", "The bank robbery", "The Undersiders become warlords"],
-      correctOrder: [0, 1, 2], a: "Lung fight, then bank robbery, then warlords",
-      note: "Arc 1, then Arc 3, then Arc 11. Clear gaps." },
-    { value: 300, format: "sequence", q: "Put these in order, earliest first.",
-      items: ["Leviathan attacks", "Coil is killed", "Taylor is outed as Skitter", "Taylor kills Alexandria"],
-      correctOrder: [0, 1, 2, 3], a: "Leviathan, Coil dies, outed, kills Alexandria",
-      note: "Arc 8, then 14, then 20, then 22. Four spread-out events." },
-    { value: 400, format: "sequence", q: "Put these in order, earliest first.",
-      items: ["The Slaughterhouse Nine arrive", "The Echidna incident", "The Behemoth fight", "The time-skip"],
-      correctOrder: [0, 1, 2, 3], a: "Nine arrive, Echidna, Behemoth, time-skip",
-      note: "Arc 11, then 19, then 23 to 24, then 25." },
-    { value: 500, format: "sequence", q: "Put these in order, earliest first.",
-      items: ["The Nine pick their candidates", "The cape factions hold a truce meeting", "Shatterbird's citywide glass attack", "The Nine's tests begin", "Grue's second trigger"],
-      correctOrder: [0, 1, 2, 3, 4], a: "Candidates picked, truce meeting, Shatterbird's attack, tests begin, Grue's second trigger",
-      note: "Arc 11, then early Arc 12, then later Arc 12, then Arc 13, then end of Arc 13. The truce meeting precedes Shatterbird's attack within Arc 12. Five tightly packed events, hard to separate but fixed by canon." },
+  { category: "Behind the Serial", questions: [
+    { value: 100, q: "Browbeat is famous for vanishing. What did he actually do in-story, per the text and Wildbow's retcon?", a: "He filed transfer paperwork and left Brockton Bay after Leviathan.", note: "Wildbow retconned him alive after the attack — the fandom's favorite disappearing act." },
+    { value: 200, q: "Browbeat isn't the only one: which member of Taylor's bully trio vanishes from the story after arc 5, drawing the same jokes?", a: "Who is Madison Clements?", note: "Emma and Sophia stay in the plot; Madison simply stops appearing." },
+    { value: 300, q: "On the official cast page, Sleeper's power entry is a Caesar cipher (shift five). What does it decode to?", a: "What is 'As if I'd really put something here. For real.'?", note: "Wildbow added Sleeper after a fan argued that not every character should be explained." },
+    { value: 400, q: "Worm began in 2006 as a draft called Guts & Glory. Who were its rotating protagonists, and what was Panacea's original first name?", a: "Panacea and Glory Girl — Amy was originally named 'Annie.'", note: "The dual-protagonist draft predates Taylor entirely." },
+    { value: 500, q: "Wildbow originally planned the Worm website to host five interweaving serials. Name all five.", a: "Skitter, Guts & Glory, Aegis, Faultline, and Travelers.", note: "Only Skitter's thread became Worm as published; the others survive as characters and arcs inside it." },
   ]},
 ];
 
@@ -509,7 +531,7 @@ var BOARDS = [
       q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
   { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
-    tagline: "Capes, triggers, and Brockton Bay. For readers of the serial. (Updated 2026-06-29)",
+    tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
     textBoard: WORM_TEXT_BOARD, videoSlots: null,
     final: { category: "Deep Cuts",
       q: "A slow, rarely-seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
@@ -561,8 +583,7 @@ var state = {
   wheelRemoved: { chaos: [], success: [], failure: [] },  // segment ids permanently removed per wheel
   wheel: null,            // {activeWheel, stage, targetIndex, segmentId, rotation, triviaQ, showTriviaAnswer, judged, summary, summaryGood, opponentIndex, chainNote}
   chosenAlignment: null,  // selected Hero/Villain/Other choice on an alignmentChoice clue
-  sequence: null,         // {order, submitted} for a board's bonus "order these events" challenge
-  finalChallengeUsed: false,
+  seqOrder: null,         // shuffled item order for a format:"sequence" clue
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -836,8 +857,7 @@ function selectBoard(id) {
   state.lastScoreChange = null;
   state.previewBoardId = null;
   state.menuOpen = false;
-  state.sequence = null;
-  state.finalChallengeUsed = false;
+  state.seqOrder = null;
   state.phase = "board";
   render();
 }
@@ -852,8 +872,7 @@ function switchBoard() {
   state.finalDone = false;
   state.lastScoreChange = null;
   state.previewBoardId = null;
-  state.sequence = null;
-  state.finalChallengeUsed = false;
+  state.seqOrder = null;
   state.phase = "boards";
   render();
 }
@@ -888,8 +907,7 @@ function newPlayers() {
   state.editNameError = "";
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   state.wheel = null;
-  state.sequence = null;
-  state.finalChallengeUsed = false;
+  state.seqOrder = null;
   state.phase = "players";
   render();
 }
@@ -942,36 +960,6 @@ function openWheel() {
   render();
 }
 function closeWheel() { state.wheel = null; render(); }
-function openSequenceChallenge() {
-  var board = currentBoard();
-  if (!board.finalChallenge || state.finalChallengeUsed || state.sequence) return;
-  state.menuOpen = false;
-  var order = board.finalChallenge.items.map(function (_, i) { return i; });
-  for (var i = order.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = order[i]; order[i] = order[j]; order[j] = tmp;
-  }
-  state.sequence = { order: order, submitted: false };
-  render();
-}
-function moveSequenceItem(pos, dir) {
-  if (!state.sequence || state.sequence.submitted) return;
-  var order = state.sequence.order;
-  var swapWith = pos + dir;
-  if (swapWith < 0 || swapWith >= order.length) return;
-  var tmp = order[pos]; order[pos] = order[swapWith]; order[swapWith] = tmp;
-  render();
-}
-function submitSequenceOrder() {
-  if (!state.sequence || state.sequence.submitted) return;
-  state.sequence.submitted = true;
-  render();
-}
-function closeSequenceChallenge() {
-  state.sequence = null;
-  state.finalChallengeUsed = true;
-  render();
-}
 function chooseWheelTarget(mode) {
   if (!state.wheel || state.wheel.stage !== "choose") return;
   var idx = mode === "current" ? state.turn : Math.floor(Math.random() * state.players.length);
@@ -1348,8 +1336,7 @@ function newRound() {
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
-  state.sequence = null;
-  state.finalChallengeUsed = false;
+  state.seqOrder = null;
   state.phase = "board";
   render();
 }
@@ -1420,6 +1407,16 @@ function renderMenu(items) {
 function withUndo(items) {
   if (!state.lastScoreChange) return items;
   return [{ label: "Undo Last Score Change", action: "undoLastScore" }].concat(items);
+}
+// Shared hamburger-menu entries. Pass includeManage:false on screens where the
+// player-management overlay isn't available (e.g. inside an open clue).
+function gameMenuItems(includeManage) {
+  var items = includeManage ? [{ label: "Manage Players", action: "openManagePlayers" }] : [];
+  return items.concat([
+    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
+    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
+    { label: "New Players", action: "confirmNewPlayers" },
+  ]);
 }
 
 function viewBoards() {
@@ -1700,11 +1697,7 @@ function viewClueFooter() {
   return hint + timerBar + revealBlock + scoreBlock + closeBlock;
 }
 function viewQuestionMenu() {
-  return renderMenu(withUndo([
-    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
-    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
-    { label: "New Players", action: "confirmNewPlayers" },
-  ]));
+  return renderMenu(withUndo(gameMenuItems(false)));
 }
 function viewQuestion() {
   if (state.wagering) return viewDailyDoubleWager();
@@ -1762,12 +1755,7 @@ function viewWin() {
     '</div>';
   }).join("");
   var champNames = ranked.filter(function (p) { return p.score === topScore; }).map(function (p) { return p.name; }).join(" & ");
-  var menu = renderMenu(withUndo([
-    { label: "Manage Players", action: "openManagePlayers" },
-    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
-    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
-    { label: "New Players", action: "confirmNewPlayers" },
-  ]));
+  var menu = renderMenu(withUndo(gameMenuItems(true)));
   return menu + '<div class="win-bg"><div class="win-wrap" style="' + (state.menuOpen ? "margin-top:180px;" : "") + '">' +
     '<h1 class="win-title">🏆 Round Over!</h1>' +
     '<p class="win-champ-line">' + esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!") + '</p>' +
@@ -1812,12 +1800,7 @@ function viewBoard() {
     }
   }
 
-  var menu = renderMenu(withUndo([
-    { label: "Manage Players", action: "openManagePlayers" },
-    { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
-    { label: "New Game (Reset Scores)", action: "confirmNewRound" },
-    { label: "New Players", action: "confirmNewPlayers" },
-  ]));
+  var menu = renderMenu(withUndo(gameMenuItems(true)));
 
   return menu + '<div style="min-height:100vh;padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div style="max-width:820px;margin:0 auto">' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
@@ -1827,11 +1810,6 @@ function viewBoard() {
     (state.wheelOfChaosEnabled ?
       '<div style="text-align:center;margin-bottom:14px">' +
         '<button class="btn-gold" style="padding:10px 22px;border-radius:999px" data-action="openWheel">Spin the Wheel of Chaos</button>' +
-      '</div>'
-    : "") +
-    (board.finalChallenge && !state.finalChallengeUsed ?
-      '<div style="text-align:center;margin-bottom:14px">' +
-        '<button class="btn-gold" style="padding:10px 22px;border-radius:999px" data-action="openSequenceChallenge">' + esc(board.finalChallenge.category) + '</button>' +
       '</div>'
     : "") +
     '<div class="board-grid" style="grid-template-columns:repeat(' + categories.length + ',1fr)">' + heads + tiles + '</div>' +
@@ -1968,38 +1946,6 @@ function viewWheelChallengeClue(w, outcome) {
       '<button class="minus-btn wheel-big-btn" data-action="judgeMainChallenge" data-pass="0">Wrong</button>' +
     '</div>';
 }
-function viewSequenceChallenge() {
-  var fc = currentBoard().finalChallenge;
-  var seq = state.sequence;
-  var rows = seq.order.map(function (itemIdx, pos) {
-    var correctPos = fc.correctOrder.indexOf(itemIdx);
-    var statusCls = seq.submitted ? (correctPos === pos ? " sequence-row-correct" : " sequence-row-wrong") : "";
-    var arrows = seq.submitted ? "" :
-      '<div class="sequence-arrows">' +
-        '<button class="sequence-arrow-btn" data-action="moveSequenceItem" data-i="' + pos + '" data-dir="-1"' + (pos === 0 ? " disabled" : "") + '>&#9650;</button>' +
-        '<button class="sequence-arrow-btn" data-action="moveSequenceItem" data-i="' + pos + '" data-dir="1"' + (pos === seq.order.length - 1 ? " disabled" : "") + '>&#9660;</button>' +
-      '</div>';
-    return '<div class="sequence-row' + statusCls + '">' +
-      '<span class="sequence-num">' + (pos + 1) + '</span>' +
-      '<span class="sequence-text">' + esc(fc.items[itemIdx]) + '</span>' +
-      arrows +
-    '</div>';
-  }).join("");
-
-  var actionRow = seq.submitted
-    ? '<button class="big-gold" style="width:100%;padding:18px;font-size:18px;margin-top:18px" data-action="closeSequenceChallenge">Done</button>'
-    : '<button class="big-gold" style="width:100%;padding:18px;font-size:18px;margin-top:18px" data-action="submitSequenceOrder">Lock In Order</button>';
-
-  var resultNote = seq.submitted ? '<p class="answer-note" style="margin-top:14px">' + esc(fc.key || "") + '</p>' : "";
-
-  return '<div class="wheel-screen"><div class="wheel-screen-inner">' +
-    '<p class="muted" style="font-size:15px">' + esc(fc.category) + '</p>' +
-    '<p class="confirm-msg" style="font-size:18px;margin-bottom:14px">' + esc(fc.prompt) + '</p>' +
-    '<div class="sequence-list">' + rows + '</div>' +
-    resultNote +
-    actionRow +
-  '</div></div>';
-}
 function viewWheel() {
   var w = state.wheel;
   if (!w) return "";
@@ -2068,8 +2014,7 @@ function renderConfirm() {
 function render() {
   var root = document.getElementById("root");
   var html;
-  if (state.sequence) html = viewSequenceChallenge();
-  else if (state.wheel) html = viewWheel();
+  if (state.wheel) html = viewWheel();
   else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
@@ -2156,10 +2101,6 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "revealWheelTriviaAnswer") revealWheelTriviaAnswer();
   else if (action === "chooseAlignment") chooseAlignment(t.getAttribute("data-choice"));
   else if (action === "seqMove") seqMove(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
-  else if (action === "openSequenceChallenge") openSequenceChallenge();
-  else if (action === "moveSequenceItem") moveSequenceItem(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
-  else if (action === "submitSequenceOrder") submitSequenceOrder();
-  else if (action === "closeSequenceChallenge") closeSequenceChallenge();
   else if (action === "judgeMainChallenge") judgeMainChallenge(t.getAttribute("data-pass") === "1");
   else if (action === "removeLandedSegment") removeLandedSegment();
   else if (action === "respinWheel") respinWheel();
