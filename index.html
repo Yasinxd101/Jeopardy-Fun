@@ -185,19 +185,75 @@
     color: #ffd166; text-shadow: 0 0 22px rgba(255, 209, 102, 0.45), 0 2px 0 #00000066;
   }
   .boards-subtitle { margin: 8px 0 0; color: #aab0d8; font-size: 15px; font-weight: 600; }
-  .boards-genre-label {
+
+  /* genre tabs: segmented control with a pop on the active pill */
+  .boards-tabs {
+    display: flex; gap: 6px; background: #10142e; border: 1px solid #2a2f55;
+    border-radius: 999px; padding: 5px; margin-bottom: 20px;
+  }
+  .boards-tab {
+    flex: 1; border: none; border-radius: 999px; padding: 11px 6px;
+    font-weight: 800; font-size: 12px; letter-spacing: 1px; cursor: pointer;
+    color: #8b92c0; background: transparent;
+    transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .boards-tab .tab-count { opacity: 0.65; font-size: 11px; margin-left: 3px; }
+  @media (hover: hover) { .boards-tab:not(.boards-tab-active):hover { color: #fff; background: #1a2048; } }
+  .boards-tab-active {
+    background: #ffd166; color: #0b0f24;
+    box-shadow: 0 2px 16px rgba(255, 209, 102, 0.35);
+    animation: tab-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes tab-pop {
+    0% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+  }
+
+  /* cards rise in with a stagger when a tab pulls them up */
+  @keyframes card-rise {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  .board-card.card-rise { animation: card-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+  /* host search: input always visible, results take over the screen */
+  .search-box { position: relative; margin-bottom: 16px; }
+  .search-box .input {
+    background: #10142e; border: 1px solid #2a2f55; padding-right: 40px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .search-box .input:focus { border-color: #ffd166; box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.15); }
+  .search-clear {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 30px; height: 30px; border: none; border-radius: 50%;
+    background: #2a2f55; color: #aab0d8; font-size: 16px; cursor: pointer;
+    display: none; align-items: center; justify-content: center; line-height: 1;
+  }
+  .boards-wrap.searching .search-clear { display: flex; }
+  .search-results-panel { display: none; }
+  .boards-wrap.searching .boards-tabs,
+  .boards-wrap.searching .boards-grid,
+  .boards-wrap.searching .boards-header { display: none; }
+  .boards-wrap.searching .search-results-panel {
+    display: block; animation: card-rise 0.3s ease backwards;
+  }
+  .search-results-title {
     color: #ffd166; font-weight: 900; font-size: 13px; letter-spacing: 2px;
-    margin: 10px 2px 0; opacity: 0.85;
+    margin: 4px 2px 10px;
   }
-  .search-box { margin-bottom: 18px; }
-  .search-box .input { background: #10142e; border: 1px solid #2a2f55; }
   .search-hit {
-    background: #141936; border: 1px solid #2a2f55; border-radius: 10px;
-    padding: 10px 12px; margin-top: 8px; text-align: left;
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: #141936; border: 1px solid #2a2f55; border-left-width: 3px;
+    border-radius: 10px; padding: 10px 12px; margin-top: 8px;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
+  @media (hover: hover) { .search-hit:hover { background: #1a2048; } }
   .search-hit-meta { color: #6a72a8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
   .search-hit-q { color: #fff; font-size: 13px; margin-top: 4px; }
   .search-hit-a { color: #7ee2b0; font-size: 13px; font-weight: 700; margin-top: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .board-card.card-rise, .boards-tab-active, .boards-wrap.searching .search-results-panel { animation: none; }
+  }
   .boards-grid { display: flex; flex-direction: column; gap: 16px; }
   .board-card {
     position: relative; display: flex; align-items: flex-start; gap: 16px;
@@ -816,6 +872,7 @@ var state = {
   chosenAlignment: null,  // selected Hero/Villain/Other choice on an alignmentChoice clue
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
   searchQuery: "",        // host search on the board-select screen
+  boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1531,6 +1588,16 @@ function playVideo() {
     }
   }, 6000);
 }
+function setBoardsTab(genre) {
+  if (genre === activeBoardsTab()) return;
+  sndSelect();
+  state.boardsTab = genre;
+  render();
+}
+function clearSearch() {
+  state.searchQuery = "";
+  render();
+}
 // Back out of an unrevealed question: the tile stays live and the turn does
 // not advance, as if it was never opened.
 function backUnrevealed() {
@@ -1666,8 +1733,9 @@ function gameMenuItems(includeManage) {
   ]);
 }
 
-function boardCardHtml(b) {
-  return '<button class="board-card" style="--accent:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
+function boardCardHtml(b, riseIndex) {
+  var rise = typeof riseIndex === "number";
+  return '<button class="board-card' + (rise ? " card-rise" : "") + '" style="--accent:' + b.accent + (rise ? ';animation-delay:' + (riseIndex * 70) + 'ms' : '') + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
     '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon + '</div>' +
     '<div class="board-card-body">' +
       '<div class="board-card-title">' + esc(b.name) + '</div>' +
@@ -1679,58 +1747,80 @@ function boardCardHtml(b) {
 // Host tool: search every clue and answer across every board.
 function searchResultsHtml() {
   var q = (state.searchQuery || "").trim().toLowerCase();
-  if (q.length < 2) return "";
+  if (q.length < 2) return '<p class="muted" style="margin-top:10px">Type at least two characters.</p>';
   var hits = [];
   BOARDS.forEach(function (b) {
     b.textBoard.forEach(function (col) {
       col.questions.forEach(function (item) {
         var hay = ((item.q || "") + " " + (item.a || "") + " " + (item.note || "")).toLowerCase();
-        if (hay.indexOf(q) !== -1) hits.push({ board: b.name, cat: col.category, item: item });
+        if (hay.indexOf(q) !== -1) hits.push({ board: b, cat: col.category, item: item });
       });
     });
     if (b.final) {
       var fhay = ((b.final.q || "") + " " + (b.final.a || "") + " " + (b.final.category || "")).toLowerCase();
-      if (fhay.indexOf(q) !== -1) hits.push({ board: b.name, cat: "Final: " + b.final.category, item: { value: "", q: b.final.q, a: b.final.a } });
+      if (fhay.indexOf(q) !== -1) hits.push({ board: b, cat: "Final: " + b.final.category, item: { value: "", q: b.final.q, a: b.final.a } });
     }
   });
   if (!hits.length) return '<p class="muted" style="margin-top:10px">No clues match that.</p>';
   var shown = hits.slice(0, 15);
   var rows = shown.map(function (h) {
-    return '<div class="search-hit">' +
-      '<div class="search-hit-meta">' + esc(h.board) + ' &middot; ' + esc(h.cat) + (h.item.value ? ' &middot; ' + h.item.value : '') + '</div>' +
+    return '<button class="search-hit" style="border-left-color:' + h.board.accent + '" data-action="previewBoard" data-id="' + esc(h.board.id) + '">' +
+      '<div class="search-hit-meta">' + esc(h.board.name) + ' &middot; ' + esc(h.cat) + (h.item.value ? ' &middot; ' + h.item.value : '') + '</div>' +
       '<div class="search-hit-q">' + esc(h.item.q || "(video clue)") + '</div>' +
       '<div class="search-hit-a">' + esc(h.item.a) + '</div>' +
-    '</div>';
+    '</button>';
   }).join("");
   var more = hits.length > shown.length ? '<p class="muted" style="margin-top:8px">' + (hits.length - shown.length) + ' more — keep typing to narrow it down.</p>' : "";
   return rows + more;
 }
-function viewBoards() {
-  var genreOrder = [];
+function boardGenres() {
+  var order = [];
   BOARDS.forEach(function (b) {
     var g = b.genre || "Other";
-    if (genreOrder.indexOf(g) === -1) genreOrder.push(g);
+    if (order.indexOf(g) === -1) order.push(g);
   });
-  var sections = genreOrder.map(function (g) {
-    var cards = BOARDS.filter(function (b) { return (b.genre || "Other") === g; }).map(boardCardHtml).join("");
-    return '<div class="boards-genre-label">' + esc(g.toUpperCase()) + '</div>' + cards;
+  return order;
+}
+function activeBoardsTab() {
+  var genres = boardGenres();
+  return genres.indexOf(state.boardsTab) !== -1 ? state.boardsTab : genres[0];
+}
+function viewBoards() {
+  var genres = boardGenres();
+  var activeTab = activeBoardsTab();
+  var searching = (state.searchQuery || "").trim().length >= 2;
+
+  var tabs = genres.map(function (g) {
+    var boardsIn = BOARDS.filter(function (b) { return (b.genre || "Other") === g; });
+    var active = g === activeTab;
+    return '<button class="boards-tab' + (active ? " boards-tab-active" : "") + '" data-action="setBoardsTab" data-genre="' + esc(g) + '">' +
+      esc(g.toUpperCase()) + '<span class="tab-count">' + boardsIn.length + '</span>' +
+    '</button>';
   }).join("");
+
+  var cards = BOARDS.filter(function (b) { return (b.genre || "Other") === activeTab; })
+    .map(function (b, i) { return boardCardHtml(b, i); }).join("");
 
   var menu = renderMenu([
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
-  return menu + '<div class="boards-bg"><div class="boards-wrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title">JEOPARDY</h1>' +
       '<p class="boards-subtitle">Choose a board to start the game</p>' +
     '</div>' +
     '<div class="search-box">' +
       '<input class="input" id="searchInput" placeholder="Host search: find any question or answer..." value="' + esc(state.searchQuery || "") + '" />' +
+      '<button class="search-clear" data-action="clearSearch" aria-label="Clear search">&times;</button>' +
+    '</div>' +
+    '<div class="search-results-panel">' +
+      '<div class="search-results-title">SEARCH RESULTS &middot; ALL BOARDS</div>' +
       '<div id="searchResults">' + searchResultsHtml() + '</div>' +
     '</div>' +
-    '<div class="boards-grid">' + sections + '</div>' +
+    '<div class="boards-tabs">' + tabs + '</div>' +
+    '<div class="boards-grid">' + cards + '</div>' +
   '</div></div>';
 }
 
@@ -2324,11 +2414,13 @@ function render() {
   }
   var searchField = document.getElementById("searchInput");
   if (searchField) {
-    // update results in place so the input keeps focus while typing
+    // update results and toggle search mode in place so the input keeps focus
     searchField.addEventListener("input", function (e) {
       state.searchQuery = e.target.value;
       var resEl = document.getElementById("searchResults");
       if (resEl) resEl.innerHTML = searchResultsHtml();
+      var wrapEl = document.getElementById("boardsWrap");
+      if (wrapEl) wrapEl.classList.toggle("searching", state.searchQuery.trim().length >= 2);
     });
   }
   var wagerField = document.getElementById("wagerInput");
@@ -2369,6 +2461,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
   else if (action === "close") closeQuestion();
   else if (action === "backUnrevealed") backUnrevealed();
+  else if (action === "setBoardsTab") setBoardsTab(t.getAttribute("data-genre"));
+  else if (action === "clearSearch") clearSearch();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
