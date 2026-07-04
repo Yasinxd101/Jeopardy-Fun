@@ -185,6 +185,19 @@
     color: #ffd166; text-shadow: 0 0 22px rgba(255, 209, 102, 0.45), 0 2px 0 #00000066;
   }
   .boards-subtitle { margin: 8px 0 0; color: #aab0d8; font-size: 15px; font-weight: 600; }
+  .boards-genre-label {
+    color: #ffd166; font-weight: 900; font-size: 13px; letter-spacing: 2px;
+    margin: 10px 2px 0; opacity: 0.85;
+  }
+  .search-box { margin-bottom: 18px; }
+  .search-box .input { background: #10142e; border: 1px solid #2a2f55; }
+  .search-hit {
+    background: #141936; border: 1px solid #2a2f55; border-radius: 10px;
+    padding: 10px 12px; margin-top: 8px; text-align: left;
+  }
+  .search-hit-meta { color: #6a72a8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .search-hit-q { color: #fff; font-size: 13px; margin-top: 4px; }
+  .search-hit-a { color: #7ee2b0; font-size: 13px; font-weight: 700; margin-top: 4px; }
   .boards-grid { display: flex; flex-direction: column; gap: 16px; }
   .board-card {
     position: relative; display: flex; align-items: flex-start; gap: 16px;
@@ -672,38 +685,84 @@ var ZEROESCAPE_TEXT_BOARD = [
   ]},
 ];
 
+// Resident Evil 5 board, added 2026-07-03. House style: easy 100s, file-room
+// deep cuts at 500.
+var RE5_TEXT_BOARD = [
+  { category: "Partners in Kijuju", questions: [
+    { value: 100, q: "RE5's two playable partners, a returning S.T.A.R.S. veteran and a BSAA West Africa agent.", a: "Who are Chris Redfield and Sheva Alomar?" },
+    { value: 200, q: "The African town where the whole campaign kicks off, its marketplace turning hostile within minutes.", a: "What is Kijuju?" },
+    { value: 300, q: "Chris isn't in Africa for the mission briefing's reasons. Whose photograph is he really chasing?", a: "Who is Jill Valentine — his partner, presumed dead, glimpsed alive in an intelligence photo?", note: "The BSAA op is a bioweapons bust; Chris's private mission is a ghost hunt." },
+    { value: 400, q: "Sheva's grudge against bio-weapons is personal. What happened to her parents?", a: "What is they died in an Umbrella plant 'accident' — a cover for a bioweapon incident in her homeland?", note: "Her backstory file makes her the African counterpart to Chris's Raccoon City scars." },
+    { value: 500, q: "The BSAA Delta Team captain who keeps saving the leads' lives, mentors Sheva, and co-stars in one of the DLC episodes.", a: "Who is Josh Stone?", note: "He pulls Chris and Sheva out of the fire at least three separate times and flies the final rescue chopper." },
+  ]},
+  { category: "The Uroboros Project", questions: [
+    { value: 100, q: "RE5's main villain, the sunglasses-at-night superhuman with a god complex.", a: "Who is Albert Wesker?" },
+    { value: 200, q: "Wesker's partner in the scheme: name the woman and the pharmaceutical giant she represents.", a: "Who is Excella Gionne, of Tricell?", note: "Tricell bankrolled Uroboros after quietly absorbing what was left of Umbrella's research." },
+    { value: 300, q: "The Uroboros virus is not a weapon of conquest but of selection. What was Wesker's plan for it?", a: "What is releasing it worldwide from a stealth bomber, killing everyone whose DNA was 'unworthy' and evolving the rest?", note: "Judgment by virus: only those who adapt deserve the new world." },
+    { value: 400, q: "The superhuman has a leash. What keeps Wesker's powers stable, and how do Chris and Sheva weaponize it?", a: "What is the serum PG67A/W — required in precise, regular doses; they inject him with an overdose to destabilize him?", note: "Excella controlled the supply, which is why Wesker tolerated her. The final fights begin with a syringe, not a gun." },
+    { value: 500, q: "Wesker was never just one man. Name the eugenics program that created him, and the man who ran it.", a: "What is Project W (the Wesker Project / 'Wesker children') — run under Ozwell E. Spencer?", note: "Hundreds of children, one survivor of note. Spencer's confession, moments before Wesker kills him, is what set the RE5 endgame in motion." },
+  ]},
+  { category: "Majini & Monsters", questions: [
+    { value: 100, q: "RE5's infected are not called zombies or Ganados. What is the local name for them?", a: "What are Majini?", note: "Swahili for 'evil spirit.'" },
+    { value: 200, q: "What is actually inside the Majini, controlling them?", a: "What are Las Plagas parasites — evolved strains of the organism from Resident Evil 4?", note: "Type 2 and Type 3 Plagas, mass-administered to whole settlements." },
+    { value: 300, q: "The first boss: a hulking Majini in an apron who interrupts the public execution with an enormous bladed weapon. Name him.", a: "What is the Executioner Majini?", note: "The giant axeman of the Public Assembly, later a Mercenaries and multiplayer icon." },
+    { value: 400, q: "The insectoid enemies that hatch from cocoons late in the game, kill in one hit, and are best exposed with a flash grenade.", a: "What are Reapers?", note: "The one enemy that makes hoarding flash grenades correct." },
+    { value: 500, q: "The bat-like B.O.W. fought on the dirt road out of the marshlands, with an armored shell and a soft larval underside. Name it.", a: "What is Popokarimu?", note: "A name almost nobody retains — most players remember it only as 'the bat thing from the truck fight.'" },
+  ]},
+  { category: "Mercenaries & Extras", questions: [
+    { value: 100, q: "RE5 was the first mainline Resident Evil built entirely around this way of playing.", a: "What is two-player co-op — the whole campaign, split-screen or online?" },
+    { value: 200, q: "The arcade survival mode that returns from RE4, all combos and time pickups.", a: "What is The Mercenaries?" },
+    { value: 300, q: "The single most famous optional action in the game, performed by Chris against a piece of volcanic terrain.", a: "What is punching a boulder?", note: "A quick-time event in the volcano finale that permanently redefined Chris Redfield's biceps in fandom memory." },
+    { value: 400, q: "Gold Edition added two story episodes. Name both.", a: "What are Lost in Nightmares (Chris and Jill at the Spencer Estate) and Desperate Escape (Jill and Josh's run to the rescue)?" },
+    { value: 500, q: "Lost in Nightmares hides a love letter to 1996: what happens if you examine the mansion's front door area repeatedly?", a: "What is the game switches to classic fixed camera angles, RE1-style?", note: "The estate hallway is already a remake of the original mansion foyer; the easter egg completes the homage." },
+  ]},
+  { category: "Series Connections", questions: [
+    { value: 100, q: "Chris made his debut in the original Resident Evil as a member of this Raccoon City special unit.", a: "What is S.T.A.R.S.?" },
+    { value: 200, q: "The masked, cloaked figure fighting alongside Wesker turns out to be a series legend. Who, and what is the device on her chest?", a: "Who is Jill Valentine — blonde and mind-controlled by the P30 device?", note: "Ripping the device off is a two-player set piece; the battle suit became her signature look for a generation of spin-offs." },
+    { value: 300, q: "Wesker didn't dig Las Plagas out of the ground himself. How does the sample trace back to Resident Evil 4?", a: "What is Ada Wong recovered a Plaga sample during the RE4 events and delivered it to Wesker's organization?", note: "The Separate Ways epilogue is the direct bridge between the two games." },
+    { value: 400, q: "The Spencer Estate incident, shown in flashback: what happened in that study, in order?", a: "What is Wesker murdered Ozwell Spencer just before Chris and Jill arrived — and Jill tackled Wesker through the window, both presumed dead?", note: "One scene closes the Umbrella founder's story, fakes Jill's death, and lights the fuse for all of RE5." },
+    { value: 500, q: "Tricell wasn't born evil. Per the in-game files, name the trading family whose company grew into Tricell, and Excella's connection to it.", a: "What is the Travis family — Travis Trading grew into Tricell, and Excella is a descendant who clawed her way up the family empire?", note: "The files credit a Travis with the exhaustive African survey that later guided Tricell to the Progenitor flower region. Deep file-room lore." },
+  ]},
+];
+
 var BOARDS = [
-  { id: "anime", name: "Anime Music Jeopardy", icon: "🎌", accent: "#a786df",
+  { id: "anime", name: "Anime Music Jeopardy", genre: "Anime", icon: "🎌", accent: "#a786df",
     tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
     textBoard: ANIME_MUSIC_BOARD,
     final: { category: "The Composers",
       q: "This composer's jazz-infused Cowboy Bebop soundtrack, opening with the big-band barnstormer 'Tank!', made her a legend of anime music.",
       a: "Who is Yoko Kanno?" } },
-  { id: "onepiece", name: "One Piece Jeopardy", icon: "🏴‍☠️", accent: "#3da9fc",
+  { id: "onepiece", name: "One Piece Jeopardy", genre: "Anime", icon: "🏴‍☠️", accent: "#3da9fc",
     tagline: "Easy starts, thinker finishes — details you only know if you paid attention. (Updated 2026-07-03)",
     textBoard: ONEPIECE_TEXT_BOARD,
     final: { category: "Grand Line History",
       q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
-  { id: "bleach", name: "Bleach Jeopardy", icon: "B", accent: "#ff8906",
+  { id: "bleach", name: "Bleach Jeopardy", genre: "Anime", icon: "B", accent: "#ff8906",
     tagline: "Soul Reapers, Hollows, and reveals you only caught on a reread. (Updated 2026-07-03)",
     textBoard: BLEACH_TEXT_BOARD,
     final: { category: "Urahara's Regret",
       q: "Urahara's greatest creation and greatest mistake: this orb senses the hearts around it and makes their deepest desires real, and both he and Aizen buried one inside a soul to hide it.",
       a: "What is the Hogyoku?" } },
-  { id: "naruto", name: "Naruto Jeopardy", icon: "N", accent: "#f25f4c",
+  { id: "naruto", name: "Naruto Jeopardy", genre: "Anime", icon: "N", accent: "#f25f4c",
     tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish. (Updated 2026-07-03)",
     textBoard: NARUTO_TEXT_BOARD,
     final: { category: "The First Chakra",
       q: "Every jutsu in history traces back to this woman — the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
       a: "Who is Kaguya Otsutsuki?" } },
-  { id: "zeroescape", name: "Zero Escape Jeopardy", icon: "9", accent: "#2cb67d",
+  { id: "re5", name: "Resident Evil 5 Jeopardy", genre: "Games", icon: "R", accent: "#e04646",
+    tagline: "Kijuju, Uroboros, and boulder-adjacent trivia. Co-op questions, solo answers. (Updated 2026-07-03)",
+    textBoard: RE5_TEXT_BOARD,
+    final: { category: "Complete. Global.",
+      q: "Wesker's endgame in one phrase: the three-word goal he repeats for the worldwide release of Uroboros.",
+      a: "What is Complete Global Saturation?" } },
+  { id: "zeroescape", name: "Zero Escape Jeopardy", genre: "Games", icon: "9", accent: "#2cb67d",
     tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously. (Updated 2026-07-03)",
     textBoard: ZEROESCAPE_TEXT_BOARD,
     final: { category: "Where It All Began",
       q: "The entire trilogy pivots on one moment: a 12-year-old girl about to die in this location aboard the Gigantic, saved only by a puzzle her partner solves nine years in the future.",
       a: "What is the incinerator?" } },
-  { id: "worm", name: "Worm / Parahumans", icon: "W", accent: "#6b7fd7",
+  { id: "worm", name: "Worm / Parahumans", genre: "Web Serials", icon: "W", accent: "#6b7fd7",
     tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
     textBoard: WORM_TEXT_BOARD,
     final: { category: "Deep Cuts",
@@ -756,6 +815,7 @@ var state = {
   wheel: null,            // {activeWheel, stage, targetIndex, segmentId, rotation, triviaQ, showTriviaAnswer, judged, summary, summaryGood, opponentIndex, chainNote}
   chosenAlignment: null,  // selected Hero/Villain/Other choice on an alignmentChoice clue
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
+  searchQuery: "",        // host search on the board-select screen
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1471,6 +1531,22 @@ function playVideo() {
     }
   }, 6000);
 }
+// Back out of an unrevealed question: the tile stays live and the turn does
+// not advance, as if it was never opened.
+function backUnrevealed() {
+  if (state.revealed) return;
+  state.active = null;
+  state.playing = false;
+  state.videoStatus = null;
+  clearVideoLoadTimer();
+  state.chosenAlignment = null;
+  state.wagering = false;
+  state.wager = null;
+  state.wagerInput = "";
+  state.seqOrder = null;
+  state.phase = "board";
+  render();
+}
 function closeQuestion() {
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
@@ -1590,16 +1666,54 @@ function gameMenuItems(includeManage) {
   ]);
 }
 
+function boardCardHtml(b) {
+  return '<button class="board-card" style="--accent:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
+    '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon + '</div>' +
+    '<div class="board-card-body">' +
+      '<div class="board-card-title">' + esc(b.name) + '</div>' +
+      '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
+    '</div>' +
+    '<div class="board-card-cta">PREVIEW &rarr;</div>' +
+  '</button>';
+}
+// Host tool: search every clue and answer across every board.
+function searchResultsHtml() {
+  var q = (state.searchQuery || "").trim().toLowerCase();
+  if (q.length < 2) return "";
+  var hits = [];
+  BOARDS.forEach(function (b) {
+    b.textBoard.forEach(function (col) {
+      col.questions.forEach(function (item) {
+        var hay = ((item.q || "") + " " + (item.a || "") + " " + (item.note || "")).toLowerCase();
+        if (hay.indexOf(q) !== -1) hits.push({ board: b.name, cat: col.category, item: item });
+      });
+    });
+    if (b.final) {
+      var fhay = ((b.final.q || "") + " " + (b.final.a || "") + " " + (b.final.category || "")).toLowerCase();
+      if (fhay.indexOf(q) !== -1) hits.push({ board: b.name, cat: "Final: " + b.final.category, item: { value: "", q: b.final.q, a: b.final.a } });
+    }
+  });
+  if (!hits.length) return '<p class="muted" style="margin-top:10px">No clues match that.</p>';
+  var shown = hits.slice(0, 15);
+  var rows = shown.map(function (h) {
+    return '<div class="search-hit">' +
+      '<div class="search-hit-meta">' + esc(h.board) + ' &middot; ' + esc(h.cat) + (h.item.value ? ' &middot; ' + h.item.value : '') + '</div>' +
+      '<div class="search-hit-q">' + esc(h.item.q || "(video clue)") + '</div>' +
+      '<div class="search-hit-a">' + esc(h.item.a) + '</div>' +
+    '</div>';
+  }).join("");
+  var more = hits.length > shown.length ? '<p class="muted" style="margin-top:8px">' + (hits.length - shown.length) + ' more — keep typing to narrow it down.</p>' : "";
+  return rows + more;
+}
 function viewBoards() {
-  var cards = BOARDS.map(function (b) {
-    return '<button class="board-card" style="--accent:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
-      '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon + '</div>' +
-      '<div class="board-card-body">' +
-        '<div class="board-card-title">' + esc(b.name) + '</div>' +
-        '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
-      '</div>' +
-      '<div class="board-card-cta">PREVIEW &rarr;</div>' +
-    '</button>';
+  var genreOrder = [];
+  BOARDS.forEach(function (b) {
+    var g = b.genre || "Other";
+    if (genreOrder.indexOf(g) === -1) genreOrder.push(g);
+  });
+  var sections = genreOrder.map(function (g) {
+    var cards = BOARDS.filter(function (b) { return (b.genre || "Other") === g; }).map(boardCardHtml).join("");
+    return '<div class="boards-genre-label">' + esc(g.toUpperCase()) + '</div>' + cards;
   }).join("");
 
   var menu = renderMenu([
@@ -1612,7 +1726,11 @@ function viewBoards() {
       '<h1 class="boards-title">JEOPARDY</h1>' +
       '<p class="boards-subtitle">Choose a board to start the game</p>' +
     '</div>' +
-    '<div class="boards-grid">' + cards + '</div>' +
+    '<div class="search-box">' +
+      '<input class="input" id="searchInput" placeholder="Host search: find any question or answer..." value="' + esc(state.searchQuery || "") + '" />' +
+      '<div id="searchResults">' + searchResultsHtml() + '</div>' +
+    '</div>' +
+    '<div class="boards-grid">' + sections + '</div>' +
   '</div></div>';
 }
 
@@ -1715,6 +1833,7 @@ function viewDailyDoubleWager() {
         '<button class="btn-gold" data-action="submitWager">Lock In</button>' +
       '</div>' +
     '</div>' +
+    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>' +
   '</div></div>';
 }
 
@@ -1859,7 +1978,9 @@ function viewClueFooter() {
       '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Tap a player: green adds points, red subtracts.</p>' +
       '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>';
   }
-  var closeBlock = state.revealed ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>' : "";
+  var closeBlock = state.revealed
+    ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>'
+    : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>';
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
@@ -2201,6 +2322,15 @@ function render() {
     nameField.addEventListener("input", function (e) { state.nameInput = e.target.value; });
     nameField.addEventListener("keydown", function (e) { if (e.key === "Enter") addPlayer(); });
   }
+  var searchField = document.getElementById("searchInput");
+  if (searchField) {
+    // update results in place so the input keeps focus while typing
+    searchField.addEventListener("input", function (e) {
+      state.searchQuery = e.target.value;
+      var resEl = document.getElementById("searchResults");
+      if (resEl) resEl.innerHTML = searchResultsHtml();
+    });
+  }
   var wagerField = document.getElementById("wagerInput");
   if (wagerField) {
     wagerField.addEventListener("input", function (e) { state.wagerInput = e.target.value; });
@@ -2238,6 +2368,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "plus") scoreQuestion(+t.getAttribute("data-i"), true);
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
   else if (action === "close") closeQuestion();
+  else if (action === "backUnrevealed") backUnrevealed();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
