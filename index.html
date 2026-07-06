@@ -966,6 +966,9 @@ var state = {
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
   buzzer: { on: false, code: null, status: "off", clients: [], armed: false, winnerName: null, winnerIndex: null },
   buzzClient: null,       // phone side: {stage, code, name, buzzState, lockWinner, msg}
+  match: null,            // {round: 1|2, round1BoardId, round2BoardId} — null = classic single-board game
+  matchPending: null,     // board id chosen as Round 1 while the host picks Round 2
+  dailyDoubleB: null,     // second daily double (Double Jeopardy round only)
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1055,7 +1058,22 @@ function pickDailyDouble(board) {
   return { catKey: catIdx, qIndex: rowIdx };
 }
 function isDailyDoubleTile(catKey, qIndex) {
-  return !!state.dailyDouble && state.dailyDouble.catKey === catKey && state.dailyDouble.qIndex === qIndex;
+  function hit(d) { return !!d && d.catKey === catKey && d.qIndex === qIndex; }
+  return hit(state.dailyDouble) || hit(state.dailyDoubleB);
+}
+// Double Jeopardy round doubles every tile's stake.
+function roundMultiplier() {
+  return state.match && state.match.round === 2 ? 2 : 1;
+}
+// One daily double normally; two distinct ones in the Double Jeopardy round.
+function assignDailyDoubles() {
+  state.dailyDouble = pickDailyDouble(currentBoard());
+  state.dailyDoubleB = null;
+  if (state.match && state.match.round === 2) {
+    do {
+      state.dailyDoubleB = pickDailyDouble(currentBoard());
+    } while (state.dailyDoubleB.catKey === state.dailyDouble.catKey && state.dailyDoubleB.qIndex === state.dailyDouble.qIndex);
+  }
 }
 function isAllUsed() {
   var categories = getCategories();
@@ -1407,12 +1425,14 @@ function removePlayerInGame(i) {
   render();
 }
 function selectBoard(id) {
+  state.match = null;
+  state.matchPending = null;
   state.boardId = id;
   state.used = {};
   state.turn = 0;
   state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
-  state.dailyDouble = pickDailyDouble(currentBoard());
+  assignDailyDoubles();
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
@@ -1422,8 +1442,52 @@ function selectBoard(id) {
   state.phase = "board";
   render();
 }
+// ---- full match (two rounds + final) ----
+function startMatchSetup(id) {
+  state.matchPending = id;
+  state.previewBoardId = null;
+  render();
+}
+function cancelMatchSetup() {
+  state.matchPending = null;
+  render();
+}
+function selectRound2(id) {
+  if (!state.matchPending) return;
+  var round1 = state.matchPending;
+  state.match = { round: 1, round1BoardId: round1, round2BoardId: id };
+  state.matchPending = null;
+  state.boardId = round1;
+  state.used = {};
+  state.turn = 0;
+  state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
+  state.wheelRemoved = { chaos: [], success: [], failure: [] };
+  assignDailyDoubles();
+  state.finalDone = false;
+  state.endSoundPlayed = false;
+  state.lastScoreChange = null;
+  state.previewBoardId = null;
+  state.menuOpen = false;
+  state.seqOrder = null;
+  state.phase = "board";
+  render();
+}
+// Round 1 cleared: scores carry over, values double, two daily doubles.
+function startRound2() {
+  if (!state.match) return;
+  state.match.round = 2;
+  state.boardId = state.match.round2BoardId;
+  state.used = {};
+  state.endSoundPlayed = false;
+  assignDailyDoubles();
+  state.phase = "board";
+  render();
+}
 function switchBoard() {
   state.menuOpen = false;
+  state.match = null;
+  state.matchPending = null;
+  state.dailyDoubleB = null;
   state.boardId = null;
   state.used = {};
   state.turn = 0;
@@ -1439,6 +1503,9 @@ function switchBoard() {
 }
 function newPlayers() {
   state.menuOpen = false;
+  state.match = null;
+  state.matchPending = null;
+  state.dailyDoubleB = null;
   state.players = [];
   state.boardId = null;
   state.turn = 0;
@@ -1750,9 +1817,14 @@ function openQuestion(catKey, qIndex) {
   if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
 }
+// Daily double wager cap: your score or the round's top tile value,
+// whichever is greater - so trailing players can still bet big.
+function ddWagerCap(player) {
+  return Math.max(player.score, 500 * roundMultiplier());
+}
 function submitWager() {
   var player = state.players[state.turn];
-  var cap = Math.max(player.score, 0);
+  var cap = ddWagerCap(player);
   var amt = parseInt(state.wagerInput, 10);
   if (isNaN(amt)) amt = 0;
   amt = Math.max(0, Math.min(amt, cap));
@@ -1765,8 +1837,8 @@ function activeValue() {
   if (!state.active) return 0;
   // Daily double: the tile's base value AND the wager are both at stake —
   // correct earns value + wager, wrong loses value + wager.
-  if (state.wager != null) return questionItem().value + state.wager;
-  return questionItem().value;
+  if (state.wager != null) return questionItem().value * roundMultiplier() + state.wager;
+  return questionItem().value * roundMultiplier();
 }
 function renderOrUpdateClue() {
   if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
@@ -1905,7 +1977,9 @@ function closeQuestion() {
   state.seqOrder = null;
   advanceTurn();
   var board = currentBoard();
-  if (isAllUsed() && board.final && !state.finalDone) {
+  if (isAllUsed() && state.match && state.match.round === 1) {
+    state.phase = "interlude";
+  } else if (isAllUsed() && board.final && !state.finalDone) {
     state.finalStage = "wager";
     state.finalPlayerIndex = 0;
     state.finalWagers = {};
@@ -1923,7 +1997,8 @@ function newRound() {
   state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   state.turn = 0;
-  state.dailyDouble = pickDailyDouble(currentBoard());
+  if (state.match) { state.match.round = 1; state.boardId = state.match.round1BoardId; }
+  assignDailyDoubles();
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
@@ -2115,8 +2190,12 @@ function viewBoards() {
   return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title">JEOPARDY</h1>' +
-      '<p class="boards-subtitle">Choose a board to start the game</p>' +
+      '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
     '</div>' +
+    (state.matchPending ?
+      '<div style="text-align:center;margin-bottom:14px"><span class="buzz-room-chip" style="border-color:#ffd166">Round 1 locked in &middot; ' +
+      '<button data-action="cancelMatchSetup" style="background:none;border:none;color:#ff8aa0;font-weight:800;font-size:13px;cursor:pointer;padding:0">cancel match</button></span></div>'
+    : '') +
     '<div class="search-box">' +
       '<input class="input" id="searchInput" placeholder="Host search: find any question or answer..." value="' + esc(state.searchQuery || "") + '" />' +
       '<button class="search-clear" data-action="clearSearch" aria-label="Clear search">&times;</button>' +
@@ -2154,10 +2233,18 @@ function viewBoardPreview() {
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + catChips.join("") + '</div>' +
       '<p class="lbl" style="display:block;margin-bottom:8px">Final Jeopardy Category</p>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px">' + '<div class="preview-chip" style="border-color:#ffd166;color:#ffd166">' + esc(b.final.category) + '</div>' + '</div>' +
-      '<div style="display:flex;gap:10px;margin-top:22px">' +
-        '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectBoard" data-id="' + esc(b.id) + '">Play This Board</button>' +
-      '</div>' +
+      (state.matchPending ?
+        '<div style="display:flex;gap:10px;margin-top:22px">' +
+          '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
+          '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectRound2" data-id="' + esc(b.id) + '">Set as Round 2 &amp; Start</button>' +
+        '</div>'
+      :
+        '<div style="display:flex;gap:10px;margin-top:22px">' +
+          '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
+          '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectBoard" data-id="' + esc(b.id) + '">Play This Board</button>' +
+        '</div>' +
+        '<button class="big-gold" style="background:#3da9fc;color:#04203a;font-size:15px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Full Match: Round 1 here, then pick Round 2</button>'
+      ) +
     '</div>' +
   '</div></div>';
 }
@@ -2220,6 +2307,28 @@ function viewPlayers() {
   '</div></div>';
 }
 
+// Between rounds of a full match: standings, then on to Double Jeopardy.
+function viewInterlude() {
+  var ranked = state.players.slice().sort(function (a, b) { return b.score - a.score; });
+  var rows = ranked.map(function (p, idx) {
+    return '<div class="win-row' + (idx === 0 ? " win-row-champ" : "") + '">' +
+      '<span class="win-rank">' + (idx + 1) + '.</span>' +
+      '<span class="dot" style="background:' + p.color + '"></span>' +
+      '<span class="win-name">' + esc(p.name) + '</span>' +
+      '<span class="win-score">' + p.score + '</span>' +
+    '</div>';
+  }).join("");
+  var r2 = BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0];
+  return '<div class="win-bg"><div class="win-wrap">' +
+    '<h1 class="win-title">ROUND 1 COMPLETE</h1>' +
+    '<p class="win-champ-line">Next up: ' + esc(r2 ? r2.name : "Round 2") + ' &mdash; every clue worth double, with two Daily Doubles hiding on the board.</p>' +
+    '<div class="win-board">' + rows + '</div>' +
+    '<div class="win-actions">' +
+      '<button class="big-gold" style="margin-top:0" data-action="startRound2">Start Double Jeopardy</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
 // Phone-side buzzer screens: join form, then the full-screen buzz pad.
 function viewBuzzer() {
   var bc = state.buzzClient || { stage: "join", code: "", name: "", msg: "" };
@@ -2253,7 +2362,7 @@ function viewBuzzer() {
 
 function viewDailyDoubleWager() {
   var player = state.players[state.turn];
-  var cap = Math.max(player.score, 0);
+  var cap = ddWagerCap(player);
   var menu = renderMenu([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
@@ -2261,8 +2370,8 @@ function viewDailyDoubleWager() {
   ]);
   return menu + '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title" style="font-size:32px">DAILY DOUBLE!</h1>' +
-    '<p class="sub">' + esc(player.name) + ', the tile\'s ' + questionItem().value + ' points are already on the line — your wager stacks on top. ' +
-      'Right earns ' + questionItem().value + ' plus your wager; wrong loses both. Wager 0 to ' + cap + '.</p>' +
+    '<p class="sub">' + esc(player.name) + ', the tile\'s ' + (questionItem().value * roundMultiplier()) + ' points are already on the line — your wager stacks on top. ' +
+      'Right earns ' + (questionItem().value * roundMultiplier()) + ' plus your wager; wrong loses both. Wager 0 to ' + cap + '.</p>' +
     '<div class="card">' +
       '<label class="lbl">Your wager (0 &ndash; ' + cap + ')</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
@@ -2452,7 +2561,7 @@ function viewQuestion() {
   var ddBanner = "";
   if (isDailyDoubleTile(state.active.catKey, state.active.qIndex) && state.wager != null) {
     ddBanner = '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE &middot; ' +
-      questionItem().value + ' + ' + state.wager + ' WAGERED = ' + value + ' AT STAKE</div>';
+      (questionItem().value * roundMultiplier()) + ' + ' + state.wager + ' WAGERED = ' + value + ' AT STAKE</div>';
   }
 
   return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + stageBackdropHtml() +
@@ -2539,7 +2648,7 @@ function viewBoard() {
       var isVideoTile = !!col.questions[row].id;
       var key = ci + "-" + row;
       var isUsed = !!state.used[key];
-      var val = col.questions[row].value;
+      var val = col.questions[row].value * roundMultiplier();
       var bgc = isUsed ? "#10142e" : (isVideoTile ? "#3a1d3f" : "#1d2455");
       var fgc = isUsed ? "#2a2f55" : gold;
       tiles += '<button class="tile" style="background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
@@ -2555,6 +2664,11 @@ function viewBoard() {
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(state.players[state.turn].name) + "'s pick" +
     '</div>' +
+    (state.match ?
+      '<div style="text-align:center;margin-bottom:10px"><span class="buzz-room-chip" style="border-color:#ffd166;color:#ffd166;font-weight:900">' +
+        (state.match.round === 2 ? 'DOUBLE JEOPARDY &middot; ALL VALUES &times;2' : 'FULL MATCH &middot; ROUND 1 OF 2') +
+      '</span></div>'
+    : "") +
     (state.buzzer.on ?
       '<div style="text-align:center;margin-bottom:14px"><span class="buzz-room-chip">Buzzer room' +
         ' <span class="buzz-room-code">' + esc(state.buzzer.code || "") + '</span> &middot; ' +
@@ -2770,6 +2884,7 @@ function render() {
   var html;
   if (state.wheel) html = viewWheel();
   else if (state.phase === "buzzer") html = viewBuzzer();
+  else if (state.phase === "interlude") html = viewInterlude();
   else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
@@ -2853,6 +2968,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "sendBuzz") sendBuzz();
   else if (action === "leaveBuzzer") leaveBuzzer();
   else if (action === "clearBuzz") clearBuzz();
+  else if (action === "startMatchSetup") startMatchSetup(t.getAttribute("data-id"));
+  else if (action === "cancelMatchSetup") cancelMatchSetup();
+  else if (action === "selectRound2") selectRound2(t.getAttribute("data-id"));
+  else if (action === "startRound2") startRound2();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
