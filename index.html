@@ -1540,7 +1540,9 @@ function submitWager() {
 }
 function activeValue() {
   if (!state.active) return 0;
-  if (state.wager != null) return state.wager;
+  // Daily double: the tile's base value AND the wager are both at stake —
+  // correct earns value + wager, wrong loses value + wager.
+  if (state.wager != null) return questionItem().value + state.wager;
   return questionItem().value;
 }
 function renderOrUpdateClue() {
@@ -1995,7 +1997,8 @@ function viewDailyDoubleWager() {
   ]);
   return menu + '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title" style="font-size:32px">DAILY DOUBLE!</h1>' +
-    '<p class="sub">' + esc(player.name) + ', wager any amount from 0 up to ' + cap + '.</p>' +
+    '<p class="sub">' + esc(player.name) + ', the tile\'s ' + questionItem().value + ' points are already on the line — your wager stacks on top. ' +
+      'Right earns ' + questionItem().value + ' plus your wager; wrong loses both. Wager 0 to ' + cap + '.</p>' +
     '<div class="card">' +
       '<label class="lbl">Your wager (0 &ndash; ' + cap + ')</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
@@ -2170,7 +2173,11 @@ function viewQuestion() {
   var board = currentBoard();
   var value = activeValue();
   var catName = board.textBoard[state.active.catKey].category;
-  var ddBanner = isDailyDoubleTile(state.active.catKey, state.active.qIndex) ? '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE WAGER: ' + value + '</div>' : "";
+  var ddBanner = "";
+  if (isDailyDoubleTile(state.active.catKey, state.active.qIndex) && state.wager != null) {
+    ddBanner = '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:13px;letter-spacing:1px;margin-bottom:6px">DAILY DOUBLE &middot; ' +
+      questionItem().value + ' + ' + state.wager + ' WAGERED = ' + value + ' AT STAKE</div>';
+  }
 
   return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + stageBackdropHtml() +
     '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
