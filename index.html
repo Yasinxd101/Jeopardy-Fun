@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Jeopardy Fun</title>
+<script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -331,6 +332,46 @@
     animation: card-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
   @media (prefers-reduced-motion: reduce) { .clue-img, .answer-art { animation: none; } }
+
+  /* phone buzzer: host banner + full-screen buzz pad */
+  .buzz-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: #3a2f8f; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 12px;
+    padding: 10px 14px; font-weight: 800; margin-bottom: 12px;
+    animation: card-rise 0.25s ease;
+  }
+  .buzz-waiting { background: #161b3d; color: #8b92c0; font-weight: 700; justify-content: center; }
+  .buzz-clear {
+    border: none; border-radius: 8px; background: #ff5470; color: #2a0410;
+    font-weight: 800; padding: 8px 10px; cursor: pointer; font-size: 12px; flex-shrink: 0;
+  }
+  .row-buzzed { outline: 2px solid #ffd166; box-shadow: 0 0 14px rgba(255, 209, 102, 0.35); }
+  .buzz-room-chip {
+    display: inline-flex; align-items: center; gap: 8px; background: #161b3d;
+    border: 1px solid #2a2f55; border-radius: 999px; padding: 6px 14px;
+    font-size: 13px; font-weight: 700; color: #aab0d8;
+  }
+  .buzz-room-code { color: #ffd166; font-weight: 900; letter-spacing: 3px; }
+  .buzz-pad {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px; padding: 24px;
+  }
+  .buzz-btn {
+    width: min(78vw, 340px); height: min(78vw, 340px); border-radius: 50%;
+    border: none; background: #2a2f55; color: #8b92c0;
+    font-size: 34px; font-weight: 900; letter-spacing: 1px; cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.2s ease;
+    -webkit-user-select: none; user-select: none; touch-action: manipulation;
+  }
+  .buzz-btn:not(:disabled):active { transform: scale(0.95); }
+  .buzz-armed {
+    background: #ffd166; color: #0b0f24;
+    box-shadow: 0 0 70px rgba(255, 209, 102, 0.55);
+    animation: video-hint-pulse 1.2s ease-in-out infinite;
+  }
+  .buzz-won { background: #2cb67d; color: #04210f; }
+  .buzz-locked { background: #ff5470; color: #2a0410; font-size: 20px; padding: 0 18px; }
+  @media (prefers-reduced-motion: reduce) { .buzz-armed, .buzz-banner { animation: none; } }
 
   /* ---- confirmation dialog ---- */
   .confirm-overlay {
@@ -923,6 +964,8 @@ var state = {
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
   searchQuery: "",        // host search on the board-select screen
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
+  buzzer: { on: false, code: null, status: "off", clients: [], armed: false, winnerName: null, winnerIndex: null },
+  buzzClient: null,       // phone side: {stage, code, name, buzzState, lockWinner, msg}
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1100,6 +1143,184 @@ function tickScoreDisplay(elId, from, to) {
     }
   }
   requestAnimationFrame(step);
+}
+
+// ---- phone buzzers (PeerJS over its free public broker; optional, fails soft) ----
+// Networking objects live outside `state` so render() stays purely serializable.
+var hostPeer = null, hostConns = [];
+var clientPeer = null, clientConn = null;
+var BUZZ_PREFIX = "jeopardy-fun-";
+function buzzerAvailable() { return typeof window.Peer === "function"; }
+function sndBuzz() { beep(880, 0.12, "square", 0.2); setTimeout(function () { beep(1174.66, 0.18, "square", 0.18); }, 90); }
+function makeRoomCode() {
+  var chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  var c = "";
+  for (var i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+function playerIndexByName(name) {
+  var n = String(name).toLowerCase();
+  for (var i = 0; i < state.players.length; i++) if (state.players[i].name.toLowerCase() === n) return i;
+  return -1;
+}
+function toggleBuzzerRoom() {
+  if (state.buzzer.on) stopBuzzerRoom(); else startBuzzerRoom();
+}
+function startBuzzerRoom() {
+  if (!buzzerAvailable()) { state.buzzer.status = "unavailable"; render(); return; }
+  var code = makeRoomCode();
+  state.buzzer.on = true;
+  state.buzzer.code = code;
+  state.buzzer.status = "starting";
+  state.buzzer.clients = [];
+  state.buzzer.armed = false;
+  state.buzzer.winnerName = null;
+  state.buzzer.winnerIndex = null;
+  render();
+  try { hostPeer = new Peer(BUZZ_PREFIX + code); }
+  catch (e) { state.buzzer.status = "error"; render(); return; }
+  hostPeer.on("open", function () {
+    if (state.buzzer.on) { state.buzzer.status = "open"; render(); }
+  });
+  hostPeer.on("connection", function (conn) {
+    conn.on("data", function (d) { handleBuzzerData(conn, d); });
+    conn.on("close", function () { dropBuzzerConn(conn); });
+    conn.on("error", function () { dropBuzzerConn(conn); });
+  });
+  hostPeer.on("error", function (err) {
+    if (err && err.type === "unavailable-id" && state.buzzer.on) { stopBuzzerRoom(); startBuzzerRoom(); return; }
+    if (state.buzzer.on) { state.buzzer.status = "error"; render(); }
+  });
+  hostPeer.on("disconnected", function () {
+    if (hostPeer && state.buzzer.on) { try { hostPeer.reconnect(); } catch (e) {} }
+  });
+}
+function stopBuzzerRoom() {
+  state.buzzer.on = false;
+  state.buzzer.status = "off";
+  state.buzzer.code = null;
+  state.buzzer.clients = [];
+  state.buzzer.armed = false;
+  state.buzzer.winnerName = null;
+  state.buzzer.winnerIndex = null;
+  hostConns = [];
+  if (hostPeer) { try { hostPeer.destroy(); } catch (e) {} hostPeer = null; }
+  render();
+}
+function broadcastBuzzer(msg) {
+  hostConns.forEach(function (c) { try { c.send(msg); } catch (e) {} });
+}
+function handleBuzzerData(conn, d) {
+  if (!d || !state.buzzer.on) return;
+  if (d.type === "hello") {
+    conn.buzzName = String(d.name || "Player").slice(0, 14);
+    if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
+    var idx = playerIndexByName(conn.buzzName);
+    if (idx === -1 && state.players.length < 6) {
+      state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), immune: false, skipNextTurn: false });
+      idx = state.players.length - 1;
+    }
+    conn.playerIndex = idx;
+    if (state.buzzer.clients.indexOf(conn.buzzName) === -1) state.buzzer.clients.push(conn.buzzName);
+    try { conn.send({ type: "joined", room: state.buzzer.code, armed: state.buzzer.armed && state.buzzer.winnerName == null }); } catch (e) {}
+    renderOrUpdateClue();
+  } else if (d.type === "buzz") {
+    if (!state.buzzer.armed || state.buzzer.winnerName != null) return;
+    state.buzzer.winnerName = conn.buzzName || "Player";
+    state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
+    sndBuzz();
+    broadcastBuzzer({ type: "lockout", winner: state.buzzer.winnerName });
+    try { conn.send({ type: "youwon" }); } catch (e) {}
+    renderOrUpdateClue();
+  }
+}
+function dropBuzzerConn(conn) {
+  var i = hostConns.indexOf(conn);
+  if (i !== -1) hostConns.splice(i, 1);
+  if (conn.buzzName) {
+    var j = state.buzzer.clients.indexOf(conn.buzzName);
+    if (j !== -1) state.buzzer.clients.splice(j, 1);
+  }
+  renderOrUpdateClue();
+}
+function armBuzzers() {
+  if (!state.buzzer.on) return;
+  state.buzzer.armed = true;
+  state.buzzer.winnerName = null;
+  state.buzzer.winnerIndex = null;
+  broadcastBuzzer({ type: "arm" });
+}
+function disarmBuzzers(keepWinner) {
+  if (!state.buzzer.on) return;
+  state.buzzer.armed = false;
+  if (!keepWinner) { state.buzzer.winnerName = null; state.buzzer.winnerIndex = null; }
+  broadcastBuzzer({ type: "disarm" });
+}
+// Host judged the buzz wrong: reopen buzzing for everyone else.
+function clearBuzz() {
+  if (!state.buzzer.on) return;
+  state.buzzer.winnerName = null;
+  state.buzzer.winnerIndex = null;
+  state.buzzer.armed = true;
+  broadcastBuzzer({ type: "arm" });
+  renderOrUpdateClue();
+}
+
+// phone side
+function openBuzzerJoin() {
+  state.buzzClient = { stage: "join", code: "", name: "", buzzState: "idle", lockWinner: "", msg: "" };
+  state.phase = "buzzer";
+  render();
+}
+function leaveBuzzer() {
+  if (clientConn) { try { clientConn.close(); } catch (e) {} clientConn = null; }
+  if (clientPeer) { try { clientPeer.destroy(); } catch (e) {} clientPeer = null; }
+  state.buzzClient = null;
+  state.phase = "players";
+  render();
+}
+function submitBuzzerJoin() {
+  var bc = state.buzzClient;
+  if (!bc || bc.stage === "connecting") return;
+  bc.code = (bc.code || "").trim().toUpperCase();
+  bc.name = (bc.name || "").trim();
+  if (bc.code.length !== 4 || !bc.name) { bc.msg = "Enter the 4-letter room code and your name."; render(); return; }
+  if (!buzzerAvailable()) { bc.msg = "The buzzer service failed to load. Check your connection and refresh."; render(); return; }
+  bc.stage = "connecting";
+  bc.msg = "";
+  render();
+  try { clientPeer = new Peer(); }
+  catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
+  clientPeer.on("open", function () {
+    clientConn = clientPeer.connect(BUZZ_PREFIX + bc.code);
+    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name }); });
+    clientConn.on("data", function (d) { handleClientData(d); });
+    clientConn.on("close", function () {
+      if (state.buzzClient) { state.buzzClient.stage = "join"; state.buzzClient.msg = "Disconnected from the room."; render(); }
+    });
+  });
+  clientPeer.on("error", function (err) {
+    if (state.buzzClient && state.buzzClient.stage !== "ready") {
+      state.buzzClient.stage = "join";
+      state.buzzClient.msg = err && err.type === "peer-unavailable" ? "No room found with that code." : "Connection error — try again.";
+      render();
+    }
+  });
+}
+function handleClientData(d) {
+  var bc = state.buzzClient;
+  if (!bc || !d) return;
+  if (d.type === "joined") { bc.stage = "ready"; bc.buzzState = d.armed ? "armed" : "idle"; }
+  else if (d.type === "arm") { bc.buzzState = "armed"; bc.lockWinner = ""; }
+  else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
+  else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
+  else if (d.type === "youwon") { bc.buzzState = "won"; }
+  render();
+}
+function sendBuzz() {
+  var bc = state.buzzClient;
+  if (!bc || bc.stage !== "ready" || bc.buzzState !== "armed") return;
+  if (clientConn) { try { clientConn.send({ type: "buzz" }); } catch (e) {} }
 }
 
 // ---- actions ----
@@ -1526,6 +1747,7 @@ function openQuestion(catKey, qIndex) {
     }
     state.seqOrder = seqOrder;
   }
+  if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
 }
 function submitWager() {
@@ -1536,6 +1758,7 @@ function submitWager() {
   amt = Math.max(0, Math.min(amt, cap));
   state.wager = amt;
   state.wagering = false;
+  armBuzzers();
   render();
 }
 function activeValue() {
@@ -1584,7 +1807,7 @@ function advanceTurn() {
   }
   state.turn = next;
 }
-function reveal() { sndReveal(); state.revealed = true; renderOrUpdateClue(); }
+function reveal() { sndReveal(); state.revealed = true; disarmBuzzers(true); renderOrUpdateClue(); }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
 var activeYtPlayer = null;
 var ytReadyQueue = [];
@@ -1654,6 +1877,7 @@ function clearSearch() {
 // not advance, as if it was never opened.
 function backUnrevealed() {
   if (state.revealed) return;
+  disarmBuzzers(false);
   state.active = null;
   state.playing = false;
   state.videoStatus = null;
@@ -1667,6 +1891,7 @@ function backUnrevealed() {
   render();
 }
 function closeQuestion() {
+  disarmBuzzers(false);
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
   state.revealed = false;
@@ -1980,9 +2205,48 @@ function viewPlayers() {
             '<span style="font-weight:700;font-size:14px">Wheel of Chaos</span>' +
             '<span style="font-weight:800;font-size:13px;color:' + (state.wheelOfChaosEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.wheelOfChaosEnabled ? "ON" : "OFF") + '</span>' +
           '</button>' +
+          '<button data-action="toggleBuzzerRoom" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
+            '<span style="font-weight:700;font-size:14px">Phone Buzzer Room</span>' +
+            '<span style="font-weight:800;font-size:13px;color:' + (state.buzzer.on ? "#7ee2b0" : "#6a72a8") + '">' +
+              (state.buzzer.on ? "ROOM " + esc(state.buzzer.code || "") :
+                state.buzzer.status === "unavailable" || !buzzerAvailable() ? "UNAVAILABLE" : "OFF") +
+            '</span>' +
+          '</button>' +
         '</div>'
       : "") +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
+      '<p class="muted" style="margin-top:14px"><button data-action="openBuzzerJoin" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">On your phone? Join a buzzer room instead</button></p>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// Phone-side buzzer screens: join form, then the full-screen buzz pad.
+function viewBuzzer() {
+  var bc = state.buzzClient || { stage: "join", code: "", name: "", msg: "" };
+  if (bc.stage === "ready") {
+    var cls = "buzz-btn", label = "WAIT&hellip;";
+    if (bc.buzzState === "armed") { cls += " buzz-armed"; label = "BUZZ!"; }
+    else if (bc.buzzState === "won") { cls += " buzz-won"; label = "YOU'RE IN!"; }
+    else if (bc.buzzState === "locked") { cls += " buzz-locked"; label = esc(bc.lockWinner || "Someone") + " got it"; }
+    return '<div class="buzz-pad">' +
+      '<span class="buzz-room-chip">Room <span class="buzz-room-code">' + esc(bc.code) + '</span> &middot; ' + esc(bc.name) + '</span>' +
+      '<button class="' + cls + '" data-action="sendBuzz">' + label + '</button>' +
+      '<p class="muted" style="margin:0">' + (bc.buzzState === "armed" ? "Tap the moment you know it!" : "The button lights up when a question opens.") + '</p>' +
+      '<button class="confirm-btn-cancel" style="padding:12px 22px" data-action="leaveBuzzer">Leave Room</button>' +
+    '</div>';
+  }
+  var connecting = bc.stage === "connecting";
+  return '<div class="wrap"><div class="inner" style="max-width:420px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:34px">BUZZ IN</h1>' +
+    '<p class="sub">Enter the room code shown on the host screen.</p>' +
+    '<div class="card">' +
+      '<label class="lbl">Room code</label>' +
+      '<input class="input" id="buzzCodeInput" maxlength="4" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:6px;font-weight:900;text-align:center" value="' + esc(bc.code) + '"' + (connecting ? " disabled" : "") + ' />' +
+      '<label class="lbl" style="display:block;margin-top:12px">Your name</label>' +
+      '<input class="input" id="buzzNameInput" placeholder="Same name as on the host screen" value="' + esc(bc.name) + '"' + (connecting ? " disabled" : "") + ' />' +
+      (bc.msg ? '<p class="err">' + esc(bc.msg) + '</p>' : '') +
+      '<button class="big-gold" data-action="submitBuzzerJoin"' + (connecting ? " disabled" : "") + '>' + (connecting ? "Connecting&hellip;" : "Join Room") + '</button>' +
+      '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -2141,10 +2405,22 @@ function viewClueFooter() {
       '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="toggleAnswer">Hide Answer</button>';
   }
 
+  // phone buzzer banner: who buzzed in, or "armed" while waiting
+  var buzzBlock = "";
+  if (state.buzzer.on) {
+    if (state.buzzer.winnerName) {
+      buzzBlock = '<div class="buzz-banner"><span>' + esc(state.buzzer.winnerName) + ' buzzed in!</span>' +
+        (!state.revealed ? '<button class="buzz-clear" data-action="clearBuzz">Wrong &mdash; reopen buzzers</button>' : '') +
+      '</div>';
+    } else if (state.buzzer.armed && !state.revealed) {
+      buzzBlock = '<div class="buzz-banner buzz-waiting">Buzzers armed &mdash; waiting for a buzz&hellip;</div>';
+    }
+  }
+
   var scoreBlock = "";
   if (state.revealed && !state.answerHidden) {
     var rows = state.players.map(function (p, i) {
-      return '<div class="row-item">' +
+      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
         '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
         '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
@@ -2163,7 +2439,7 @@ function viewClueFooter() {
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
-  return hint + timerBar + revealBlock + scoreBlock + closeBlock;
+  return buzzBlock + hint + timerBar + revealBlock + scoreBlock + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -2279,6 +2555,12 @@ function viewBoard() {
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(state.players[state.turn].name) + "'s pick" +
     '</div>' +
+    (state.buzzer.on ?
+      '<div style="text-align:center;margin-bottom:14px"><span class="buzz-room-chip">Buzzer room' +
+        ' <span class="buzz-room-code">' + esc(state.buzzer.code || "") + '</span> &middot; ' +
+        (state.buzzer.status === "open" ? state.buzzer.clients.length + ' connected' : esc(state.buzzer.status)) +
+      '</span></div>'
+    : "") +
     (state.wheelOfChaosEnabled ?
       '<div style="text-align:center;margin-bottom:14px">' +
         '<button class="btn-gold" style="padding:10px 22px;border-radius:999px" data-action="openWheel">Spin the Wheel of Chaos</button>' +
@@ -2487,6 +2769,7 @@ function render() {
   var root = document.getElementById("root");
   var html;
   if (state.wheel) html = viewWheel();
+  else if (state.phase === "buzzer") html = viewBuzzer();
   else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
@@ -2503,6 +2786,15 @@ function render() {
   if (nameField) {
     nameField.addEventListener("input", function (e) { state.nameInput = e.target.value; });
     nameField.addEventListener("keydown", function (e) { if (e.key === "Enter") addPlayer(); });
+  }
+  var buzzCodeField = document.getElementById("buzzCodeInput");
+  if (buzzCodeField) {
+    buzzCodeField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.code = e.target.value; });
+  }
+  var buzzNameField = document.getElementById("buzzNameInput");
+  if (buzzNameField) {
+    buzzNameField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.name = e.target.value; });
+    buzzNameField.addEventListener("keydown", function (e) { if (e.key === "Enter") submitBuzzerJoin(); });
   }
   var searchField = document.getElementById("searchInput");
   if (searchField) {
@@ -2555,6 +2847,12 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "backUnrevealed") backUnrevealed();
   else if (action === "setBoardsTab") setBoardsTab(t.getAttribute("data-genre"));
   else if (action === "clearSearch") clearSearch();
+  else if (action === "toggleBuzzerRoom") toggleBuzzerRoom();
+  else if (action === "openBuzzerJoin") openBuzzerJoin();
+  else if (action === "submitBuzzerJoin") submitBuzzerJoin();
+  else if (action === "sendBuzz") sendBuzz();
+  else if (action === "leaveBuzzer") leaveBuzzer();
+  else if (action === "clearBuzz") clearBuzz();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
