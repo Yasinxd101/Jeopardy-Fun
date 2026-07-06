@@ -1341,6 +1341,105 @@ function sendBuzz() {
   if (clientConn) { try { clientConn.send({ type: "buzz" }); } catch (e) {} }
 }
 
+// ---- save/resume + match history (localStorage; private-mode safe) ----
+var JF_SAVE_KEY = "jf.save.v1";
+var JF_HISTORY_KEY = "jf.history.v1";
+function jfRead(key, fallback) {
+  try {
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function jfWrite(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+}
+function jfRemove(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+// Persist the durable slice of an in-progress game (board-level only; open
+// clues, videos, and wheel spins are transient and not restored).
+function saveGameSnapshot() {
+  var inGame = state.boardId && !state.finalDone &&
+    (state.phase === "board" || state.phase === "question" || state.phase === "interlude");
+  if (!inGame) return;
+  jfWrite(JF_SAVE_KEY, {
+    v: 1,
+    at: Date.now(),
+    boardId: state.boardId,
+    used: state.used,
+    turn: state.turn,
+    players: state.players.map(function (p) { return { name: p.name, score: p.score, color: p.color, immune: !!p.immune, skipNextTurn: !!p.skipNextTurn }; }),
+    match: state.match,
+    dailyDouble: state.dailyDouble,
+    dailyDoubleB: state.dailyDoubleB,
+    timerEnabled: state.timerEnabled,
+    timerDuration: state.timerDuration,
+    muted: state.muted,
+    wheelOfChaosEnabled: state.wheelOfChaosEnabled,
+    wheelRemoved: state.wheelRemoved,
+  });
+}
+function savedGame() {
+  var s = jfRead(JF_SAVE_KEY, null);
+  return s && s.v === 1 && s.boardId && s.players && s.players.length ? s : null;
+}
+function discardSave() {
+  jfRemove(JF_SAVE_KEY);
+  render();
+}
+function resumeGame() {
+  var s = savedGame();
+  if (!s) { render(); return; }
+  var boardOk = BOARDS.some(function (b) { return b.id === s.boardId; });
+  if (!boardOk) { discardSave(); return; }
+  state.boardId = s.boardId;
+  state.used = s.used || {};
+  state.turn = s.turn || 0;
+  state.players = s.players;
+  state.match = s.match || null;
+  state.dailyDouble = s.dailyDouble || null;
+  state.dailyDoubleB = s.dailyDoubleB || null;
+  state.timerEnabled = !!s.timerEnabled;
+  state.timerDuration = s.timerDuration || 20;
+  state.muted = !!s.muted;
+  state.wheelOfChaosEnabled = !!s.wheelOfChaosEnabled;
+  state.wheelRemoved = s.wheelRemoved || { chaos: [], success: [], failure: [] };
+  state.finalDone = false;
+  state.endSoundPlayed = false;
+  state.lastScoreChange = null;
+  state.phase = "board";
+  render();
+}
+function recordMatchHistory() {
+  function nameOf(id) {
+    var b = BOARDS.filter(function (x) { return x.id === id; })[0];
+    return b ? b.name : String(id);
+  }
+  var boardNames = state.match
+    ? [nameOf(state.match.round1BoardId), nameOf(state.match.round2BoardId)]
+    : [nameOf(state.boardId)];
+  var top = Math.max.apply(null, state.players.map(function (p) { return p.score; }));
+  var rec = {
+    at: Date.now(),
+    boards: boardNames,
+    players: state.players.map(function (p) { return { name: p.name, score: p.score }; }),
+    winners: state.players.filter(function (p) { return p.score === top; }).map(function (p) { return p.name; }),
+  };
+  var hist = jfRead(JF_HISTORY_KEY, []);
+  hist.unshift(rec);
+  if (hist.length > 100) hist = hist.slice(0, 100);
+  jfWrite(JF_HISTORY_KEY, hist);
+}
+function openStats() {
+  state.menuOpen = false;
+  state.phase = "stats";
+  render();
+}
+function closeStats() {
+  state.phase = state.boardId ? "board" : "players";
+  render();
+}
+
 // ---- actions ----
 function toggleMenu() {
   state.menuOpen = !state.menuOpen;
@@ -2036,6 +2135,8 @@ function markFinal(i, correct) {
 }
 function finishFinal() {
   state.finalDone = true;
+  recordMatchHistory();
+  jfRemove(JF_SAVE_KEY);
   state.phase = "board";
   render();
 }
@@ -2078,6 +2179,7 @@ function withUndo(items) {
 // player-management overlay isn't available (e.g. inside an open clue).
 function gameMenuItems(includeManage) {
   var items = includeManage ? [{ label: "Manage Players", action: "openManagePlayers" }] : [];
+  items.push({ label: "Stats & History", action: "openStats" });
   return items.concat([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
     { label: "New Game (Reset Scores)", action: "confirmNewRound" },
@@ -2259,9 +2361,27 @@ function viewPlayers() {
   }).join("");
   if (!state.players.length) playerRows = '<p class="muted">No players yet. Add up to 6.</p>';
 
+  var save = savedGame();
+  var resumeCard = "";
+  if (save) {
+    var doneTiles = Object.keys(save.used || {}).length;
+    var saveBoard = BOARDS.filter(function (b) { return b.id === save.boardId; })[0];
+    resumeCard = '<div class="card" style="margin-bottom:14px;border:1px solid rgba(255,209,102,0.45)">' +
+      '<p style="margin:0 0 4px;font-weight:900;color:#ffd166;font-size:14px;letter-spacing:1px">GAME IN PROGRESS</p>' +
+      '<p style="margin:0;color:#aab0d8;font-size:13px">' + esc(saveBoard ? saveBoard.name : save.boardId) +
+        (save.match ? ' &middot; round ' + save.match.round + ' of 2' : '') +
+        ' &middot; ' + doneTiles + '/25 tiles &middot; ' +
+        save.players.map(function (p) { return esc(p.name) + ' ' + p.score; }).join(', ') + '</p>' +
+      '<div style="display:flex;gap:10px;margin-top:12px">' +
+        '<button class="confirm-btn-cancel" style="flex:1" data-action="discardSave">Discard</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0" data-action="resumeGame">Resume</button>' +
+      '</div>' +
+    '</div>';
+  }
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title">JEOPARDY</h1>' +
     '<p class="sub">Add players, then pick a board to play.</p>' +
+    resumeCard +
     '<div class="card">' +
       '<label class="lbl">Player name</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
@@ -2302,7 +2422,61 @@ function viewPlayers() {
         '</div>'
       : "") +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
-      '<p class="muted" style="margin-top:14px"><button data-action="openBuzzerJoin" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">On your phone? Join a buzzer room instead</button></p>' +
+      '<p class="muted" style="margin-top:14px">' +
+        '<button data-action="openBuzzerJoin" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">On your phone? Join a buzzer room instead</button>' +
+        ' &middot; <button data-action="openStats" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
+      '</p>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// All-time stats and recent matches, aggregated from local history.
+function viewStats() {
+  var hist = jfRead(JF_HISTORY_KEY, []);
+  var agg = {};
+  hist.forEach(function (m) {
+    m.players.forEach(function (p) {
+      var k = p.name.toLowerCase();
+      if (!agg[k]) agg[k] = { name: p.name, games: 0, wins: 0, points: 0, best: -Infinity };
+      agg[k].games++;
+      agg[k].points += p.score;
+      if (p.score > agg[k].best) agg[k].best = p.score;
+      if (m.winners.some(function (w) { return w.toLowerCase() === k; })) agg[k].wins++;
+    });
+  });
+  var players = Object.keys(agg).map(function (k) { return agg[k]; })
+    .sort(function (a, b) { return b.wins - a.wins || b.points - a.points; });
+
+  var playerRows = players.map(function (p, i) {
+    return '<div class="row-item">' +
+      '<span style="font-weight:900;color:#6a72a8;min-width:20px">' + (i + 1) + '.</span>' +
+      '<span style="flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
+      '<span style="color:#aab0d8;font-size:12px;font-weight:700">' + p.wins + 'W / ' + p.games + 'G</span>' +
+      '<span style="color:#7ee2b0;font-size:12px;font-weight:800;min-width:70px;text-align:right">best ' + p.best + '</span>' +
+    '</div>';
+  }).join("");
+  if (!players.length) playerRows = '<p class="muted">No finished games yet. Stats appear after your first Final Jeopardy.</p>';
+
+  var matchRows = hist.slice(0, 12).map(function (m) {
+    var d = new Date(m.at);
+    var when = (d.getMonth() + 1) + "/" + d.getDate();
+    return '<div class="search-hit" style="cursor:default;border-left-color:#ffd166">' +
+      '<div class="search-hit-meta">' + when + ' &middot; ' + esc(m.boards.join(" + ")) + '</div>' +
+      '<div class="search-hit-q">' + m.players.map(function (p) { return esc(p.name) + ' ' + p.score; }).join(' &middot; ') + '</div>' +
+      '<div class="search-hit-a">Winner: ' + esc(m.winners.join(" & ")) + '</div>' +
+    '</div>';
+  }).join("");
+  if (!matchRows) matchRows = '<p class="muted">Match history shows up here.</p>';
+
+  return '<div class="wrap"><div class="inner" style="max-width:520px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:34px">STATS &amp; HISTORY</h1>' +
+    '<p class="sub">All-time records on this device.</p>' +
+    '<div class="card">' +
+      '<p class="lbl" style="display:block;margin-bottom:10px">LEADERBOARD</p>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
+      '<p class="lbl" style="display:block;margin:18px 0 4px">RECENT MATCHES</p>' +
+      matchRows +
+      '<button class="big-gold" data-action="closeStats">Back</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -2885,6 +3059,7 @@ function render() {
   if (state.wheel) html = viewWheel();
   else if (state.phase === "buzzer") html = viewBuzzer();
   else if (state.phase === "interlude") html = viewInterlude();
+  else if (state.phase === "stats") html = viewStats();
   else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
@@ -2896,6 +3071,7 @@ function render() {
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
   root.innerHTML = html + renderConfirm();
+  saveGameSnapshot();
 
   var nameField = document.getElementById("nameInput");
   if (nameField) {
@@ -2972,6 +3148,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "cancelMatchSetup") cancelMatchSetup();
   else if (action === "selectRound2") selectRound2(t.getAttribute("data-id"));
   else if (action === "startRound2") startRound2();
+  else if (action === "resumeGame") resumeGame();
+  else if (action === "discardSave") discardSave();
+  else if (action === "openStats") openStats();
+  else if (action === "closeStats") closeStats();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
