@@ -394,6 +394,12 @@
     font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px;
   }
   .board-card-create { border-style: dashed; border-left-width: 1px; justify-content: center; }
+  .my-import-row { text-align: center; margin-top: 16px; }
+  .my-import-link {
+    display: inline-block; background: none; border: none; color: #8b92c0;
+    font-weight: 800; font-size: 12px; cursor: pointer; text-decoration: underline;
+    padding: 6px; font-family: inherit; margin-top: 10px;
+  }
   .board-card-create .board-card-icon { font-size: 30px; color: #ffd166; font-weight: 900; }
 
   /* ---- confirmation dialog ---- */
@@ -946,7 +952,11 @@ var FAN_BOARDS = [];
 var BOARDS = BUILTIN_BOARDS.slice();
 function customBoards() {
   var list = jfRead("jf.myboards.v1", []);
-  return Array.isArray(list) ? list.filter(isValidBoard) : [];
+  if (!Array.isArray(list)) return [];
+  return list.filter(isValidBoard).map(function (b) {
+    b.genre = "My Boards"; // stored boards always live under this tab
+    return b;
+  });
 }
 function rebuildBoards() {
   BOARDS = BUILTIN_BOARDS.concat(FAN_BOARDS).concat(customBoards());
@@ -975,7 +985,7 @@ function loadFanBoards() {
         return b;
       });
       rebuildBoards();
-      if (state.phase === "boards") render();
+      if (state.phase === "boards" || state.phase === "players") render();
     })
     .catch(function () {});
 }
@@ -1034,6 +1044,7 @@ var state = {
   dailyDoubleB: null,     // second daily double (Double Jeopardy round only)
   builder: null,          // {draft, catIndex, error, shareUrl} while editing a custom board
   importPrompt: null,     // a board decoded from a #b= share link, awaiting accept
+  importFileMsg: "",      // result line after importing a board JSON file
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1568,6 +1579,7 @@ function cleanDraft(d) {
     });
   });
   if (!out.art) delete out.art;
+  if (!out.icon) out.icon = (out.name || "?").trim().charAt(0).toUpperCase() || "?";
   out.genre = "My Boards";
   return out;
 }
@@ -1608,6 +1620,65 @@ function shareBuilder() {
   } catch (e) { state.builder.error = "Could not build a share link."; }
   render();
 }
+function copyShareUrl() {
+  if (!state.builder || !state.builder.shareUrl) return;
+  var mark = function () {
+    if (!state.builder) return;
+    state.builder.copied = true;
+    render();
+    setTimeout(function () {
+      if (state.builder && state.builder.copied) { state.builder.copied = false; render(); }
+    }, 1600);
+  };
+  var fallback = function () {
+    var el = document.getElementById("shareUrlInput");
+    if (!el) return;
+    el.select();
+    try { document.execCommand("copy"); mark(); } catch (e) {}
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(state.builder.shareUrl).then(mark, fallback);
+  } else fallback();
+}
+// JSON backup: download the current draft, or restore a board from a file.
+function exportBuilderJson() {
+  if (!state.builder) return;
+  var d = cleanDraft(state.builder.draft);
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }));
+  a.download = ((d.name || "board").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "board") + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+}
+function importBoardFile(file) {
+  var reader = new FileReader();
+  reader.onload = function () {
+    var msg;
+    try {
+      var b = JSON.parse(reader.result);
+      if (isValidBoard(b)) {
+        b.genre = "My Boards";
+        if (!b.icon) b.icon = (b.name || "?").trim().charAt(0).toUpperCase() || "?";
+        if (!/^custom-/.test(String(b.id || ""))) b.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var list = jfRead(JF_MYBOARDS_KEY, []);
+        if (!Array.isArray(list)) list = [];
+        var at = list.map(function (x) { return x.id; }).indexOf(b.id);
+        if (at === -1) list.push(b); else list[at] = b;
+        jfWrite(JF_MYBOARDS_KEY, list);
+        rebuildBoards();
+        msg = 'Imported "' + b.name + '".';
+      } else {
+        msg = "That file is not a complete board (5 categories, 25 clues, and a Final).";
+      }
+    } catch (e) { msg = "Could not read that file as board JSON."; }
+    state.importFileMsg = msg;
+    state.boardsTab = "My Boards";
+    render();
+  };
+  reader.readAsText(file);
+}
 // On load, a #b= hash offers to import a shared board.
 function checkSharedBoardInUrl() {
   var h = location.hash || "";
@@ -1627,7 +1698,8 @@ function acceptSharedBoard() {
   if (!/^custom-/.test(board.id)) board.id = "custom-" + Date.now().toString(36);
   var list = jfRead(JF_MYBOARDS_KEY, []);
   if (!Array.isArray(list)) list = [];
-  if (list.map(function (b) { return b.id; }).indexOf(board.id) === -1) list.push(board);
+  var at = list.map(function (b) { return b.id; }).indexOf(board.id);
+  if (at === -1) list.push(board); else list[at] = board; // re-import updates the copy
   jfWrite(JF_MYBOARDS_KEY, list);
   rebuildBoards();
   state.importPrompt = null;
@@ -2235,6 +2307,7 @@ function setBoardsTab(genre) {
   if (genre === activeBoardsTab()) return;
   sndSelect();
   state.boardsTab = genre;
+  state.importFileMsg = "";
   render();
 }
 function clearSearch() {
@@ -2395,7 +2468,7 @@ function boardCardHtml(b, riseIndex) {
   var rise = typeof riseIndex === "number";
   // Art is hotlinked from official CDNs; if an image fails to load, the
   // onerror handler hides it and the plain icon card shows through.
-  var iconBox = '<div class="board-card-icon board-card-artwrap' + (b.art ? ' has-art' : '') + '" style="background:' + hexToRgba(b.accent, 0.18) + '">' + b.icon +
+  var iconBox = '<div class="board-card-icon board-card-artwrap' + (b.art ? ' has-art' : '') + '" style="background:' + hexToRgba(b.accent, 0.18) + '">' + (b.icon || (b.name || "?").charAt(0).toUpperCase()) +
     (b.art ? '<img class="board-card-art" src="' + esc(b.art) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
   '</div>';
   var backdrop = b.art ? '<img class="board-card-bg" src="' + esc(b.art) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '';
@@ -2531,6 +2604,14 @@ function viewBoards() {
     '</div>' +
     '<div class="boards-tabs">' + tabs + '</div>' +
     '<div class="boards-grid">' + cards + '</div>' +
+    (isMyBoards ?
+      '<div class="my-import-row">' +
+        '<label class="my-import-link">Import a board from a JSON backup' +
+          '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
+        '</label>' +
+        (state.importFileMsg ? '<p class="muted" style="margin-top:6px">' + esc(state.importFileMsg) + '</p>' : '') +
+      '</div>'
+    : '') +
   '</div></div>';
 }
 
@@ -2548,7 +2629,7 @@ function viewBoardPreview() {
     '<div class="card">' +
       (b.art ? '<div class="preview-art-wrap"><img class="preview-art" src="' + esc(b.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;"></div>' : '') +
       '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
-        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + b.accent + '">' + b.icon + '</div>' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + b.accent + '">' + (b.icon || (b.name || "?").charAt(0).toUpperCase()) + '</div>' +
         '<div>' +
           '<div style="font-size:20px;font-weight:900;color:#fff">' + esc(b.name) + '</div>' +
           '<div style="font-size:13px;color:#aab0d8;margin-top:2px">' + esc(b.tagline) + '</div>' +
@@ -2760,7 +2841,10 @@ function viewBuilder() {
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
       (bd.shareUrl ?
         '<div style="margin-top:14px"><label class="lbl">Share link (copy and send it)</label>' +
-          '<input class="input" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px" />' +
+          '<div style="display:flex;gap:8px;align-items:stretch">' +
+            '<input class="input" id="shareUrlInput" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px;flex:1;min-width:0" />' +
+            '<button class="confirm-btn-cancel" style="white-space:nowrap;padding:0 14px" data-action="copyShareUrl">' + (bd.copied ? "Copied!" : "Copy") + '</button>' +
+          '</div>' +
           '<p class="muted" style="text-align:left;margin-top:6px">To submit it to the Fan Boards tab, send this link to the game owner.</p></div>'
       : '') +
 
@@ -2769,6 +2853,7 @@ function viewBuilder() {
         '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="shareBuilder">Share Link</button>' +
         '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveBuilder">Save Board</button>' +
       '</div>' +
+      '<button class="my-import-link" data-action="exportBuilderJson">Download this board as a JSON backup</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -3425,6 +3510,10 @@ document.getElementById("root").addEventListener("input", function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
 });
+document.getElementById("root").addEventListener("change", function (e) {
+  var t = e.target;
+  if (t && t.id === "importBoardFile" && t.files && t.files[0]) importBoardFile(t.files[0]);
+});
 
 document.getElementById("root").addEventListener("click", function (e) {
   var t = e.target.closest("[data-action]");
@@ -3467,6 +3556,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderSelectCat") builderSelectCat(+t.getAttribute("data-i"));
   else if (action === "saveBuilder") saveBuilder();
   else if (action === "shareBuilder") shareBuilder();
+  else if (action === "copyShareUrl") copyShareUrl();
+  else if (action === "exportBuilderJson") exportBuilderJson();
   else if (action === "deleteCustomBoard") askConfirm("Delete this custom board? A saved share link can bring it back.", "deleteCustomBoard", t.getAttribute("data-id"));
   else if (action === "acceptSharedBoard") acceptSharedBoard();
   else if (action === "dismissSharedBoard") dismissSharedBoard();
