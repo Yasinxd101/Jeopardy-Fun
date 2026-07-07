@@ -508,6 +508,20 @@
   }
   .chip-fx-good { background: rgba(126, 226, 176, 0.25); color: #0b3d26; }
   .chip-fx-bad { background: rgba(255, 84, 112, 0.3); color: #4a0917; }
+  .clip-vol-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 12px;
+    background: rgba(13, 18, 48, 0.8); border-radius: 10px; padding: 8px 12px;
+  }
+  .clip-vol-row span { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
+  .clip-vol-row input { flex: 1; }
+  .recent-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; justify-content: center; }
+  .recent-label { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
+  .recent-chip {
+    background: #161b3d; border: 1px solid #2a2f55; border-radius: 999px;
+    padding: 6px 12px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
+    max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .recent-surprise { color: #ffd166; border-color: rgba(255, 209, 102, 0.6); }
   .my-import-row { text-align: center; margin-top: 16px; }
   .my-import-link {
     display: inline-block; background: none; border: none; color: #8b92c0;
@@ -1197,11 +1211,15 @@ var state = {
   finalWagerInput: "",
   finalResults: {},
   muted: false,
+  volume: 1,            // master sound volume 0..1
+  clipVolume: 40,       // YouTube clip volume 0..100
+  scoreHistory: [],     // last 10 score changes for multi step undo
   endSoundPlayed: false,
   lastScoreChange: null,  // {playerIndex, delta, finalReset}
   previewBoardId: null,
   managePlayers: false,
   editingPlayerIndex: null,
+  editingScoreIndex: null,
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
@@ -1343,7 +1361,7 @@ function getAudioCtx() {
   return audioCtx;
 }
 function beep(freq, duration, type, volume) {
-  if (state.muted) return;
+  if (state.muted || state.volume <= 0) return;
   try {
     var ctx = getAudioCtx();
     var detuned = freq * (0.97 + Math.random() * 0.06);
@@ -1351,7 +1369,7 @@ function beep(freq, duration, type, volume) {
     var gain = ctx.createGain();
     osc.type = type || "sine";
     osc.frequency.value = detuned;
-    gain.gain.value = volume || 0.15;
+    gain.gain.value = (volume || 0.15) * state.volume;
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
@@ -1881,6 +1899,7 @@ function resumeGame() {
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.phase = "board";
   render();
 }
@@ -2194,6 +2213,27 @@ function confirmRemovePlayerInGame(i) {
   if (!p) return;
   askConfirm("Remove " + p.name + "? Their score and progress in this round will be lost.", "removePlayerInGame", i);
 }
+function adjScore(i, d) {
+  var pl = state.players[i];
+  if (!pl) return;
+  pl.score += d;
+  recordScore(i, d);
+  render();
+}
+function startEditScore(i) { state.editingScoreIndex = i; state.editingPlayerIndex = null; render(); }
+function cancelScoreEdit() { state.editingScoreIndex = null; render(); }
+function saveScoreEdit(i) {
+  var pl = state.players[i];
+  var el = document.getElementById("editScoreInput");
+  if (!pl || !el) { state.editingScoreIndex = null; render(); return; }
+  var v = parseInt(el.value, 10);
+  if (!isNaN(v) && v !== pl.score) {
+    recordScore(i, v - pl.score);
+    pl.score = v;
+  }
+  state.editingScoreIndex = null;
+  render();
+}
 function clearEffect(i, fx) {
   var p = state.players[i];
   if (!p) return;
@@ -2214,12 +2254,24 @@ function removePlayerInGame(i) {
   if (!state.players.length) { state.turn = 0; }
   else { state.turn = state.turn % state.players.length; }
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.editingPlayerIndex = null;
   state.editNameInput = "";
   state.editNameError = "";
   render();
 }
+function recordRecent(id) {
+  var rec = jfRead("jf.recent.v1", []).filter(function (x) { return x !== id; });
+  rec.unshift(id);
+  jfWrite("jf.recent.v1", rec.slice(0, 6));
+}
+function surpriseMe() {
+  var pool = BOARDS.filter(function (b) { return !b.adult; });
+  if (!pool.length) return;
+  previewBoard(pool[Math.floor(Math.random() * pool.length)].id);
+}
 function selectBoard(id) {
+  recordRecent(id);
   state.match = null;
   state.matchPending = null;
   state.boardId = id;
@@ -2231,6 +2283,7 @@ function selectBoard(id) {
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
@@ -2261,6 +2314,7 @@ function selectRound2(id) {
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
@@ -2270,6 +2324,7 @@ function selectRound2(id) {
 // Round 1 cleared: scores carry over, values double, two daily doubles.
 function startRound2() {
   if (!state.match) return;
+  recordRecent(state.match.round2BoardId);
   state.match.round = 2;
   state.boardId = state.match.round2BoardId;
   state.used = {};
@@ -2291,6 +2346,7 @@ function switchBoard() {
   state.dailyDouble = null;
   state.finalDone = false;
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.previewBoardId = null;
   state.seqOrder = null;
   state.phase = "boards";
@@ -2325,6 +2381,7 @@ function newPlayers() {
   state.finalWagerInput = "";
   state.finalResults = {};
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.previewBoardId = null;
   state.managePlayers = false;
   state.editingPlayerIndex = null;
@@ -2341,7 +2398,20 @@ function adjustTimerDuration(delta) {
   state.timerDuration = Math.max(5, Math.min(120, state.timerDuration + delta));
   render();
 }
-function toggleMute() { state.muted = !state.muted; render(); }
+function toggleMute() { state.muted = !state.muted; jfSaveSettings(); render(); }
+function jfSaveSettings() {
+  jfWrite("jf.settings.v1", { volume: state.volume, clipVolume: state.clipVolume, muted: state.muted });
+}
+function loadSettings() {
+  var s0 = jfRead("jf.settings.v1", null);
+  if (!s0) return;
+  if (typeof s0.volume === "number") state.volume = Math.max(0, Math.min(1, s0.volume));
+  if (typeof s0.clipVolume === "number") state.clipVolume = Math.max(0, Math.min(100, s0.clipVolume));
+  state.muted = !!s0.muted;
+}
+function applyClipVolume() {
+  if (activeYtPlayer && activeYtPlayer.setVolume) { try { activeYtPlayer.setVolume(state.clipVolume); } catch (e) {} }
+}
 function toggleSettings() { state.settingsOpen = !state.settingsOpen; render(); }
 function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; render(); }
 
@@ -2548,6 +2618,7 @@ function landActiveWheel() {
     if (outcome.trivia === "board") w.triviaQ = boardRecallQuestion();
     else if (outcome.trivia) w.triviaQ = BONUS_TRIVIA[Math.floor(Math.random() * BONUS_TRIVIA.length)];
   } else {
+    recordScoreSnapshot();
     applyWheelEffect(outcome);
     w.judged = true;
   }
@@ -2671,26 +2742,42 @@ function renderOrUpdateClue() {
   if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
   else render();
 }
+function recordScore(i, delta, finalReset) {
+  state.scoreHistory.push({ type: "delta", playerIndex: i, delta: delta, finalReset: !!finalReset });
+  if (state.scoreHistory.length > 10) state.scoreHistory.shift();
+  state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1];
+}
+function recordScoreSnapshot() {
+  state.scoreHistory.push({ type: "snapshot", scores: state.players.map(function (p) { return p.score; }) });
+  if (state.scoreHistory.length > 10) state.scoreHistory.shift();
+  state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1];
+}
 function scoreQuestion(i, correct) {
   var val = activeValue();
   var old = state.players[i].score;
   var delta = correct ? val : -val;
   var next = old + delta;
   state.players[i].score = next;
-  state.lastScoreChange = { playerIndex: i, delta: delta };
+  recordScore(i, delta);
   if (correct) sndCorrect(); else sndIncorrect();
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + i, old, next);
 }
 function undoLastScore() {
-  var last = state.lastScoreChange;
-  if (!last || !state.players[last.playerIndex]) return;
+  var last = state.scoreHistory.pop();
+  state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1] || null;
+  state.menuOpen = false;
+  if (!last) { render(); return; }
+  if (last.type === "snapshot") {
+    last.scores.forEach(function (sc, i) { if (state.players[i]) state.players[i].score = sc; });
+    renderOrUpdateClue();
+    return;
+  }
+  if (!state.players[last.playerIndex]) { renderOrUpdateClue(); return; }
   var old = state.players[last.playerIndex].score;
   var next = old - last.delta;
   state.players[last.playerIndex].score = next;
   if (last.finalReset) delete state.finalResults[last.playerIndex];
-  state.lastScoreChange = null;
-  state.menuOpen = false;
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + last.playerIndex, old, next);
   tickScoreDisplay("score-disp-f" + last.playerIndex, old, next);
@@ -2732,7 +2819,7 @@ function attachYoutubeVolumeControl() {
     if (activeYtPlayer) { try { activeYtPlayer.destroy(); } catch (e) {} }
     activeYtPlayer = new YT.Player("ytplayer", {
       events: {
-        onReady: function (e) { e.target.setVolume(40); },
+        onReady: function (e) { e.target.setVolume(state.clipVolume); },
         onStateChange: function (e) {
           if (e.data === YT.PlayerState.PLAYING && state.videoStatus !== "playing") {
             state.videoStatus = "playing";
@@ -2863,6 +2950,7 @@ function newRound() {
   state.finalDone = false;
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
+  state.scoreHistory = [];
   state.seqOrder = null;
   state.phase = "board";
   render();
@@ -2890,7 +2978,7 @@ function markFinal(i, correct) {
   var next = old + delta;
   state.players[i].score = next;
   state.finalResults[i] = correct ? "correct" : "incorrect";
-  state.lastScoreChange = { playerIndex: i, delta: delta, finalReset: true };
+  recordScore(i, delta, true);
   if (correct) sndCorrect(); else sndIncorrect();
   render();
   tickScoreDisplay("score-disp-f" + i, old, next);
@@ -2935,8 +3023,8 @@ function renderMenu(items) {
 }
 
 function withUndo(items) {
-  if (!state.lastScoreChange) return items;
-  return [{ label: "Undo Last Score Change", action: "undoLastScore" }].concat(items);
+  if (!state.scoreHistory.length) return items;
+  return [{ label: "Undo Score Change (" + state.scoreHistory.length + " stored)", action: "undoLastScore" }].concat(items);
 }
 // Shared hamburger-menu entries. Pass includeManage:false on screens where the
 // player-management overlay isn't available (e.g. inside an open clue).
@@ -3004,6 +3092,18 @@ function boardGenres() {
 function activeBoardsTab() {
   var genres = boardGenres();
   return genres.indexOf(state.boardsTab) !== -1 ? state.boardsTab : genres[0];
+}
+function recentRowHtml() {
+  var ids = jfRead("jf.recent.v1", []);
+  var chips = ids.map(function (id) {
+    var b = BOARDS.filter(function (x) { return x.id === id; })[0];
+    if (!b || (b.adult && !adultOk())) return "";
+    return '<button class="recent-chip" style="border-color:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' + esc(b.name) + '</button>';
+  }).join("");
+  return '<div class="recent-row">' +
+    (chips ? '<span class="recent-label">RECENT</span>' + chips : '') +
+    '<button class="recent-chip recent-surprise" data-action="surpriseMe">Surprise Me</button>' +
+  '</div>';
 }
 function viewBoards() {
   var genres = boardGenres();
@@ -3077,6 +3177,7 @@ function viewBoards() {
       '<div class="search-results-title">SEARCH RESULTS &middot; BOARD TITLES</div>' +
       '<div id="searchResults">' + searchResultsHtml() + '</div>' +
     '</div>' +
+    recentRowHtml() +
     '<div class="boards-tabs">' + tabs + '</div>' +
     (isAdultTab ? '<p class="adult-banner">18+ ONLY: boards here can contain dark humor or imagery not suited for all ages.</p>' : '') +
     '<div class="boards-grid">' + cards + '</div>' +
@@ -3188,6 +3289,11 @@ function viewPlayers() {
             '<span style="font-weight:700;font-size:14px">Sound Effects</span>' +
             '<span style="font-weight:800;font-size:13px;color:' + (state.muted ? "#6a72a8" : "#7ee2b0") + '">' + (state.muted ? "MUTED" : "ON") + '</span>' +
           '</button>' +
+          '<div style="display:flex;align-items:center;gap:10px;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px">' +
+            '<span style="font-weight:700;font-size:14px;color:#fff">Volume</span>' +
+            '<input type="range" id="volumeSlider" min="0" max="100" value="' + Math.round(state.volume * 100) + '" style="flex:1" />' +
+            '<span id="volumeSliderPct" style="font-weight:800;font-size:13px;color:#aab0d8;min-width:38px;text-align:right">' + Math.round(state.volume * 100) + '%</span>' +
+          '</div>' +
           '<button data-action="toggleWheelOfChaos" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
             '<span style="font-weight:700;font-size:14px">Wheel of Chaos</span>' +
             '<span style="font-weight:800;font-size:13px;color:' + (state.wheelOfChaosEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.wheelOfChaosEnabled ? "ON" : "OFF") + '</span>' +
@@ -3749,6 +3855,15 @@ function viewClueFooter() {
       '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="toggleAnswer">Hide Answer</button>';
   }
 
+  var clipVolRow = "";
+  if (isVideo && state.playing) {
+    clipVolRow = '<div class="clip-vol-row">' +
+      '<span>CLIP VOLUME</span>' +
+      '<input type="range" id="clipVolumeSlider" min="0" max="100" value="' + state.clipVolume + '" />' +
+      '<span id="clipVolumePct">' + state.clipVolume + '%</span>' +
+    '</div>';
+  }
+
   // phone buzzer banner: who buzzed in, or "armed" while waiting
   var buzzBlock = "";
   if (state.buzzer.on) {
@@ -3783,7 +3898,7 @@ function viewClueFooter() {
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
-  return buzzBlock + hint + timerBar + revealBlock + scoreBlock + closeBlock;
+  return buzzBlock + clipVolRow + hint + timerBar + revealBlock + scoreBlock + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -3993,6 +4108,15 @@ function viewFinal() {
 function viewManagePlayers() {
   if (!state.managePlayers) return "";
   var rows = state.players.map(function (p, i) {
+    if (state.editingScoreIndex === i) {
+      return '<div class="manage-row">' +
+        '<span class="dot" style="background:' + p.color + '"></span>' +
+        '<span style="font-weight:700">' + esc(p.name) + '</span>' +
+        '<input class="input" id="editScoreInput" type="number" value="' + p.score + '" style="padding:8px 10px;flex:1" />' +
+        '<button class="edit-icon-btn" style="color:#7ee2b0" data-action="saveScoreEdit" data-i="' + i + '">&#10003;</button>' +
+        '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="cancelScoreEdit">&#10005;</button>' +
+      '</div>';
+    }
     if (state.editingPlayerIndex === i) {
       return '<div class="manage-row">' +
         '<input class="input" id="editNameInput" value="' + esc(state.editNameInput) + '" style="padding:8px 10px" />' +
@@ -4013,7 +4137,9 @@ function viewManagePlayers() {
       '<span class="dot" style="background:' + p.color + '"></span>' +
       '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) +
         (i === state.turn ? ' <span style="color:#ffd166;font-size:11px;font-weight:900">TURN</span>' : '') + '</span>' +
-      '<span style="color:#aab0d8;font-weight:700;font-size:13px">' + p.score + '</span>' +
+      '<button class="edit-icon-btn" style="color:#ff8aa0;font-weight:900" data-action="adjScore" data-i="' + i + '" data-d="-100" aria-label="Minus 100">&minus;</button>' +
+      '<button class="edit-icon-btn" style="color:#aab0d8;font-weight:700;font-size:13px;text-decoration:underline;padding:4px 2px" data-action="startEditScore" data-i="' + i + '">' + p.score + '</button>' +
+      '<button class="edit-icon-btn" style="color:#7ee2b0;font-weight:900" data-action="adjScore" data-i="' + i + '" data-d="100" aria-label="Plus 100">+</button>' +
       (i !== state.turn ? '<button class="edit-icon-btn" style="color:#7ee2b0" data-action="giveTurn" data-i="' + i + '" aria-label="Give them the next pick">&#9654;</button>' : '') +
       '<button class="edit-icon-btn" data-action="startEditPlayerName" data-i="' + i + '">&#9998;</button>' +
       '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="confirmRemovePlayerInGame" data-i="' + i + '">&times;</button>' +
@@ -4220,6 +4346,22 @@ function render() {
 document.getElementById("root").addEventListener("input", function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+  if (t && t.id === "volumeSlider") {
+    state.volume = (+t.value) / 100;
+    var pct = document.getElementById("volumeSliderPct");
+    if (pct) pct.textContent = t.value + "%";
+    jfSaveSettings();
+  }
+  if (t && t.id === "clipVolumeSlider") {
+    state.clipVolume = +t.value;
+    var cpct = document.getElementById("clipVolumePct");
+    if (cpct) cpct.textContent = t.value + "%";
+    applyClipVolume();
+    jfSaveSettings();
+  }
+});
+document.getElementById("root").addEventListener("change", function (e) {
+  if (e.target && e.target.id === "volumeSlider") sndSelect();
 });
 document.getElementById("root").addEventListener("change", function (e) {
   var t = e.target;
@@ -4267,6 +4409,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "dismissAdultGate") dismissAdultGate();
   else if (action === "adultExample") { state.adultGate = { type: "notice" }; render(); }
   else if (action === "clearEffect") clearEffect(+t.getAttribute("data-i"), t.getAttribute("data-fx"));
+  else if (action === "adjScore") adjScore(+t.getAttribute("data-i"), +t.getAttribute("data-d"));
+  else if (action === "startEditScore") startEditScore(+t.getAttribute("data-i"));
+  else if (action === "cancelScoreEdit") cancelScoreEdit();
+  else if (action === "saveScoreEdit") saveScoreEdit(+t.getAttribute("data-i"));
+  else if (action === "surpriseMe") surpriseMe();
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
@@ -4327,6 +4474,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "respinWheel") respinWheel();
 });
 
+loadSettings();
 rebuildBoards();
 checkSharedBoardInUrl();
 checkJoinInUrl();
