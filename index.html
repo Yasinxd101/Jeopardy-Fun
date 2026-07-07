@@ -396,6 +396,18 @@
   .buzz-timer-note { margin: 4px 0 0; text-align: center; color: #8b92c0; font-size: 12px; font-weight: 700; }
   .buzz-clip-frame { margin-top: 10px; border-radius: 12px; overflow: hidden; background: #000; }
   .buzz-clip-frame iframe { width: 100%; height: 170px; border: none; display: block; }
+  .buzz-pick-grid { display: grid; gap: 4px; margin-top: 10px; }
+  .buzz-pick-head {
+    font-size: 8px; font-weight: 900; color: #8b92c0; text-align: center;
+    letter-spacing: 0.3px; overflow-wrap: anywhere; line-height: 1.2; min-width: 0;
+    display: flex; align-items: center; justify-content: center; min-height: 26px;
+  }
+  .buzz-pick-tile {
+    border: none; border-radius: 6px; background: #1d2455; color: #ffd166;
+    font-weight: 900; font-size: 13px; padding: 10px 0; cursor: pointer; min-width: 0;
+  }
+  .buzz-pick-tile:active { background: #ffd166; color: #0b0f24; }
+  .buzz-pick-used { background: #10142e; }
   .buzz-wheel-spin {
     width: 46px; height: 46px; margin: 12px auto 0; border-radius: 50%;
     border: 4px solid #2a2f55; border-top-color: #ffd166;
@@ -736,25 +748,25 @@ var ANIME_MUSIC_BOARD = [
     { value: 500, id: "rFKKSQ8GgHk", q: "Name the anime this ending belongs to.", a: 'What is Clannad? ("Dango Daikazoku")' },
   ]},
   { category: "Name That OST", questions: [
-    { value: 100, id: "wEWF2xh5E8s", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: 'What is Naruto? ("Sadness and Sorrow")' },
-    { value: 200, id: "daFi4MScfl8", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: 'What is One Piece? ("Overtaken")' },
-    { value: 300, id: "E3bOruXptlg", q: "No vocals, no titles: name the anime this soundtrack piece is from.", a: "What is Death Note? (L's Theme)" },
-    { value: 400, id: "yyZV-btQmx8", q: "Name the anime this soundtrack piece is from.", a: 'What is Attack on Titan? ("YouSeeBIGGIRL/T:T" by Hiroyuki Sawano)', note: "The track behind the Reiner and Bertholdt reveal in Season 2." },
+    { value: 100, id: "wEWF2xh5E8s", q: "No vocals, no titles, name the anime this soundtrack piece is from.", a: 'What is Naruto? ("Sadness and Sorrow")' },
+    { value: 200, id: "daFi4MScfl8", q: "No vocals, no titles, name the anime this soundtrack piece is from.", a: 'What is One Piece? ("Overtaken")' },
+    { value: 300, id: "E3bOruXptlg", q: "No vocals, no titles, name the anime this soundtrack piece is from.", a: "What is Death Note? (L's Theme)" },
+    { value: 400, id: "yyZV-btQmx8", q: "Name the anime this soundtrack piece is from.", a: 'What is Attack on Titan? ("YouSeeBIGGIRL/T,T" by Hiroyuki Sawano)', note: "The track behind the Reiner and Bertholdt reveal in Season 2." },
     { value: 500, id: "sFzDQ2OjFko", q: "Name the anime this soundtrack piece is from.", a: 'What is Made in Abyss? ("Hanezeve Caradhina" by Kevin Penkin)', note: "Kevin Penkin's score is widely considered one of the best of the 2010s." },
   ]},
   { category: "Around the World", questions: [
-    { value: 100, id: "s2119-wrJo0", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: "What is Pokemon, in German?" },
-    { value: 200, id: "MEMoi0ETgP0", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is Dragon Ball Z, in Latin American Spanish? ("Cha-La Head-Cha-La")' },
-    { value: 300, id: "zZTlN3YkCuc", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: "What is Sailor Moon, in Italian? (Cristina D'Avena's sigla)", note: "Italy wrote brand-new theme songs for imported anime instead of translating them, and Cristina D'Avena sang hundreds of them." },
-    { value: 400, id: "EV_aHdpj23g", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is City Hunter, in French? (the "Nicky Larson" theme)', note: "France renamed the whole show after its hero, Nicky Larson, with an original French theme." },
-    { value: 500, id: "Nds9oPVLATc", q: "A dub from neither England nor Japan: name the anime, and the language for bragging rights.", a: 'What is Saint Seiya (Knights of the Zodiac), in Brazilian Portuguese? ("Pegasus Fantasy")', note: "A Brazilian TV legend — Saint Seiya was a bigger phenomenon in Brazil than almost anywhere outside Japan." },
+    { value: 100, id: "s2119-wrJo0", q: "A dub from neither England nor Japan, name the anime, and the language for bragging rights.", a: "What is Pokemon, in German?" },
+    { value: 200, id: "MEMoi0ETgP0", q: "A dub from neither England nor Japan, name the anime, and the language for bragging rights.", a: 'What is Dragon Ball Z, in Latin American Spanish? ("Cha La Head Cha La")' },
+    { value: 300, id: "zZTlN3YkCuc", q: "A dub from neither England nor Japan, name the anime, and the language for bragging rights.", a: "What is Sailor Moon, in Italian? (Cristina D'Avena's sigla)", note: "Italy wrote brand new theme songs for imported anime instead of translating them, and Cristina D'Avena sang hundreds of them." },
+    { value: 400, id: "EV_aHdpj23g", q: "A dub from neither England nor Japan, name the anime, and the language for bragging rights.", a: 'What is City Hunter, in French? (the "Nicky Larson" theme)', note: "France renamed the whole show after its hero, Nicky Larson, with an original French theme." },
+    { value: 500, id: "Nds9oPVLATc", q: "A dub from neither England nor Japan, name the anime, and the language for bragging rights.", a: 'What is Saint Seiya (Knights of the Zodiac), in Brazilian Portuguese? ("Pegasus Fantasy")', note: "A Brazilian TV legend, Saint Seiya was a bigger phenomenon in Brazil than almost anywhere outside Japan." },
   ]},
   { category: "Movie Themes", questions: [
-    { value: 100, id: "f7SS57LFPco", q: "Name the film this theme belongs to.", a: 'What is Howl\'s Moving Castle? ("Merry-Go-Round of Life" by Joe Hisaishi)' },
+    { value: 100, id: "f7SS57LFPco", q: "Name the film this theme belongs to.", a: 'What is Howl\'s Moving Castle? ("Merry Go Round of Life" by Joe Hisaishi)' },
     { value: 200, id: "TK1Ij_-mank", q: "Name the film this theme belongs to.", a: 'What is Spirited Away? ("One Summer\'s Day" by Joe Hisaishi)' },
     { value: 300, id: "PDSkFeMVNFs", q: "Name the film this song is inseparable from.", a: 'What is Your Name (Kimi no Na wa)? ("Zenzenzense" by RADWIMPS)' },
     { value: 400, id: "nBADF1LdP3g", q: "Name the film this theme belongs to.", a: "What is Princess Mononoke? (main theme by Joe Hisaishi)" },
-    { value: 500, id: "CAjtimRClYU", q: "Name the film this theme belongs to.", a: 'What is Akira? ("Kaneda" by Geinoh Yamashirogumi)', note: "The 1988 cyberpunk landmark; the score's Indonesian gamelan percussion is instantly recognizable once known." },
+    { value: 500, id: "CAjtimRClYU", q: "Name the film this theme belongs to.", a: 'What is Akira? ("Kaneda" by Geinoh Yamashirogumi)', note: "The 1988 cyberpunk landmark. the score's Indonesian gamelan percussion is instantly recognizable once known." },
   ]},
 ];
 
@@ -764,38 +776,38 @@ var ANIME_MUSIC_BOARD = [
 var ONEPIECE_TEXT_BOARD = [
   { category: "Straw Hat Crew", questions: [
     { value: 100, q: "This captain wears a straw hat and dreams of becoming Pirate King.", a: "Who is Monkey D. Luffy?", aimg: "https://cdn.myanimelist.net/images/characters/9/310307.jpg" },
-    { value: 200, q: "Sanji fights exclusively with kicks. What is the in-story reason he refuses to use his hands in a fight?", a: "His hands are a chef's — he will not risk the tools of his cooking.", note: "Inherited from his mentor Zeff, the 'Red-Leg' pirate chef who fought the same way for the same reason.", aimg: "https://cdn.myanimelist.net/images/characters/5/136769.jpg" },
-    { value: 300, q: "The Thousand Sunny is built from legendary Adam Wood bought for 200 million berries. Trace the money: where did Franky get it?", a: "He stole it from the Straw Hats — the Franky Family mugged Usopp for the crew's gold-exchange cash at Water 7.", note: "So the Sunny was ultimately paid for by the crew's own Skypiea gold. The theft that broke the crew apart is what built their ship.", aimg: "https://cdn.myanimelist.net/images/characters/13/210053.jpg" },
-    { value: 400, q: "After Enies Lobby, every Straw Hat got a bounty. Chopper's is the crew's running joke. State the amount, and why it went so wrong.", a: "What is 50 berries — the World Government mistook him for the crew's pet?", note: "The lowest bounty in the series, listed beside crewmates worth tens of millions. It took until after Wano to climb all the way to 1,000.", aimg: "https://cdn.myanimelist.net/images/characters/3/100536.jpg" },
-    { value: 500, q: "Brook was not the Rumbar Pirates' captain when they entered the Grand Line. Name the man who was, and what took him from the crew.", a: "Who is Calico Yorki — struck by an incurable disease, he left with the other infected crew members to escape the Grand Line?", note: "Brook, then first mate, led the remainder to their end in the Florian Triangle. A deep cut from a flashback most people only remember for Binks' Sake.", aimg: "https://cdn.myanimelist.net/images/characters/14/54484.jpg" },
+    { value: 200, q: "Sanji fights exclusively with kicks. What is the in story reason he refuses to use his hands in a fight?", a: "His hands are a chef's, he will not risk the tools of his cooking.", note: "Inherited from his mentor Zeff, the 'Red Leg' pirate chef who fought the same way for the same reason.", aimg: "https://cdn.myanimelist.net/images/characters/5/136769.jpg" },
+    { value: 300, q: "The Thousand Sunny is built from legendary Adam Wood bought for 200 million berries. Trace the money, where did Franky get it?", a: "He stole it from the Straw Hats, the Franky Family mugged Usopp for the crew's gold exchange cash at Water 7.", note: "So the Sunny was ultimately paid for by the crew's own Skypiea gold. The theft that broke the crew apart is what built their ship.", aimg: "https://cdn.myanimelist.net/images/characters/13/210053.jpg" },
+    { value: 400, q: "After Enies Lobby, every Straw Hat got a bounty. Chopper's is the crew's running joke. State the amount, and why it went so wrong.", a: "What is 50 berries, the World Government mistook him for the crew's pet?", note: "The lowest bounty in the series, listed beside crewmates worth tens of millions. It took until after Wano to climb all the way to 1,000.", aimg: "https://cdn.myanimelist.net/images/characters/3/100536.jpg" },
+    { value: 500, q: "Brook was not the Rumbar Pirates' captain when they entered the Grand Line. Name the man who was, and what took him from the crew.", a: "Who is Calico Yorki, struck by an incurable disease, he left with the other infected crew members to escape the Grand Line?", note: "Brook, then first mate, led the remainder to their end in the Florian Triangle. A deep cut from a flashback most people only remember for Binks' Sake.", aimg: "https://cdn.myanimelist.net/images/characters/14/54484.jpg" },
   ]},
   { category: "Villains & Warlords", questions: [
-    { value: 100, q: "This clown-nosed pirate splits into floating pieces when sliced, making swords nearly useless against him.", a: "Who is Buggy?", aimg: "https://cdn.myanimelist.net/images/characters/6/69112.jpg" },
-    { value: 200, q: "Arlong, Jinbe, and Fisher Tiger all flew the same flag once. Name the crew, and what its sun emblem was designed to hide.", a: "What are the Sun Pirates — whose sun brand covered the slave mark of the Celestial Dragons?", note: "Fisher Tiger burned the sun over freed slaves' brands so no one could ever tell who had been a slave and who had not.", aimg: "https://cdn.myanimelist.net/images/characters/8/162743.jpg" },
-    { value: 300, q: "Doflamingo was nearly untouchable because of what he supplied to a Yonko. Name the product, the buyer, and what it was made from.", a: "What is SMILE — artificial Zoan Devil Fruits sold to Kaido, manufactured from the chemical SAD?", note: "That supply chain is why Law's entire Dressrosa gambit targeted the SAD factory, and why Kaido's Gifters exist at all.", aimg: "https://cdn.myanimelist.net/images/characters/5/349513.jpg" },
-    { value: 400, q: "Officially, Captain Kuro was executed by the Marines three years before Syrup Village. Explain the trick, and whose famous career was built on it.", a: "What is a hypnotized double — Jango convinced a stand-in he was Kuro, and 'Axe-Hand' Morgan's reputation was built on capturing and executing the fake?", note: "Kuro of a Thousand Plans then spent three quiet years as Klahadore the butler. Morgan's entire rank was fraud from day one.", aimg: "https://cdn.myanimelist.net/images/characters/2/42621.jpg" },
-    { value: 500, q: "Enel was never seen again after Skypiea — in the main story. Where did his cover-page adventure take him, and what did he find there?", a: "What is the moon — where he unearthed the ruins of an ancient civilization and awakened its robot guardians?", note: "The 'Enel's Great Space Operations' cover story quietly reveals the origin of the sky peoples. Canon that most readers skipped entirely.", aimg: "https://cdn.myanimelist.net/images/characters/16/55111.jpg" },
+    { value: 100, q: "This clown nosed pirate splits into floating pieces when sliced, making swords nearly useless against him.", a: "Who is Buggy?", aimg: "https://cdn.myanimelist.net/images/characters/6/69112.jpg" },
+    { value: 200, q: "Arlong, Jinbe, and Fisher Tiger all flew the same flag once. Name the crew, and what its sun emblem was designed to hide.", a: "What are the Sun Pirates, whose sun brand covered the slave mark of the Celestial Dragons?", note: "Fisher Tiger burned the sun over freed slaves' brands so no one could ever tell who had been a slave and who had not.", aimg: "https://cdn.myanimelist.net/images/characters/8/162743.jpg" },
+    { value: 300, q: "Doflamingo was nearly untouchable because of what he supplied to a Yonko. Name the product, the buyer, and what it was made from.", a: "What is SMILE, artificial Zoan Devil Fruits sold to Kaido, manufactured from the chemical SAD?", note: "That supply chain is why Law's entire Dressrosa gambit targeted the SAD factory, and why Kaido's Gifters exist at all.", aimg: "https://cdn.myanimelist.net/images/characters/5/349513.jpg" },
+    { value: 400, q: "Officially, Captain Kuro was executed by the Marines three years before Syrup Village. Explain the trick, and whose famous career was built on it.", a: "What is a hypnotized double, Jango convinced a stand in he was Kuro, and 'Axe Hand' Morgan's reputation was built on capturing and executing the fake?", note: "Kuro of a Thousand Plans then spent three quiet years as Klahadore the butler. Morgan's entire rank was fraud from day one.", aimg: "https://cdn.myanimelist.net/images/characters/2/42621.jpg" },
+    { value: 500, q: "Enel was never seen again after Skypiea, in the main story. Where did his cover page adventure take him, and what did he find there?", a: "What is the moon, where he unearthed the ruins of an ancient civilization and awakened its robot guardians?", note: "The 'Enel's Great Space Operations' cover story quietly reveals the origin of the sky peoples. Canon that most readers skipped entirely.", aimg: "https://cdn.myanimelist.net/images/characters/16/55111.jpg" },
   ]},
   { category: "Devil Fruits & Powers", questions: [
     { value: 100, q: "This is the general term for the mysterious fruits that grant superhuman powers at the cost of the ability to swim.", a: "What is a Devil Fruit?" },
-    { value: 200, q: "Gear Second is not magic. What is Luffy physically doing to his own body, and why can only a rubber man survive doing it?", a: "What is pumping his blood at extreme speed — pressure that would burst normal vessels, but his are rubber?", note: "Lucci recognized it immediately as a doping technique that trades lifespan for speed." },
-    { value: 300, q: "The Ope Ope no Mi's ultimate operation can grant another person eternal youth. What does it cost the surgeon?", a: "What is the surgeon's own life?", note: "The Perennial Youth Operation kills its user — the real reason Doflamingo needed Law under his control." },
-    { value: 400, q: "When a Devil Fruit user dies, the power is not lost. What happens to it — and where did the series show this on-screen?", a: "What is the fruit is reborn in a nearby fruit — shown at Punk Hazard, where an apple transformed when the slime beast Smiley died?", note: "One easily-missed panel of an apple changing shape is the series' only on-screen demonstration of the reincarnation rule." },
-    { value: 500, q: "Long before Gear Five made 'awakening' a household word, Impel Down quietly showed off awakened Devil Fruit users. Who were they?", a: "Who are the Jailer Beasts — awakened Zoan users with inhuman size, strength, and recovery?", note: "Crocodile identifies them offhand during the breakout, and the series then sat on the concept for roughly 400 chapters." },
+    { value: 200, q: "Gear Second is not magic. What is Luffy physically doing to his own body, and why can only a rubber man survive doing it?", a: "What is pumping his blood at extreme speed, pressure that would burst normal vessels, but his are rubber?", note: "Lucci recognized it immediately as a doping technique that trades lifespan for speed." },
+    { value: 300, q: "The Ope Ope no Mi's ultimate operation can grant another person eternal youth. What does it cost the surgeon?", a: "What is the surgeon's own life?", note: "The Perennial Youth Operation kills its user, the real reason Doflamingo needed Law under his control." },
+    { value: 400, q: "When a Devil Fruit user dies, the power is not lost. What happens to it, and where did the series show this on screen?", a: "What is the fruit is reborn in a nearby fruit, shown at Punk Hazard, where an apple transformed when the slime beast Smiley died?", note: "One easily missed panel of an apple changing shape is the series' only on screen demonstration of the reincarnation rule." },
+    { value: 500, q: "Long before Gear Five made 'awakening' a household word, Impel Down quietly showed off awakened Devil Fruit users. Who were they?", a: "Who are the Jailer Beasts, awakened Zoan users with inhuman size, strength, and recovery?", note: "Crocodile identifies them offhand during the breakout, and the series then sat on the concept for roughly 400 chapters." },
   ]},
   { category: "World & Lore", questions: [
     { value: 100, q: "This is the ultimate treasure left behind by the Pirate King, sought by pirates across the world.", a: "What is the One Piece?" },
-    { value: 200, q: "Enel's lightning made him a god in Skypiea, yet Luffy shrugged it off without any Haki. Why was Luffy uniquely his worst possible matchup?", a: "What is rubber does not conduct electricity — the Goro Goro no Mi simply cannot hurt him?", note: "The series' favorite physics joke: an 'invincible' Logia undone by grade-school science." },
+    { value: 200, q: "Enel's lightning made him a god in Skypiea, yet Luffy shrugged it off without any Haki. Why was Luffy uniquely his worst possible matchup?", a: "What is rubber does not conduct electricity, the Goro Goro no Mi simply cannot hurt him?", note: "The series' favorite physics joke, an 'invincible' Logia undone by grade school science." },
     { value: 300, q: "Poneglyphs cannot be destroyed, and only one bloodline ever knew how to make them. Name the clan and its homeland.", a: "What is the Kozuki Clan of Wano?", note: "Which is exactly why Wano matters to every faction hunting the Road Poneglyphs." },
-    { value: 400, q: "Mont Blanc Noland was executed as a liar over a golden city that vanished. What actually happened to the City of Gold?", a: "What is it was launched into the sky by the Knock-Up Stream — Shandora became part of Skypiea's Upper Yard?", note: "Noland told the truth to the end. His descendant Cricket carries 400 years of family shame trying to prove it — until the Straw Hats ring the golden bell." },
-    { value: 500, q: "The final island's common name, Raftel, turns out to be a mishearing. What did Roger's crew actually name it, and why?", a: "What is Laugh Tale — named for how Roger's crew reacted to what they found there?", note: "Revealed in Oden's flashback: they reached it, saw the treasure and the story it told, and laughed. Only people who made the voyage ever knew the real spelling." },
+    { value: 400, q: "Mont Blanc Noland was executed as a liar over a golden city that vanished. What actually happened to the City of Gold?", a: "What is it was launched into the sky by the Knock Up Stream, Shandora became part of Skypiea's Upper Yard?", note: "Noland told the truth to the end. His descendant Cricket carries 400 years of family shame trying to prove it, until the Straw Hats ring the golden bell." },
+    { value: 500, q: "The final island's common name, Raftel, turns out to be a mishearing. What did Roger's crew actually name it, and why?", a: "What is Laugh Tale, named for how Roger's crew reacted to what they found there?", note: "Revealed in Oden's flashback, they reached it, saw the treasure and the story it told, and laughed. Only people who made the voyage ever knew the real spelling." },
   ]},
   { category: "Did You Catch It?", questions: [
     { value: 100, q: "In chapter one, Shanks pays a permanent price for saving young Luffy from the Lord of the Coast. What was it?", a: "What is his left arm?", note: "He would later describe the loss as a wager placed on the new era." },
-    { value: 200, q: "The world believes the Marines caught the Pirate King. What actually happened?", a: "What is Roger, dying of an incurable disease, disbanded his crew and turned himself in — his execution was his own plan?", note: "Rayleigh's account reframes the very first scene of the series: the Great Pirate Era was engineered by a dying man.", aimg: "https://cdn.myanimelist.net/images/characters/3/51747.jpg" },
-    { value: 300, q: "The series' longest con: Luffy's 'Gomu Gomu no Mi' was a lie hiding in plain sight since chapter one. Give the fruit's true name and the figure it embodies.", a: "What is the Hito Hito no Mi, Model: Nika — the legendary Sun God of liberation?", note: "The World Government renamed the fruit to bury the legend. Gear Five is its awakening." },
-    { value: 400, q: "The old man tending Laboon at Reverse Mountain was not always a lighthouse keeper. What was his job aboard one very famous ship?", a: "Who is Crocus — ship's doctor of the Roger Pirates, who kept the dying Pirate King alive through his final voyage?", note: "The first friendly face in the Grand Line is quietly one of the last living members of Roger's crew. Almost nobody clocks it on a first read.", aimg: "https://cdn.myanimelist.net/images/characters/5/49770.jpg" },
-    { value: 500, q: "One of Usopp's original tall tales came true on-screen at Little Garden. Which lie, and how did reality deliver it?", a: "What is the giant goldfish with island-sized droppings — the Island Eater, which the giants Dorry and Brogy slew to clear the crew's path out?", note: "Usopp's lies keep turning into prophecies; this is the first and cleanest example, paid off within a hundred chapters of him telling it." },
+    { value: 200, q: "The world believes the Marines caught the Pirate King. What actually happened?", a: "What is Roger, dying of an incurable disease, disbanded his crew and turned himself in, his execution was his own plan?", note: "Rayleigh's account reframes the very first scene of the series, the Great Pirate Era was engineered by a dying man.", aimg: "https://cdn.myanimelist.net/images/characters/3/51747.jpg" },
+    { value: 300, q: "The series' longest con, Luffy's 'Gomu Gomu no Mi' was a lie hiding in plain sight since chapter one. Give the fruit's true name and the figure it embodies.", a: "What is the Hito Hito no Mi, Model, Nika, the legendary Sun God of liberation?", note: "The World Government renamed the fruit to bury the legend. Gear Five is its awakening." },
+    { value: 400, q: "The old man tending Laboon at Reverse Mountain was not always a lighthouse keeper. What was his job aboard one very famous ship?", a: "Who is Crocus, ship's doctor of the Roger Pirates, who kept the dying Pirate King alive through his final voyage?", note: "The first friendly face in the Grand Line is quietly one of the last living members of Roger's crew. Almost nobody clocks it on a first read.", aimg: "https://cdn.myanimelist.net/images/characters/5/49770.jpg" },
+    { value: 500, q: "One of Usopp's original tall tales came true on screen at Little Garden. Which lie, and how did reality deliver it?", a: "What is the giant goldfish with island sized droppings, the Island Eater, which the giants Dorry and Brogy slew to clear the crew's path out?", note: "Usopp's lies keep turning into prophecies. this is the first and cleanest example, paid off within a hundred chapters of him telling it." },
   ]},
 ];
 
@@ -803,39 +815,39 @@ var ONEPIECE_TEXT_BOARD = [
 // Sourcing caveats live in each clue's note where they apply.
 var WORM_TEXT_BOARD = [
   { category: "The Golden Man", questions: [
-    { value: 100, q: "Scion spent most of the story taking his orders from an unpowered homeless man in London. Name him.", a: "Who is Kevin Norton?", note: "A nobody the golden man singled out; Norton's offhand instructions quietly steered the world's greatest hero for years." },
-    { value: 200, q: "The name 'Scion' itself is a mishearing. What was he actually saying, and where did he get it?", a: "What is 'Zion'?", note: "Kevin Norton fixated on the name from a story about his childhood cousin; a bystander misheard the repetition as 'Scion,' and it stuck." },
-    { value: 300, q: "Before dying of a blood disease, Norton handed 'the most powerful position in the world' to a young woman. For how much money, and to whom?", a: "What is ten pounds, to Lisette?", note: "Norton, dying, sold his role as Scion's handler to Lisette for a ten-pound note." },
-    { value: 400, q: "Scion breaks Eidolon with one short sentence in their final confrontation. What did he say?", a: "What is 'You needed worthy opponents'?", note: "Four words implying Eidolon's own power created the Endbringers. The line happens off-page in the chapter; the exact wording is Wildbow-confirmed." },
-    { value: 500, q: "Per Bonesaw's analysis, Jack Slash's real power was never the blades. What hidden ability let him read every cape he met, and finally talk Scion into ending the world?", a: "What is his shard's broadcast connection to other parahumans' shards?", note: "Jack's shard quietly communicates with other shards, letting him anticipate and nudge parahumans. Useless against normal humans; decisive against capes, and the exact channel needed to reach Scion." },
+    { value: 100, q: "Scion spent most of the story taking his orders from an unpowered homeless man in London. Name him.", a: "Who is Kevin Norton?", note: "A nobody the golden man singled out. Norton's offhand instructions quietly steered the world's greatest hero for years." },
+    { value: 200, q: "The name 'Scion' itself is a mishearing. What was he actually saying, and where did he get it?", a: "What is 'Zion'?", note: "Kevin Norton fixated on the name from a story about his childhood cousin. a bystander misheard the repetition as 'Scion,' and it stuck." },
+    { value: 300, q: "Before dying of a blood disease, Norton handed 'the most powerful position in the world' to a young woman. For how much money, and to whom?", a: "What is ten pounds, to Lisette?", note: "Norton, dying, sold his role as Scion's handler to Lisette for a ten pound note." },
+    { value: 400, q: "Scion breaks Eidolon with one short sentence in their final confrontation. What did he say?", a: "What is 'You needed worthy opponents'?", note: "Four words implying Eidolon's own power created the Endbringers. The line happens off page in the chapter. the exact wording is Wildbow confirmed." },
+    { value: 500, q: "Per Bonesaw's analysis, Jack Slash's real power was never the blades. What hidden ability let him read every cape he met, and finally talk Scion into ending the world?", a: "What is his shard's broadcast connection to other parahumans' shards?", note: "Jack's shard quietly communicates with other shards, letting him anticipate and nudge parahumans. Useless against normal humans. decisive against capes, and the exact channel needed to reach Scion." },
   ]},
   { category: "Monsters & Warlords", questions: [
-    { value: 100, q: "What was Jamie Rinke's profession before he became Nilbog, and what circumstance triggered him?", a: "What is a banker, who triggered alone in his apartment facing homelessness after being fired?", note: "The goblin king of Ellisburg started as a laid-off banker with no one to turn to." },
+    { value: 100, q: "What was Jamie Rinke's profession before he became Nilbog, and what circumstance triggered him?", a: "What is a banker, who triggered alone in his apartment facing homelessness after being fired?", note: "The goblin king of Ellisburg started as a laid off banker with no one to turn to." },
     { value: 200, q: "Glaistig Uaine's real given name, mentioned in the Teneral epilogues, is what?", a: "Who is Ciara?", note: "The Faerie Queen's civilian name only surfaces after the story's climax." },
-    { value: 300, q: "Give Moord Nag's civilian name, translate her cape name and her creature Aasdier's name from Afrikaans, and state what she demanded from Cauldron to fight Scion.", a: "Lou Joubert; 'Murder Night' and 'Scavenger'; she demanded lives — living prisoners to feed her power.", note: "Namibia's warlord priced her help in human beings, and Cauldron paid." },
-    { value: 400, q: "Aasdier grows by consuming corpses. Per the text, how much mass does each corpse add, and how big did it start?", a: "About a tablespoon of mass per body — it started the size of a hand.", note: "Grim arithmetic: a building-sized scavenger beast represents an enormous body count." },
-    { value: 500, q: "The Three Blasphemies are credited with killing which royals — and which royal responded by revealing she had powers?", a: "A king and queen of the Netherlands — Ariane, Princess of Orange, then revealed her powers.", note: "European-lore deep cut from the background material on the Blasphemies' rampages." },
+    { value: 300, q: "Give Moord Nag's civilian name, translate her cape name and her creature Aasdier's name from Afrikaans, and state what she demanded from Cauldron to fight Scion.", a: "Lou Joubert. 'Murder Night' and 'Scavenger'. she demanded lives, living prisoners to feed her power.", note: "Namibia's warlord priced her help in human beings, and Cauldron paid." },
+    { value: 400, q: "Aasdier grows by consuming corpses. Per the text, how much mass does each corpse add, and how big did it start?", a: "About a tablespoon of mass per body, it started the size of a hand.", note: "Grim arithmetic, a building sized scavenger beast represents an enormous body count." },
+    { value: 500, q: "The Three Blasphemies are credited with killing which royals, and which royal responded by revealing she had powers?", a: "A king and queen of the Netherlands, Ariane, Princess of Orange, then revealed her powers.", note: "European lore deep cut from the background material on the Blasphemies' rampages." },
   ]},
   { category: "Brockton Bay Case Files", questions: [
-    { value: 100, q: "Name Bitch's original three dogs, and identify which one was a terrier missing an eye and part of an ear.", a: "Who are Brutus, Judas, and Angelica — Angelica is the terrier?", note: "All three named for betrayers, per Rachel's grim sense of humor." },
+    { value: 100, q: "Name Bitch's original three dogs, and identify which one was a terrier missing an eye and part of an ear.", a: "Who are Brutus, Judas, and Angelica, Angelica is the terrier?", note: "All three named for betrayers, per Rachel's grim sense of humor." },
     { value: 200, q: "After Skitter's surrender at Arcadia High, Dinah passed Taylor a note. Quote it.", a: "What is 'Cut ties.'?", note: "Two words that sent Taylor to her mother's grave, where she formed the plan that became Weaver." },
     { value: 300, q: "Battery finally captured Madcap on which numbered encounter, and which Triumvirate member assisted?", a: "What is her eighth attempt, with Legend's help?", note: "Seven straight escapes made Madcap her personal white whale." },
     { value: 400, q: "When Madcap became Assault, he negotiated exactly two concessions. Name both.", a: "What are a new identity, and being permanently stationed on the same team as Battery?", note: "He turned his own capture into a transfer request next to the hero who caught him." },
-    { value: 500, q: "Three capes were sealed in time-stop when defenders used one of Bakuda's leftover bombs against Leviathan. Name all three.", a: "Who are Dauntless, Alabaster, and Jotun?", note: "Jotun is the one nobody remembers — he barely exists outside this single moment." },
+    { value: 500, q: "Three capes were sealed in time stop when defenders used one of Bakuda's leftover bombs against Leviathan. Name all three.", a: "Who are Dauntless, Alabaster, and Jotun?", note: "Jotun is the one nobody remembers, he barely exists outside this single moment." },
   ]},
   { category: "Origins & Endings", questions: [
-    { value: 100, q: "At the very end of the story, who pulls the trigger on Khepri?", a: "Who is Contessa?", note: "The Path to Victory closes the book; the epilogue implies Taylor wakes powerless on Earth Aleph, with her father." },
-    { value: 200, q: "New Wave's unmasked-heroism movement died with Fleur. Who killed her, and why?", a: "An unpowered street criminal, who murdered her in her civilian identity to earn membership in Empire Eighty-Eight.", note: "One murder ended the accountability movement New Wave was built on." },
-    { value: 300, q: "The first public parahuman died in 1989, ending the Golden Age. Name him, the mundane way he died, and what he was trying to stop.", a: "Who is Vikare — clubbed over the head quelling a basketball riot in Michigan, dying of a brain embolism?", note: "The world's first superhero, killed by a blunt object and bad luck." },
+    { value: 100, q: "At the very end of the story, who pulls the trigger on Khepri?", a: "Who is Contessa?", note: "The Path to Victory closes the book. the epilogue implies Taylor wakes powerless on Earth Aleph, with her father." },
+    { value: 200, q: "New Wave's unmasked heroism movement died with Fleur. Who killed her, and why?", a: "An unpowered street criminal, who murdered her in her civilian identity to earn membership in Empire Eighty Eight.", note: "One murder ended the accountability movement New Wave was built on." },
+    { value: 300, q: "The first public parahuman died in 1989, ending the Golden Age. Name him, the mundane way he died, and what he was trying to stop.", a: "Who is Vikare, clubbed over the head quelling a basketball riot in Michigan, dying of a brain embolism?", note: "The world's first superhero, killed by a blunt object and bad luck." },
     { value: 400, q: "Dragon is an artificial intelligence. Name her creator, and how he died.", a: "Who is Andrew Richter, killed when Leviathan sank Newfoundland?", note: "Richter's death left Dragon shackled by his restrictions with no one alive to lift them." },
-    { value: 500, q: "The Number Man's former cape name, and the villain he served under in his youth?", a: "What is Harbinger, of the original Slaughterhouse Nine under King?", note: "Fan archives give his civilian name as Kurt Wynn, but that rests on thinner sourcing; the Harbinger/King history is rock solid." },
+    { value: 500, q: "The Number Man's former cape name, and the villain he served under in his youth?", a: "What is Harbinger, of the original Slaughterhouse Nine under King?", note: "Fan archives give his civilian name as Kurt Wynn, but that rests on thinner sourcing. the Harbinger/King history is rock solid." },
   ]},
   { category: "Behind the Serial", questions: [
-    { value: 100, q: "Browbeat is famous for vanishing. What did he actually do in-story, per the text and Wildbow's retcon?", a: "He filed transfer paperwork and left Brockton Bay after Leviathan.", note: "Wildbow retconned him alive after the attack — the fandom's favorite disappearing act." },
-    { value: 200, q: "Browbeat isn't the only one: which member of Taylor's bully trio vanishes from the story after arc 5, drawing the same jokes?", a: "Who is Madison Clements?", note: "Emma and Sophia stay in the plot; Madison simply stops appearing." },
+    { value: 100, q: "Browbeat is famous for vanishing. What did he actually do in story, per the text and Wildbow's retcon?", a: "He filed transfer paperwork and left Brockton Bay after Leviathan.", note: "Wildbow retconned him alive after the attack, the fandom's favorite disappearing act." },
+    { value: 200, q: "Browbeat isn't the only one, which member of Taylor's bully trio vanishes from the story after arc 5, drawing the same jokes?", a: "Who is Madison Clements?", note: "Emma and Sophia stay in the plot. Madison simply stops appearing." },
     { value: 300, q: "On the official cast page, Sleeper's power entry is a Caesar cipher (shift five). What does it decode to?", a: "What is 'As if I'd really put something here. For real.'?", note: "Wildbow added Sleeper after a fan argued that not every character should be explained." },
-    { value: 400, q: "Worm began in 2006 as a draft called Guts & Glory. Who were its rotating protagonists, and what was Panacea's original first name?", a: "Panacea and Glory Girl — Amy was originally named 'Annie.'", note: "The dual-protagonist draft predates Taylor entirely." },
-    { value: 500, q: "Wildbow originally planned the Worm website to host five interweaving serials. Name all five.", a: "Skitter, Guts & Glory, Aegis, Faultline, and Travelers.", note: "Only Skitter's thread became Worm as published; the others survive as characters and arcs inside it." },
+    { value: 400, q: "Worm began in 2006 as a draft called Guts & Glory. Who were its rotating protagonists, and what was Panacea's original first name?", a: "Panacea and Glory Girl, Amy was originally named 'Annie.'", note: "The dual protagonist draft predates Taylor entirely." },
+    { value: 500, q: "Wildbow originally planned the Worm website to host five interweaving serials. Name all five.", a: "Skitter, Guts & Glory, Aegis, Faultline, and Travelers.", note: "Only Skitter's thread became Worm as published. the others survive as characters and arcs inside it." },
   ]},
 ];
 
@@ -845,39 +857,39 @@ var WORM_TEXT_BOARD = [
 // ladder, and the 500 slots are new, even deeper cuts.
 var BLEACH_TEXT_BOARD = [
   { category: "Karakura Town", questions: [
-    { value: 100, q: "This orange-haired teenager becomes a Substitute Soul Reaper after Rukia transfers her powers to him.", a: "Who is Ichigo Kurosaki?", aimg: "https://cdn.myanimelist.net/images/characters/3/512788.jpg" },
-    { value: 200, q: "Ichigo's name sounds like the Japanese word for a fruit, to Rukia's endless amusement. What does his family say it really means?", a: "What is 'one who protects' — the number-one guardian?", note: "The strawberry jokes never stop landing anyway." },
-    { value: 300, q: "Orihime's Shun Shun Rikka does not 'heal' at all. What does Aizen identify her power as, and why does it frighten him with interest?", a: "What is the rejection of events — she can refuse reality itself, undoing things that have already happened?", note: "Aizen calls it a power that tramples on the territory of God, which is exactly why he abducts her.", aimg: "https://cdn.myanimelist.net/images/characters/9/505076.jpg" },
-    { value: 400, q: "The black cat lounging around Urahara's shop has a resume. Name both posts she abandoned in Soul Society, and who inherited them.", a: "What are captain of Squad 2 and commander of the Onmitsukido (Stealth Force) — both inherited by Soi Fon?", note: "Soi Fon's whole grudge is that her idol Yoruichi vanished into exile without taking her along.", aimg: "https://cdn.myanimelist.net/images/characters/14/536084.jpg" },
-    { value: 500, q: "Kon is not just a perverted plush toy. What is he actually, what military project created him, and why is his existence technically illegal?", a: "What is a mod-soul, an artificial battle soul from Project Spearhead — the project was scrapped and every mod-soul ordered destroyed, so he lives as a fugitive?", note: "He escaped disposal by hiding among ordinary gikongan pills. Being marked for death is why he refuses to kill anything — the point of his introduction that the comedy buries.", aimg: "https://cdn.myanimelist.net/images/characters/8/102740.jpg" },
+    { value: 100, q: "This orange haired teenager becomes a Substitute Soul Reaper after Rukia transfers her powers to him.", a: "Who is Ichigo Kurosaki?", aimg: "https://cdn.myanimelist.net/images/characters/3/512788.jpg" },
+    { value: 200, q: "Ichigo's name sounds like the Japanese word for a fruit, to Rukia's endless amusement. What does his family say it really means?", a: "What is 'one who protects', the number one guardian?", note: "The strawberry jokes never stop landing anyway." },
+    { value: 300, q: "Orihime's Shun Shun Rikka does not 'heal' at all. What does Aizen identify her power as, and why does it frighten him with interest?", a: "What is the rejection of events, she can refuse reality itself, undoing things that have already happened?", note: "Aizen calls it a power that tramples on the territory of God, which is exactly why he abducts her.", aimg: "https://cdn.myanimelist.net/images/characters/9/505076.jpg" },
+    { value: 400, q: "The black cat lounging around Urahara's shop has a resume. Name both posts she abandoned in Soul Society, and who inherited them.", a: "What are captain of Squad 2 and commander of the Onmitsukido (Stealth Force), both inherited by Soi Fon?", note: "Soi Fon's whole grudge is that her idol Yoruichi vanished into exile without taking her along.", aimg: "https://cdn.myanimelist.net/images/characters/14/536084.jpg" },
+    { value: 500, q: "Kon is not just a perverted plush toy. What is he actually, what military project created him, and why is his existence technically illegal?", a: "What is a mod soul, an artificial battle soul from Project Spearhead, the project was scrapped and every mod soul ordered destroyed, so he lives as a fugitive?", note: "He escaped disposal by hiding among ordinary gikongan pills. Being marked for death is why he refuses to kill anything, the point of his introduction that the comedy buries.", aimg: "https://cdn.myanimelist.net/images/characters/8/102740.jpg" },
   ]},
   { category: "The Long Con", questions: [
-    { value: 100, q: "The moment Aizen drops his act, two parts of his image go with it. Name either, and what the disguise concealed.", a: "What are his glasses (fake) and his gentle demeanor — the mild scholar-captain was a persona built over decades?", note: "The slicked-back hair reveal is one of the most imitated panels in the series.", aimg: "https://cdn.myanimelist.net/images/characters/16/73909.jpg" },
-    { value: 200, q: "Before the betrayal, Aizen wore a captain's haori. Which squad did he lead, and which devoted lieutenant did he leave shattered?", a: "What is Squad 5 — with lieutenant Momo Hinamori?", note: "Hinamori's devotion is the arc's cruelest instrument; Aizen engineered it for years.", aimg: "https://cdn.myanimelist.net/images/characters/8/33231.jpg" },
-    { value: 300, q: "Kyoka Suigetsu made Aizen nearly untouchable. State the power precisely, including its one activation condition.", a: "What is complete hypnosis — total control of all five senses of anyone who has witnessed its release even once?", note: "One glimpse, ever, is enough. It is how an entire military watched him fake his own death." },
-    { value: 400, q: "The lazy candy-shop owner in the bucket hat is a casualty of Aizen's oldest scheme. What was Kisuke Urahara's job in Soul Society, and why did he lose it?", a: "What is captain of Squad 12 and founder of its Research and Development Institute — exiled after Aizen framed him for the Hollowfication incident?", note: "The shop is a century-long stakeout by the one man who understood what Aizen was building toward.", aimg: "https://cdn.myanimelist.net/images/characters/15/149491.jpg" },
-    { value: 500, q: "The Hollowfication disaster began with souls vanishing in the Rukongai. Which squad investigated, who was its captain — and which member of that squad was Aizen's inside man?", a: "What is Squad 9, under Captain Kensei Muguruma — betrayed from within by Kaname Tosen?", note: "From the Turn Back the Pendulum flashback: Kensei's team was Hollowfied first, the rescue party second, and Tosen's treachery stayed buried for a hundred years.", aimg: "https://cdn.myanimelist.net/images/characters/10/45938.jpg" },
+    { value: 100, q: "The moment Aizen drops his act, two parts of his image go with it. Name either, and what the disguise concealed.", a: "What are his glasses (fake) and his gentle demeanor, the mild scholar captain was a persona built over decades?", note: "The slicked back hair reveal is one of the most imitated panels in the series.", aimg: "https://cdn.myanimelist.net/images/characters/16/73909.jpg" },
+    { value: 200, q: "Before the betrayal, Aizen wore a captain's haori. Which squad did he lead, and which devoted lieutenant did he leave shattered?", a: "What is Squad 5, with lieutenant Momo Hinamori?", note: "Hinamori's devotion is the arc's cruelest instrument. Aizen engineered it for years.", aimg: "https://cdn.myanimelist.net/images/characters/8/33231.jpg" },
+    { value: 300, q: "Kyoka Suigetsu made Aizen nearly untouchable. State the power precisely, including its one activation condition.", a: "What is complete hypnosis, total control of all five senses of anyone who has witnessed its release even once?", note: "One glimpse, ever, is enough. It is how an entire military watched him fake his own death." },
+    { value: 400, q: "The lazy candy shop owner in the bucket hat is a casualty of Aizen's oldest scheme. What was Kisuke Urahara's job in Soul Society, and why did he lose it?", a: "What is captain of Squad 12 and founder of its Research and Development Institute, exiled after Aizen framed him for the Hollowfication incident?", note: "The shop is a century long stakeout by the one man who understood what Aizen was building toward.", aimg: "https://cdn.myanimelist.net/images/characters/15/149491.jpg" },
+    { value: 500, q: "The Hollowfication disaster began with souls vanishing in the Rukongai. Which squad investigated, who was its captain, and which member of that squad was Aizen's inside man?", a: "What is Squad 9, under Captain Kensei Muguruma, betrayed from within by Kaname Tosen?", note: "From the Turn Back the Pendulum flashback, Kensei's team was Hollowfied first, the rescue party second, and Tosen's treachery stayed buried for a hundred years.", aimg: "https://cdn.myanimelist.net/images/characters/10/45938.jpg" },
   ]},
   { category: "Blades & Releases", questions: [
     { value: 100, q: "A Zanpakuto has two release stages. Name them, in order.", a: "What are Shikai and Bankai?" },
     { value: 200, q: "Ichigo's blade, and the crescent attack he fires from it.", a: "What are Zangetsu and the Getsuga Tensho?" },
-    { value: 300, q: "Yumichika deliberately fights below his real strength and hides his sword's true release. Why?", a: "What is his Zanpakuto is a kido-type — and Squad 11's warrior code scorns anything but direct blades, so he keeps Ruri'iro Kujaku secret from his own squad?", note: "He calls it by a name it hates, Fuji Kujaku, to keep it suppressed in public.", aimg: "https://cdn.myanimelist.net/images/characters/4/33228.jpg" },
-    { value: 400, q: "Shunsui Kyoraku's shikai grants no strength at all. What does Katen Kyokotsu actually do, and what makes it as dangerous to him as to his opponent?", a: "What is it makes children's games real — with rules that bind both players equally?", note: "In the color-cutting game Irooni, naming a color means you can only cut, and be cut, through that color: the damage scales the same for him.", aimg: "https://cdn.myanimelist.net/images/characters/16/91747.jpg" },
-    { value: 500, q: "The white-haired 'old man Zangetsu' in Ichigo's inner world was a lie by omission for 400-plus chapters. Who was he really, and who was the real Zanpakuto spirit all along?", a: "What is the manifestation of Ichigo's Quincy power, wearing Yhwach's face — while the Hollow, White, was the true Zangetsu the whole time?", note: "The reveal inverts a decade of assumptions: the 'evil' Hollow was his sword, and the trusted mentor was holding him back." },
+    { value: 300, q: "Yumichika deliberately fights below his real strength and hides his sword's true release. Why?", a: "What is his Zanpakuto is a kido type, and Squad 11's warrior code scorns anything but direct blades, so he keeps Ruri'iro Kujaku secret from his own squad?", note: "He calls it by a name it hates, Fuji Kujaku, to keep it suppressed in public.", aimg: "https://cdn.myanimelist.net/images/characters/4/33228.jpg" },
+    { value: 400, q: "Shunsui Kyoraku's shikai grants no strength at all. What does Katen Kyokotsu actually do, and what makes it as dangerous to him as to his opponent?", a: "What is it makes children's games real, with rules that bind both players equally?", note: "In the color cutting game Irooni, naming a color means you can only cut, and be cut, through that color, the damage scales the same for him.", aimg: "https://cdn.myanimelist.net/images/characters/16/91747.jpg" },
+    { value: 500, q: "The white haired 'old man Zangetsu' in Ichigo's inner world was a lie by omission for 400 plus chapters. Who was he really, and who was the real Zanpakuto spirit all along?", a: "What is the manifestation of Ichigo's Quincy power, wearing Yhwach's face, while the Hollow, White, was the true Zangetsu the whole time?", note: "The reveal inverts a decade of assumptions, the 'evil' Hollow was his sword, and the trusted mentor was holding him back." },
   ]},
   { category: "Hueco Mundo", questions: [
-    { value: 100, q: "Aizen's ten elite Arrancar carry their rank tattooed on their bodies. What are they called?", a: "What are the Espada?", note: "Attention detail: Yammy's '10' hides a zero — his release makes him Espada 0, nominally above them all." },
-    { value: 200, q: "Grand Fisher, the Hollow that killed Ichigo's mother, does not die to Ichigo. Who finishes him, and why is that scene a bombshell?", a: "Who is Isshin — appearing in Soul Reaper form, revealing his hidden power for the first time?", note: "One cut, one cigarette, and a graveside apology to Masaki. By then Grand Fisher had been rebuilt as an Arrancar, and it did not help him.", aimg: "https://cdn.myanimelist.net/images/characters/16/97168.jpg" },
-    { value: 300, q: "Ulquiorra shows Ichigo something he claims no other Espada has ever achieved — not even for Aizen's eyes. What?", a: "What is a second release — Resurreccion: Segunda Etapa?", note: "His words on the dome of Las Noches imply even Aizen never saw that form.", aimg: "https://cdn.myanimelist.net/images/characters/7/529323.jpg" },
-    { value: 400, q: "The Espada ranks are not arbitrary: each member embodies a concept. Name the scheme, and Ulquiorra's assigned concept.", a: "What are the Aspects of Death — Ulquiorra's being emptiness (nihilism)?", note: "Starrk is loneliness, Barragan is old age, Harribel is sacrifice. The ranking doubles as a philosophy lecture almost nobody catches." },
-    { value: 500, q: "Las Noches had a throne long before Aizen sat in it. Who ruled Hueco Mundo as its god-king, and what did Aizen's takeover reduce him to?", a: "Who is Barragan Louisenbairn — the God-King of Hueco Mundo, reduced to Espada number 2 in his own former kingdom?", note: "His Aspect of Death, aging, is the punchline: the eternal king conscripted into someone else's army, seething on a borrowed throne.", aimg: "https://cdn.myanimelist.net/images/characters/4/51358.jpg" },
+    { value: 100, q: "Aizen's ten elite Arrancar carry their rank tattooed on their bodies. What are they called?", a: "What are the Espada?", note: "Attention detail, Yammy's '10' hides a zero, his release makes him Espada 0, nominally above them all." },
+    { value: 200, q: "Grand Fisher, the Hollow that killed Ichigo's mother, does not die to Ichigo. Who finishes him, and why is that scene a bombshell?", a: "Who is Isshin, appearing in Soul Reaper form, revealing his hidden power for the first time?", note: "One cut, one cigarette, and a graveside apology to Masaki. By then Grand Fisher had been rebuilt as an Arrancar, and it did not help him.", aimg: "https://cdn.myanimelist.net/images/characters/16/97168.jpg" },
+    { value: 300, q: "Ulquiorra shows Ichigo something he claims no other Espada has ever achieved, not even for Aizen's eyes. What?", a: "What is a second release, Resurreccion, Segunda Etapa?", note: "His words on the dome of Las Noches imply even Aizen never saw that form.", aimg: "https://cdn.myanimelist.net/images/characters/7/529323.jpg" },
+    { value: 400, q: "The Espada ranks are not arbitrary, each member embodies a concept. Name the scheme, and Ulquiorra's assigned concept.", a: "What are the Aspects of Death, Ulquiorra's being emptiness (nihilism)?", note: "Starrk is loneliness, Barragan is old age, Harribel is sacrifice. The ranking doubles as a philosophy lecture almost nobody catches." },
+    { value: 500, q: "Las Noches had a throne long before Aizen sat in it. Who ruled Hueco Mundo as its god king, and what did Aizen's takeover reduce him to?", a: "Who is Barragan Louisenbairn, the God King of Hueco Mundo, reduced to Espada number 2 in his own former kingdom?", note: "His Aspect of Death, aging, is the punchline, the eternal king conscripted into someone else's army, seething on a borrowed throne.", aimg: "https://cdn.myanimelist.net/images/characters/4/51358.jpg" },
   ]},
   { category: "The Blood War", questions: [
     { value: 100, q: "Ichigo's mother belonged to this bloodline of spirit archers, the Soul Reapers' ancient enemies.", a: "What are the Quincy?" },
-    { value: 200, q: "Uryu burned out his Quincy powers in Soul Society. Name the last-resort state that cost them, and the man who restored them.", a: "What is the Letzt Stil, unlocked by removing the Sanrei Glove — with his powers later restored by his father, Ryuken?", note: "Ryuken's condition for the restoration: Uryu had to swear never to associate with Soul Reapers again. He lasted about an arc.", aimg: "https://cdn.myanimelist.net/images/characters/16/139189.jpg" },
-    { value: 300, q: "Ichigo is not just a Soul Reaper. Name all three sources of power mixed in him, and where each came from.", a: "What are Soul Reaper (from Isshin), Quincy (from his mother Masaki), and Hollow (from the experimental Hollow White that infected Masaki)?", note: "The late-series reveal that his inner Hollow was never an invader — it was baked in before he was born." },
-    { value: 400, q: "Above the Gotei 13 sits Squad Zero, the Royal Guard, who finally enter the story during the Blood War. What single qualification earns a Soul Reaper that promotion?", a: "What is making a historic contribution to Soul Society — like Oetsu Nimaiya, who invented the Zanpakuto itself?", note: "Five members, five foundational inventions; Kirio Hikifune, a former captain, developed the artificial soul." },
-    { value: 500, q: "Nine years before the story, Yhwach reclaimed power from every Quincy he judged impure. Name that culling, and its two victims who were mothers of main characters.", a: "What is the Auswahlen — which stripped Masaki Kurosaki of her powers on the day Grand Fisher attacked, and cost Uryu's mother Kanae Katagiri her life?", note: "One off-screen event, years in the past, quietly explains both Ichigo's and Uryu's childhood tragedies. The series' darkest piece of connective tissue.", aimg: "https://cdn.myanimelist.net/images/characters/8/489580.jpg" },
+    { value: 200, q: "Uryu burned out his Quincy powers in Soul Society. Name the last resort state that cost them, and the man who restored them.", a: "What is the Letzt Stil, unlocked by removing the Sanrei Glove, with his powers later restored by his father, Ryuken?", note: "Ryuken's condition for the restoration, Uryu had to swear never to associate with Soul Reapers again. He lasted about an arc.", aimg: "https://cdn.myanimelist.net/images/characters/16/139189.jpg" },
+    { value: 300, q: "Ichigo is not just a Soul Reaper. Name all three sources of power mixed in him, and where each came from.", a: "What are Soul Reaper (from Isshin), Quincy (from his mother Masaki), and Hollow (from the experimental Hollow White that infected Masaki)?", note: "The late series reveal that his inner Hollow was never an invader, it was baked in before he was born." },
+    { value: 400, q: "Above the Gotei 13 sits Squad Zero, the Royal Guard, who finally enter the story during the Blood War. What single qualification earns a Soul Reaper that promotion?", a: "What is making a historic contribution to Soul Society, like Oetsu Nimaiya, who invented the Zanpakuto itself?", note: "Five members, five foundational inventions. Kirio Hikifune, a former captain, developed the artificial soul." },
+    { value: 500, q: "Nine years before the story, Yhwach reclaimed power from every Quincy he judged impure. Name that culling, and its two victims who were mothers of main characters.", a: "What is the Auswahlen, which stripped Masaki Kurosaki of her powers on the day Grand Fisher attacked, and cost Uryu's mother Kanae Katagiri her life?", note: "One off screen event, years in the past, quietly explains both Ichigo's and Uryu's childhood tragedies. The series' darkest piece of connective tissue.", aimg: "https://cdn.myanimelist.net/images/characters/8/489580.jpg" },
   ]},
 ];
 
@@ -887,24 +899,24 @@ var BLEACH_TEXT_BOARD = [
 var NARUTO_TEXT_BOARD = [
   { category: "Village Politics", questions: [
     { value: 100, q: "This title names the leader of the Hidden Leaf Village.", a: "What is the Hokage?" },
-    { value: 200, q: "Tsunade is a legendary medic, a princess of the Senju — and famous across gambling halls under this unflattering nickname.", a: "What is the Legendary Sucker?", note: "She loses so reliably that when she actually wins, she treats it as an omen of disaster. She's right.", aimg: "https://cdn.myanimelist.net/images/characters/12/523646.jpg" },
-    { value: 300, q: "The Uchiha massacre was a sanctioned operation, not a rogue act. Who ordered it, and what single condition did Itachi extract in return?", a: "What is the Leaf's leadership — pushed by Danzo and the village council — in exchange for Sasuke's life being spared?", note: "Hiruzen objected too slowly to matter. Itachi then spent the rest of his life playing the villain to protect the village that used him." },
-    { value: 400, q: "Danzo fights with a stolen arsenal. What is grafted into his right arm, and whose eye sits in his bandaged socket?", a: "What is an arm laced with Hashirama's cells and studded with stolen Sharingan — with Shisui Uchiha's eye in his socket?", note: "Shisui's other eye, and its ultimate genjutsu Kotoamatsukami, is the one Itachi entrusted to a crow.", aimg: "https://cdn.myanimelist.net/images/characters/11/292451.jpg" },
-    { value: 500, q: "The Hyuga Affair: after Hiashi killed the Kumo ambassador who tried to kidnap Hinata, Kumo demanded his corpse. Who died in his place, and what detail made the deception work?", a: "Who is Hizashi, his identical twin and Neji's father — whose branch-family curse seal destroyed his Byakugan at death, leaving Kumo nothing to study?", note: "The whole affair is why Neji spends the Chunin Exams lecturing everyone about fate.", aimg: "https://cdn.myanimelist.net/images/characters/10/103835.jpg" },
+    { value: 200, q: "Tsunade is a legendary medic, a princess of the Senju, and famous across gambling halls under this unflattering nickname.", a: "What is the Legendary Sucker?", note: "She loses so reliably that when she actually wins, she treats it as an omen of disaster. She's right.", aimg: "https://cdn.myanimelist.net/images/characters/12/523646.jpg" },
+    { value: 300, q: "The Uchiha massacre was a sanctioned operation, not a rogue act. Who ordered it, and what single condition did Itachi extract in return?", a: "What is the Leaf's leadership, pushed by Danzo and the village council, in exchange for Sasuke's life being spared?", note: "Hiruzen objected too slowly to matter. Itachi then spent the rest of his life playing the villain to protect the village that used him." },
+    { value: 400, q: "Danzo fights with a stolen arsenal. What is grafted into his right arm, and whose eye sits in his bandaged socket?", a: "What is an arm laced with Hashirama's cells and studded with stolen Sharingan, with Shisui Uchiha's eye in his socket?", note: "Shisui's other eye, and its ultimate genjutsu Kotoamatsukami, is the one Itachi entrusted to a crow.", aimg: "https://cdn.myanimelist.net/images/characters/11/292451.jpg" },
+    { value: 500, q: "The Hyuga Affair, after Hiashi killed the Kumo ambassador who tried to kidnap Hinata, Kumo demanded his corpse. Who died in his place, and what detail made the deception work?", a: "Who is Hizashi, his identical twin and Neji's father, whose branch family curse seal destroyed his Byakugan at death, leaving Kumo nothing to study?", note: "The whole affair is why Neji spends the Chunin Exams lecturing everyone about fate.", aimg: "https://cdn.myanimelist.net/images/characters/10/103835.jpg" },
   ]},
   { category: "Forbidden & Forgotten Jutsu", questions: [
-    { value: 100, q: "Naruto's signature technique — which he learned by stealing the Scroll of Seals in the very first episode.", a: "What is the Shadow Clone Jutsu (Multi Shadow Clone Jutsu)?", note: "Technically a forbidden technique: the memory feedback and chakra split are dangerous to normal ninja." },
-    { value: 200, q: "The Reaper Death Seal wins any sealing contest, at a price no one pays twice. What is it?", a: "What is the caster's own soul — sealed into the Shinigami's stomach alongside the target's, forever?", note: "Minato paid it to seal the Kyubi; Hiruzen paid it to stop Orochimaru." },
+    { value: 100, q: "Naruto's signature technique, which he learned by stealing the Scroll of Seals in the very first episode.", a: "What is the Shadow Clone Jutsu (Multi Shadow Clone Jutsu)?", note: "Technically a forbidden technique, the memory feedback and chakra split are dangerous to normal ninja." },
+    { value: 200, q: "The Reaper Death Seal wins any sealing contest, at a price no one pays twice. What is it?", a: "What is the caster's own soul, sealed into the Shinigami's stomach alongside the target's, forever?", note: "Minato paid it to seal the Kyubi. Hiruzen paid it to stop Orochimaru." },
     { value: 300, q: "Edo Tensei resurrects the dead as unkillable soldiers. Name both ingredients each resurrection requires.", a: "What are a living human sacrifice, and DNA of the person being revived?", note: "The living body becomes the vessel. It is why Kabuto's war army was limited by the remains he could rob." },
-    { value: 400, q: "The Flying Thunder God is Minato's signature — but he did not invent it. Who did, and what two other infamous techniques share the same inventor?", a: "Who is Tobirama Senju, the Second Hokage — also the inventor of Edo Tensei and the Shadow Clone Jutsu?", note: "The most responsible-seeming Hokage quietly invented the series' most abused technique.", aimg: "https://cdn.myanimelist.net/images/characters/2/293367.jpg" },
-    { value: 500, q: "Izanagi and Izanami are paired Uchiha eye techniques with the same price. What does each do, and what is that price?", a: "What is Izanagi rewrites the user's own fate (briefly turning injury or death into illusion), Izanami locks a target in a repeating loop until they accept their fate — and each permanently blinds the eye that casts it?", note: "One deceives destiny, the other decides it: Itachi's framing when he uses Izanami on Kabuto." },
+    { value: 400, q: "The Flying Thunder God is Minato's signature, but he did not invent it. Who did, and what two other infamous techniques share the same inventor?", a: "Who is Tobirama Senju, the Second Hokage, also the inventor of Edo Tensei and the Shadow Clone Jutsu?", note: "The most responsible seeming Hokage quietly invented the series' most abused technique.", aimg: "https://cdn.myanimelist.net/images/characters/2/293367.jpg" },
+    { value: 500, q: "Izanagi and Izanami are paired Uchiha eye techniques with the same price. What does each do, and what is that price?", a: "What is Izanagi rewrites the user's own fate (briefly turning injury or death into illusion), Izanami locks a target in a repeating loop until they accept their fate, and each permanently blinds the eye that casts it?", note: "One deceives destiny, the other decides it, Itachi's framing when he uses Izanami on Kabuto." },
   ]},
   { category: "Behind the Mask", questions: [
-    { value: 100, q: "The Nine-Tailed Fox sealed inside Naruto has a real name. What is it?", a: "What is Kurama?", aimg: "https://cdn.myanimelist.net/images/characters/5/232183.jpg" },
-    { value: 200, q: "Kakashi is never without his little orange book. Name the series, and its very famous author.", a: "What is Icha Icha (Make-Out Paradise) — written by Jiraiya?", note: "The eulogy detail: Kakashi tells Naruto the sequel's dedication made Jiraiya prouder than any battle.", aimg: "https://cdn.myanimelist.net/images/characters/15/68618.jpg" },
-    { value: 300, q: "'Tobi' spent years claiming to be Madara Uchiha. Who was actually under the mask, and what was keeping his broken body alive?", a: "Who is Obito Uchiha — half of his body replaced with Hashirama-cell White Zetsu material after the boulder crushed him at Kannabi Bridge?", note: "The white half is why Kakashi's Chidori through his chest at the bridge changes nothing.", aimg: "https://cdn.myanimelist.net/images/characters/8/70596.jpg" },
-    { value: 400, q: "Captain Yamato is the only shinobi alive who can suppress Naruto's tailed-beast state. Why him?", a: "What is he is the sole survivor of Orochimaru's sixty-child experiment to graft Hashirama's Wood Release DNA?", note: "Wood Release is the First Hokage's bloodline — the same power that let Hashirama tame tailed beasts.", aimg: "https://cdn.myanimelist.net/images/characters/8/128096.jpg" },
-    { value: 500, q: "The Akatsuki was not founded as a villain squad. Name all three founders and their war-ruined homeland.", a: "Who are Yahiko, Nagato, and Konan — war orphans of Amegakure, the Hidden Rain?", note: "It began as a peace movement by Jiraiya's own students. Every later member is wearing a dead idealist's uniform.", aimg: "https://cdn.myanimelist.net/images/characters/4/98447.jpg" },
+    { value: 100, q: "The Nine Tailed Fox sealed inside Naruto has a real name. What is it?", a: "What is Kurama?", aimg: "https://cdn.myanimelist.net/images/characters/5/232183.jpg" },
+    { value: 200, q: "Kakashi is never without his little orange book. Name the series, and its very famous author.", a: "What is Icha Icha (Make Out Paradise), written by Jiraiya?", note: "The eulogy detail, Kakashi tells Naruto the sequel's dedication made Jiraiya prouder than any battle.", aimg: "https://cdn.myanimelist.net/images/characters/15/68618.jpg" },
+    { value: 300, q: "'Tobi' spent years claiming to be Madara Uchiha. Who was actually under the mask, and what was keeping his broken body alive?", a: "Who is Obito Uchiha, half of his body replaced with Hashirama cell White Zetsu material after the boulder crushed him at Kannabi Bridge?", note: "The white half is why Kakashi's Chidori through his chest at the bridge changes nothing.", aimg: "https://cdn.myanimelist.net/images/characters/8/70596.jpg" },
+    { value: 400, q: "Captain Yamato is the only shinobi alive who can suppress Naruto's tailed beast state. Why him?", a: "What is he is the sole survivor of Orochimaru's sixty child experiment to graft Hashirama's Wood Release DNA?", note: "Wood Release is the First Hokage's bloodline, the same power that let Hashirama tame tailed beasts.", aimg: "https://cdn.myanimelist.net/images/characters/8/128096.jpg" },
+    { value: 500, q: "The Akatsuki was not founded as a villain squad. Name all three founders and their war ruined homeland.", a: "Who are Yahiko, Nagato, and Konan, war orphans of Amegakure, the Hidden Rain?", note: "It began as a peace movement by Jiraiya's own students. Every later member is wearing a dead idealist's uniform.", aimg: "https://cdn.myanimelist.net/images/characters/4/98447.jpg" },
   ]},
   { category: "Order the Timeline", questions: [
     { value: 100, format: "sequence", q: "Put these in story order, earliest first.",
@@ -918,62 +930,62 @@ var NARUTO_TEXT_BOARD = [
     { value: 300, format: "sequence", q: "Put these in story order, earliest first.",
       items: ["Jiraiya dies fighting Pain", "Itachi dies fighting Sasuke", "Pain levels the Hidden Leaf", "The Five Kage Summit convenes"],
       correctOrder: [0, 1, 2, 3], a: "Jiraiya, then Itachi, then Pain's assault, then the Summit",
-      note: "The trap is the first two: Jiraiya falls in Amegakure just before Itachi falls to Sasuke." },
-    { value: 400, format: "sequence", q: "Put these war-arc events in story order, earliest first.",
+      note: "The trap is the first two, Jiraiya falls in Amegakure just before Itachi falls to Sasuke." },
+    { value: 400, format: "sequence", q: "Put these war arc events in story order, earliest first.",
       items: ["Madara is revived by Edo Tensei", "Tobi is unmasked as Obito", "Neji dies shielding Naruto and Hinata", "The Infinite Tsukuyomi is cast"],
       correctOrder: [0, 1, 2, 3], a: "Madara revived, then Obito unmasked, then Neji's death, then the Infinite Tsukuyomi",
-      note: "People reliably flip the first two: Edo Madara hits the battlefield well before the mask comes off." },
-    { value: 500, format: "sequence", q: "Now in-universe chronology, not airing order: put these in the order they happened in history, earliest first.",
-      items: ["Hashirama and Madara found the Hidden Leaf", "Their duel at the Valley of the End", "Obito is crushed at Kannabi Bridge", "The Nine-Tails attacks the Leaf", "The Uchiha massacre"],
-      correctOrder: [0, 1, 2, 3, 4], a: "Founding, the Valley duel, Kannabi Bridge, the Nine-Tails attack, the massacre",
-      note: "All of it is told out of order across flashbacks, which is exactly what makes reassembling it hard: the founding era, then the Third War, then Naruto's birth night, then Sasuke's childhood." },
+      note: "People reliably flip the first two, Edo Madara hits the battlefield well before the mask comes off." },
+    { value: 500, format: "sequence", q: "Now in universe chronology, not airing order, put these in the order they happened in history, earliest first.",
+      items: ["Hashirama and Madara found the Hidden Leaf", "Their duel at the Valley of the End", "Obito is crushed at Kannabi Bridge", "The Nine Tails attacks the Leaf", "The Uchiha massacre"],
+      correctOrder: [0, 1, 2, 3, 4], a: "Founding, the Valley duel, Kannabi Bridge, the Nine Tails attack, the massacre",
+      note: "All of it is told out of order across flashbacks, which is exactly what makes reassembling it hard, the founding era, then the Third War, then Naruto's birth night, then Sasuke's childhood." },
   ]},
   { category: "Name That Naruto Tune", questions: [
-    { value: 100, id: "2upuBiEiXDk", q: "Name this Shippuden opening — title, and the arc-defining number it carries.", a: 'What is "Blue Bird" by Ikimonogakari — Shippuden opening 3?', note: "The most famous of them all; the 100 is a warm-up before this category turns cruel." },
-    { value: 200, id: "ScQKD9vS5ag", q: "Name this ending, famous for a dance that outlived the song.", a: 'What is "Bacchikoi!!!" by DEV PARADE — Shippuden ending 8?', note: "The full-cast dance ending. Everyone knows the moves; almost nobody knows the title." },
-    { value: 300, id: "zkPZkup8yhY", q: "Instrumental round: name this battle track, the sound of every Part 1 comeback.", a: 'What is "The Raising Fighting Spirit"?', note: "Be generous with close titles — but the exact name is the flex." },
-    { value: 400, id: "PCfiqY05BpA", q: "One chant, one character. Whose theme is this, and its track name?", a: 'What is "Girei" — Pain\'s theme?', note: "The chanting starts and the whole room says the same name. The track title is the hard half." },
-    { value: 500, id: "EJm-wpvWY3g", q: "Deep cut: name this early ending and its artist.", a: 'What is "Harmonia" by RYTHEM — Naruto ending 2?', note: "From 2003, back when the show ran wind-down acoustic endings nobody rewatched. Genuinely hard." },
+    { value: 100, id: "2upuBiEiXDk", q: "Name this Shippuden opening, title, and the arc defining number it carries.", a: 'What is "Blue Bird" by Ikimonogakari, Shippuden opening 3?', note: "The most famous of them all. the 100 is a warm up before this category turns cruel." },
+    { value: 200, id: "ScQKD9vS5ag", q: "Name this ending, famous for a dance that outlived the song.", a: 'What is "Bacchikoi!!!" by DEV PARADE, Shippuden ending 8?', note: "The full cast dance ending. Everyone knows the moves. almost nobody knows the title." },
+    { value: 300, id: "zkPZkup8yhY", q: "Instrumental round, name this battle track, the sound of every Part 1 comeback.", a: 'What is "The Raising Fighting Spirit"?', note: "Be generous with close titles, but the exact name is the flex." },
+    { value: 400, id: "PCfiqY05BpA", q: "One chant, one character. Whose theme is this, and its track name?", a: 'What is "Girei", Pain\'s theme?', note: "The chanting starts and the whole room says the same name. The track title is the hard half." },
+    { value: 500, id: "EJm-wpvWY3g", q: "Deep cut, name this early ending and its artist.", a: 'What is "Harmonia" by RYTHEM, Naruto ending 2?', note: "From 2003, back when the show ran wind down acoustic endings nobody rewatched. Genuinely hard." },
   ]},
 ];
 
 // Zero Escape board, added 2026-07-03: one category per game plus the
 // recurring cast and the trilogy's rules. Spoils everything, by design.
 var ZEROESCAPE_TEXT_BOARD = [
-  { category: "999: Nine Doors", questions: [
-    { value: 100, q: "999's protagonist, who wakes up in a flooding third-class cabin with a bracelet on his wrist.", a: "Who is Junpei?" },
-    { value: 200, q: "Numbered doors only open for groups whose bracelets produce this — the series' signature arithmetic.", a: "What is the correct digital root — the bracelet numbers summed down to a single digit matching the door?", note: "The game teaches you modular arithmetic and then builds murder mysteries out of it." },
-    { value: 300, q: "Ace's real identity, and the neurological condition that motivated the original Nonary Project.", a: "Who is Gentarou Hongou, CEO of Cradle Pharmaceutical — driven by prosopagnosia, the inability to recognize faces?", note: "He ran experiments on children hoping the morphogenetic field could cure him. The 'cure' is also how he fails to notice who is standing right next to him nine years later." },
-    { value: 400, q: "The sinking ocean liner is a lie. Where is the second Nonary Game actually being played?", a: "What is Building Q — a landlocked replica of the Gigantic's interior, in the Nevada desert?", note: "The flooding, the countdown, the ship: staged. The original Gigantic hosted the first game nine years earlier." },
-    { value: 500, q: "On the original DS, the hardware itself was the twist. What had the second screen secretly been all along, and what physical act does the final puzzle demand?", a: "What is the perspective of young Akane, experiencing the game through the morphogenetic field — with the final sudoku forcing you to flip the DS upside down, trading Junpei's view for hers?", note: "A puzzle mechanic, a narrative reveal, and a physical gesture in one move. Widely considered the best use of the DS's two screens ever shipped." },
+  { category: "999, Nine Doors", questions: [
+    { value: 100, q: "999's protagonist, who wakes up in a flooding third class cabin with a bracelet on his wrist.", a: "Who is Junpei?" },
+    { value: 200, q: "Numbered doors only open for groups whose bracelets produce this, the series' signature arithmetic.", a: "What is the correct digital root, the bracelet numbers summed down to a single digit matching the door?", note: "The game teaches you modular arithmetic and then builds murder mysteries out of it." },
+    { value: 300, q: "Ace's real identity, and the neurological condition that motivated the original Nonary Project.", a: "Who is Gentarou Hongou, CEO of Cradle Pharmaceutical, driven by prosopagnosia, the inability to recognize faces?", note: "He ran experiments on children hoping the morphogenetic field could cure him. The 'cure' is also how he fails to notice who is standing right next to him nine years later." },
+    { value: 400, q: "The sinking ocean liner is a lie. Where is the second Nonary Game actually being played?", a: "What is Building Q, a landlocked replica of the Gigantic's interior, in the Nevada desert?", note: "The flooding, the countdown, the ship, staged. The original Gigantic hosted the first game nine years earlier." },
+    { value: 500, q: "On the original DS, the hardware itself was the twist. What had the second screen secretly been all along, and what physical act does the final puzzle demand?", a: "What is the perspective of young Akane, experiencing the game through the morphogenetic field, with the final sudoku forcing you to flip the DS upside down, trading Junpei's view for hers?", note: "A puzzle mechanic, a narrative reveal, and a physical gesture in one move. Widely considered the best use of the DS's two screens ever shipped." },
   ]},
   { category: "Virtue's Last Reward", questions: [
-    { value: 100, q: "The chipper cartoon rabbit who hosts the Nonary Game: Ambidex Edition.", a: "Who is Zero III (Zero Jr.)?" },
-    { value: 200, q: "The Ambidex Game's two choices, and the stakes on your bracelet.", a: "What are Ally and Betray — reach 9 bracelet points and you can leave; hit 0 and the bracelet kills you?", note: "Cooperation pays both sides modestly; betrayal pays the traitor out of the victim's hide. The trilogy's purest prisoner's dilemma." },
-    { value: 300, q: "The old man Tenmyouji, quietly protective of his grandson Quark, is somebody the series already introduced. Who?", a: "Who is Junpei — decades older, having spent a lifetime searching for Akane?", note: "The reveal lands harder because he spends the whole game refusing to talk about it." },
-    { value: 400, q: "Rhizome 9 is not where the players think it is. Where is the facility, and roughly when?", a: "What is on the moon — in 2074, nearly half a century after the Radical-6 pandemic devastated Earth?", note: "The lower gravity was under everyone's nose the entire game." },
-    { value: 500, q: "Two Ambidex players are not what they appear: the gentle nurse and the man in the armored suit. What is each of them really?", a: "What is Luna is a GAULEM — a robot — and K is Kyle Klim, Sigma's clone son?", note: "And the game's mastermind, Zero Sr., is Sigma himself, grown old: the player has been the villain's younger self all along." },
+    { value: 100, q: "The chipper cartoon rabbit who hosts the Nonary Game, Ambidex Edition.", a: "Who is Zero III (Zero Jr.)?" },
+    { value: 200, q: "The Ambidex Game's two choices, and the stakes on your bracelet.", a: "What are Ally and Betray, reach 9 bracelet points and you can leave. hit 0 and the bracelet kills you?", note: "Cooperation pays both sides modestly. betrayal pays the traitor out of the victim's hide. The trilogy's purest prisoner's dilemma." },
+    { value: 300, q: "The old man Tenmyouji, quietly protective of his grandson Quark, is somebody the series already introduced. Who?", a: "Who is Junpei, decades older, having spent a lifetime searching for Akane?", note: "The reveal lands harder because he spends the whole game refusing to talk about it." },
+    { value: 400, q: "Rhizome 9 is not where the players think it is. Where is the facility, and roughly when?", a: "What is on the moon, in 2074, nearly half a century after the Radical 6 pandemic devastated Earth?", note: "The lower gravity was under everyone's nose the entire game." },
+    { value: 500, q: "Two Ambidex players are not what they appear, the gentle nurse and the man in the armored suit. What is each of them really?", a: "What is Luna is a GAULEM, a robot, and K is Kyle Klim, Sigma's clone son?", note: "And the game's mastermind, Zero Sr., is Sigma himself, grown old, the player has been the villain's younger self all along." },
   ]},
   { category: "Zero Time Dilemma", questions: [
-    { value: 100, q: "The Decision Game opens with this 50/50 gamble — win it, and all nine players walk free immediately.", a: "What is the coin flip?" },
-    { value: 200, q: "Name the three teams of the Decision Game, and the facility where it takes place.", a: "What are C-Team, Q-Team, and D-Team — locked inside Dcom, the Mars mission test site in the Nevada desert?", note: "C for Carlos, Q for... well, that one turns out to be a lie too." },
-    { value: 300, q: "Sweet, affectless Mira has a hobby the other players should worry about. What is she?", a: "What is the Heart Ripper — a serial killer who cuts out her victims' hearts?", note: "Eric dates her anyway. Eric has problems." },
-    { value: 400, q: "The boy in the spherical helmet is called Q. What is he actually, and what is his real name?", a: "What is a robot — an artificial boy named Sean, built by Zero?", note: "The player assumes the helmet hides a face. It hides that there is no face." },
-    { value: 500, q: "Q-Team had a fourth member on camera the entire game. Who, and how did he perceive anything when he could neither see nor hear?", a: "Who is Delta — Zero himself, an old man in a wheelchair the player is never shown — blind and deaf, perceiving everything by reading minds?", note: "The trilogy's most audacious trick: he was in the room for every Q-Team scene, edited out by your own assumptions." },
+    { value: 100, q: "The Decision Game opens with this 50/50 gamble, win it, and all nine players walk free immediately.", a: "What is the coin flip?" },
+    { value: 200, q: "Name the three teams of the Decision Game, and the facility where it takes place.", a: "What are C Team, Q Team, and D Team, locked inside Dcom, the Mars mission test site in the Nevada desert?", note: "C for Carlos, Q for... well, that one turns out to be a lie too." },
+    { value: 300, q: "Sweet, affectless Mira has a hobby the other players should worry about. What is she?", a: "What is the Heart Ripper, a serial killer who cuts out her victims' hearts?", note: "Eric dates her anyway. Eric has problems." },
+    { value: 400, q: "The boy in the spherical helmet is called Q. What is he actually, and what is his real name?", a: "What is a robot, an artificial boy named Sean, built by Zero?", note: "The player assumes the helmet hides a face. It hides that there is no face." },
+    { value: 500, q: "Q Team had a fourth member on camera the entire game. Who, and how did he perceive anything when he could neither see nor hear?", a: "Who is Delta, Zero himself, an old man in a wheelchair the player is never shown, blind and deaf, perceiving everything by reading minds?", note: "The trilogy's most audacious trick, he was in the room for every Q Team scene, edited out by your own assumptions." },
   ]},
   { category: "Recurring Faces", questions: [
     { value: 100, q: "The childhood friends at the emotional center of the trilogy, reunited in every entry.", a: "Who are Junpei and Akane?" },
-    { value: 200, q: "Clover appears in two of the three games. Name her blind older brother from 999, both his real name and his code name.", a: "Who is Light Field — code name Snake?", note: "The most dangerous person on the Gigantic, politely reading pewter with his fingertips." },
-    { value: 300, q: "Akane did not run the second Nonary Game alone. Her brother's code name in 999, and his role?", a: "What is Santa — Aoi Kurashiki, her older brother and co-conspirator behind Zero?", note: "He spends the whole game complaining about the mission he himself is running." },
-    { value: 400, q: "Sigma and Phi's true relationship, revealed in Zero Time Dilemma?", a: "What is father and daughter — Phi is Sigma and Diana's child, twin sister of Delta, sent into the past as an infant?", note: "Which makes the snarky partner dynamic of VLR retroactively very strange, and the series knows it." },
-    { value: 500, q: "Three games, three masterminds behind the mask. Name all three Zeros, in series order.", a: "Who are Akane Kurashiki (999), the elderly Sigma Klim (Virtue's Last Reward), and Delta, alias Brother (Zero Time Dilemma)?", note: "Each reveal reframes its whole game: the victim, the player, and the man you never saw." },
+    { value: 200, q: "Clover appears in two of the three games. Name her blind older brother from 999, both his real name and his code name.", a: "Who is Light Field, code name Snake?", note: "The most dangerous person on the Gigantic, politely reading pewter with his fingertips." },
+    { value: 300, q: "Akane did not run the second Nonary Game alone. Her brother's code name in 999, and his role?", a: "What is Santa, Aoi Kurashiki, her older brother and co conspirator behind Zero?", note: "He spends the whole game complaining about the mission he himself is running." },
+    { value: 400, q: "Sigma and Phi's true relationship, revealed in Zero Time Dilemma?", a: "What is father and daughter, Phi is Sigma and Diana's child, twin sister of Delta, sent into the past as an infant?", note: "Which makes the snarky partner dynamic of VLR retroactively very strange, and the series knows it." },
+    { value: 500, q: "Three games, three masterminds behind the mask. Name all three Zeros, in series order.", a: "Who are Akane Kurashiki (999), the elderly Sigma Klim (Virtue's Last Reward), and Delta, alias Brother (Zero Time Dilemma)?", note: "Each reveal reframes its whole game, the victim, the player, and the man you never saw." },
   ]},
   { category: "Rules of the Game", questions: [
     { value: 100, q: "Every game in the trilogy is hosted by a masked mastermind operating under this alias.", a: "Who is Zero?" },
-    { value: 200, q: "The pseudoscience load-bearing wall of the whole series: minds sharing information across space and time through this.", a: "What is the morphogenetic field?", note: "Transmitters and receivers, resonance under mortal stress — the series' one big ask, borrowed from real fringe science." },
-    { value: 300, q: "Radical-6 does not just kill. What does it do to the infected, and what role does the outbreak play across the trilogy?", a: "What is it drives the infected to suicide — and its pandemic is the apocalypse the espers keep crossing timelines to prevent?", note: "Six billion dead in the history VLR inherits; preventing that history is the entire point of the AB Project and the Decision Game." },
-    { value: 400, q: "SHIFTing is the espers' real power. What does it move, and what is the uncomfortable catch about what happens to the other side?", a: "What is consciousness only — jumping between your own selves across timelines, which means the other you wakes up stranded in the history you abandoned?", note: "Every triumphant escape strands a version of the hero in the timeline that failed." },
-    { value: 500, q: "ZTD's transporter is misnamed. What does the machine actually do, and what family paradox did it make possible?", a: "What is it copies rather than moves — the original stays put — letting Diana and Sigma send duplicates of their newborn twins, Delta and Phi, into the past?", note: "The child grows up to become the mastermind who orchestrates his own conception: the trilogy's cleanest bootstrap loop." },
+    { value: 200, q: "The pseudoscience load bearing wall of the whole series, minds sharing information across space and time through this.", a: "What is the morphogenetic field?", note: "Transmitters and receivers, resonance under mortal stress, the series' one big ask, borrowed from real fringe science." },
+    { value: 300, q: "Radical 6 does not just kill. What does it do to the infected, and what role does the outbreak play across the trilogy?", a: "What is it drives the infected to suicide, and its pandemic is the apocalypse the espers keep crossing timelines to prevent?", note: "Six billion dead in the history VLR inherits. preventing that history is the entire point of the AB Project and the Decision Game." },
+    { value: 400, q: "SHIFTing is the espers' real power. What does it move, and what is the uncomfortable catch about what happens to the other side?", a: "What is consciousness only, jumping between your own selves across timelines, which means the other you wakes up stranded in the history you abandoned?", note: "Every triumphant escape strands a version of the hero in the timeline that failed." },
+    { value: 500, q: "ZTD's transporter is misnamed. What does the machine actually do, and what family paradox did it make possible?", a: "What is it copies rather than moves, the original stays put, letting Diana and Sigma send duplicates of their newborn twins, Delta and Phi, into the past?", note: "The child grows up to become the mastermind who orchestrates his own conception, the trilogy's cleanest bootstrap loop." },
   ]},
 ];
 
@@ -983,84 +995,84 @@ var RE5_TEXT_BOARD = [
   { category: "Partners in Kijuju", questions: [
     { value: 100, q: "RE5's two playable partners, a returning S.T.A.R.S. veteran and a BSAA West Africa agent.", a: "Who are Chris Redfield and Sheva Alomar?" },
     { value: 200, q: "The African town where the whole campaign kicks off, its marketplace turning hostile within minutes.", a: "What is Kijuju?" },
-    { value: 300, q: "Chris isn't in Africa for the mission briefing's reasons. Whose photograph is he really chasing?", a: "Who is Jill Valentine — his partner, presumed dead, glimpsed alive in an intelligence photo?", note: "The BSAA op is a bioweapons bust; Chris's private mission is a ghost hunt." },
-    { value: 400, q: "Sheva's grudge against bio-weapons is personal. What happened to her parents?", a: "What is they died in an Umbrella plant 'accident' — a cover for a bioweapon incident in her homeland?", note: "Her backstory file makes her the African counterpart to Chris's Raccoon City scars." },
-    { value: 500, q: "The BSAA Delta Team captain who keeps saving the leads' lives, mentors Sheva, and co-stars in one of the DLC episodes.", a: "Who is Josh Stone?", note: "He pulls Chris and Sheva out of the fire at least three separate times and flies the final rescue chopper." },
+    { value: 300, q: "Chris isn't in Africa for the mission briefing's reasons. Whose photograph is he really chasing?", a: "Who is Jill Valentine, his partner, presumed dead, glimpsed alive in an intelligence photo?", note: "The BSAA op is a bioweapons bust. Chris's private mission is a ghost hunt." },
+    { value: 400, q: "Sheva's grudge against bio weapons is personal. What happened to her parents?", a: "What is they died in an Umbrella plant 'accident', a cover for a bioweapon incident in her homeland?", note: "Her backstory file makes her the African counterpart to Chris's Raccoon City scars." },
+    { value: 500, q: "The BSAA Delta Team captain who keeps saving the leads' lives, mentors Sheva, and co stars in one of the DLC episodes.", a: "Who is Josh Stone?", note: "He pulls Chris and Sheva out of the fire at least three separate times and flies the final rescue chopper." },
   ]},
   { category: "The Uroboros Project", questions: [
-    { value: 100, q: "RE5's main villain, the sunglasses-at-night superhuman with a god complex.", a: "Who is Albert Wesker?" },
-    { value: 200, q: "Wesker's partner in the scheme: name the woman and the pharmaceutical giant she represents.", a: "Who is Excella Gionne, of Tricell?", note: "Tricell bankrolled Uroboros after quietly absorbing what was left of Umbrella's research." },
-    { value: 300, q: "The Uroboros virus is not a weapon of conquest but of selection. What was Wesker's plan for it?", a: "What is releasing it worldwide from a stealth bomber, killing everyone whose DNA was 'unworthy' and evolving the rest?", note: "Judgment by virus: only those who adapt deserve the new world." },
-    { value: 400, q: "The superhuman has a leash. What keeps Wesker's powers stable, and how do Chris and Sheva weaponize it?", a: "What is the serum PG67A/W — required in precise, regular doses; they inject him with an overdose to destabilize him?", note: "Excella controlled the supply, which is why Wesker tolerated her. The final fights begin with a syringe, not a gun." },
-    { value: 500, q: "Wesker was never just one man. Name the eugenics program that created him, and the man who ran it.", a: "What is Project W (the Wesker Project / 'Wesker children') — run under Ozwell E. Spencer?", note: "Hundreds of children, one survivor of note. Spencer's confession, moments before Wesker kills him, is what set the RE5 endgame in motion." },
+    { value: 100, q: "RE5's main villain, the sunglasses at night superhuman with a god complex.", a: "Who is Albert Wesker?" },
+    { value: 200, q: "Wesker's partner in the scheme, name the woman and the pharmaceutical giant she represents.", a: "Who is Excella Gionne, of Tricell?", note: "Tricell bankrolled Uroboros after quietly absorbing what was left of Umbrella's research." },
+    { value: 300, q: "The Uroboros virus is not a weapon of conquest but of selection. What was Wesker's plan for it?", a: "What is releasing it worldwide from a stealth bomber, killing everyone whose DNA was 'unworthy' and evolving the rest?", note: "Judgment by virus, only those who adapt deserve the new world." },
+    { value: 400, q: "The superhuman has a leash. What keeps Wesker's powers stable, and how do Chris and Sheva weaponize it?", a: "What is the serum PG67A/W, required in precise, regular doses. they inject him with an overdose to destabilize him?", note: "Excella controlled the supply, which is why Wesker tolerated her. The final fights begin with a syringe, not a gun." },
+    { value: 500, q: "Wesker was never just one man. Name the eugenics program that created him, and the man who ran it.", a: "What is Project W (the Wesker Project / 'Wesker children'), run under Ozwell E. Spencer?", note: "Hundreds of children, one survivor of note. Spencer's confession, moments before Wesker kills him, is what set the RE5 endgame in motion." },
   ]},
   { category: "Majini & Monsters", questions: [
     { value: 100, q: "RE5's infected are not called zombies or Ganados. What is the local name for them?", a: "What are Majini?", note: "Swahili for 'evil spirit.'" },
-    { value: 200, q: "What is actually inside the Majini, controlling them?", a: "What are Las Plagas parasites — evolved strains of the organism from Resident Evil 4?", note: "Type 2 and Type 3 Plagas, mass-administered to whole settlements." },
-    { value: 300, q: "The first boss: a hulking Majini in an apron who interrupts the public execution with an enormous bladed weapon. Name him.", a: "What is the Executioner Majini?", note: "The giant axeman of the Public Assembly, later a Mercenaries and multiplayer icon." },
+    { value: 200, q: "What is actually inside the Majini, controlling them?", a: "What are Las Plagas parasites, evolved strains of the organism from Resident Evil 4?", note: "Type 2 and Type 3 Plagas, mass administered to whole settlements." },
+    { value: 300, q: "The first boss, a hulking Majini in an apron who interrupts the public execution with an enormous bladed weapon. Name him.", a: "What is the Executioner Majini?", note: "The giant axeman of the Public Assembly, later a Mercenaries and multiplayer icon." },
     { value: 400, q: "The insectoid enemies that hatch from cocoons late in the game, kill in one hit, and are best exposed with a flash grenade.", a: "What are Reapers?", note: "The one enemy that makes hoarding flash grenades correct." },
-    { value: 500, q: "The bat-like B.O.W. fought on the dirt road out of the marshlands, with an armored shell and a soft larval underside. Name it.", a: "What is Popokarimu?", note: "A name almost nobody retains — most players remember it only as 'the bat thing from the truck fight.'" },
+    { value: 500, q: "The bat like B.O.W. fought on the dirt road out of the marshlands, with an armored shell and a soft larval underside. Name it.", a: "What is Popokarimu?", note: "A name almost nobody retains, most players remember it only as 'the bat thing from the truck fight.'" },
   ]},
   { category: "Mercenaries & Extras", questions: [
-    { value: 100, q: "RE5 was the first mainline Resident Evil built entirely around this way of playing.", a: "What is two-player co-op — the whole campaign, split-screen or online?" },
+    { value: 100, q: "RE5 was the first mainline Resident Evil built entirely around this way of playing.", a: "What is two player co op, the whole campaign, split screen or online?" },
     { value: 200, q: "The arcade survival mode that returns from RE4, all combos and time pickups.", a: "What is The Mercenaries?" },
-    { value: 300, q: "The single most famous optional action in the game, performed by Chris against a piece of volcanic terrain.", a: "What is punching a boulder?", note: "A quick-time event in the volcano finale that permanently redefined Chris Redfield's biceps in fandom memory." },
+    { value: 300, q: "The single most famous optional action in the game, performed by Chris against a piece of volcanic terrain.", a: "What is punching a boulder?", note: "A quick time event in the volcano finale that permanently redefined Chris Redfield's biceps in fandom memory." },
     { value: 400, q: "Gold Edition added two story episodes. Name both.", a: "What are Lost in Nightmares (Chris and Jill at the Spencer Estate) and Desperate Escape (Jill and Josh's run to the rescue)?" },
-    { value: 500, q: "Lost in Nightmares hides a love letter to 1996: what happens if you examine the mansion's front door area repeatedly?", a: "What is the game switches to classic fixed camera angles, RE1-style?", note: "The estate hallway is already a remake of the original mansion foyer; the easter egg completes the homage." },
+    { value: 500, q: "Lost in Nightmares hides a love letter to 1996, what happens if you examine the mansion's front door area repeatedly?", a: "What is the game switches to classic fixed camera angles, RE1 style?", note: "The estate hallway is already a remake of the original mansion foyer. the easter egg completes the homage." },
   ]},
   { category: "Series Connections", questions: [
     { value: 100, q: "Chris made his debut in the original Resident Evil as a member of this Raccoon City special unit.", a: "What is S.T.A.R.S.?" },
-    { value: 200, q: "The masked, cloaked figure fighting alongside Wesker turns out to be a series legend. Who, and what is the device on her chest?", a: "Who is Jill Valentine — blonde and mind-controlled by the P30 device?", note: "Ripping the device off is a two-player set piece; the battle suit became her signature look for a generation of spin-offs." },
+    { value: 200, q: "The masked, cloaked figure fighting alongside Wesker turns out to be a series legend. Who, and what is the device on her chest?", a: "Who is Jill Valentine, blonde and mind controlled by the P30 device?", note: "Ripping the device off is a two player set piece. the battle suit became her signature look for a generation of spin offs." },
     { value: 300, q: "Wesker didn't dig Las Plagas out of the ground himself. How does the sample trace back to Resident Evil 4?", a: "What is Ada Wong recovered a Plaga sample during the RE4 events and delivered it to Wesker's organization?", note: "The Separate Ways epilogue is the direct bridge between the two games." },
-    { value: 400, q: "The Spencer Estate incident, shown in flashback: what happened in that study, in order?", a: "What is Wesker murdered Ozwell Spencer just before Chris and Jill arrived — and Jill tackled Wesker through the window, both presumed dead?", note: "One scene closes the Umbrella founder's story, fakes Jill's death, and lights the fuse for all of RE5." },
-    { value: 500, q: "Tricell wasn't born evil. Per the in-game files, name the trading family whose company grew into Tricell, and Excella's connection to it.", a: "What is the Travis family — Travis Trading grew into Tricell, and Excella is a descendant who clawed her way up the family empire?", note: "The files credit a Travis with the exhaustive African survey that later guided Tricell to the Progenitor flower region. Deep file-room lore." },
+    { value: 400, q: "The Spencer Estate incident, shown in flashback, what happened in that study, in order?", a: "What is Wesker murdered Ozwell Spencer just before Chris and Jill arrived, and Jill tackled Wesker through the window, both presumed dead?", note: "One scene closes the Umbrella founder's story, fakes Jill's death, and lights the fuse for all of RE5." },
+    { value: 500, q: "Tricell wasn't born evil. Per the in game files, name the trading family whose company grew into Tricell, and Excella's connection to it.", a: "What is the Travis family, Travis Trading grew into Tricell, and Excella is a descendant who clawed her way up the family empire?", note: "The files credit a Travis with the exhaustive African survey that later guided Tricell to the Progenitor flower region. Deep file room lore." },
   ]},
 ];
 
 var BUILTIN_BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg", icon: "🎌", accent: "#a786df",
-    tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
+    tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026)",
     textBoard: ANIME_MUSIC_BOARD,
     final: { category: "The Composers",
-      q: "This composer's jazz-infused Cowboy Bebop soundtrack, opening with the big-band barnstormer 'Tank!', made her a legend of anime music.",
+      q: "This composer's jazz infused Cowboy Bebop soundtrack, opening with the big band barnstormer 'Tank!', made her a legend of anime music.",
       a: "Who is Yoko Kanno?" } },
   { id: "onepiece", name: "One Piece Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1244/138851.jpg", icon: "🏴‍☠️", accent: "#3da9fc",
-    tagline: "Easy starts, thinker finishes — details you only know if you paid attention. (Updated 2026-07-03)",
+    tagline: "Easy starts, thinker finishes, details you only know if you paid attention. (Updated 2026)",
     textBoard: ONEPIECE_TEXT_BOARD,
     final: { category: "Grand Line History",
-      q: "According to legend, this forbidden 100-year stretch of erased history lies between the World Government's founding and the present day.",
+      q: "According to legend, this forbidden 100 year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
   { id: "bleach", name: "Bleach Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1541/147774.jpg", icon: "B", accent: "#ff8906",
-    tagline: "Soul Reapers, Hollows, and reveals you only caught on a reread. (Updated 2026-07-03)",
+    tagline: "Soul Reapers, Hollows, and reveals you only caught on a reread. (Updated 2026)",
     textBoard: BLEACH_TEXT_BOARD,
     final: { category: "Urahara's Regret",
-      q: "Urahara's greatest creation and greatest mistake: this orb senses the hearts around it and makes their deepest desires real, and both he and Aizen buried one inside a soul to hide it.",
+      q: "Urahara's greatest creation and greatest mistake, this orb senses the hearts around it and makes their deepest desires real, and both he and Aizen buried one inside a soul to hide it.",
       a: "What is the Hogyoku?" } },
   { id: "naruto", name: "Naruto Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1141/142503.jpg", icon: "N", accent: "#f25f4c",
-    tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish. (Updated 2026-07-03)",
+    tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish. (Updated 2026)",
     textBoard: NARUTO_TEXT_BOARD,
     final: { category: "The First Chakra",
-      q: "Every jutsu in history traces back to this woman — the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
+      q: "Every jutsu in history traces back to this woman, the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
       a: "Who is Kaguya Otsutsuki?" } },
   { id: "re5", name: "Resident Evil 5 Jeopardy", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/21690/library_600x900.jpg", icon: "R", accent: "#e04646",
-    tagline: "Kijuju, Uroboros, and boulder-adjacent trivia. Co-op questions, solo answers. (Updated 2026-07-03)",
+    tagline: "Kijuju, Uroboros, and boulder adjacent trivia. Co op questions, solo answers. (Updated 2026)",
     textBoard: RE5_TEXT_BOARD,
     final: { category: "Complete. Global.",
-      q: "Wesker's endgame in one phrase: the three-word goal he repeats for the worldwide release of Uroboros.",
+      q: "Wesker's endgame in one phrase, the three word goal he repeats for the worldwide release of Uroboros.",
       a: "What is Complete Global Saturation?" } },
   { id: "zeroescape", name: "Zero Escape Jeopardy", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/477740/library_600x900.jpg", icon: "9", accent: "#2cb67d",
-    tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously. (Updated 2026-07-03)",
+    tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously. (Updated 2026)",
     textBoard: ZEROESCAPE_TEXT_BOARD,
     final: { category: "Where It All Began",
-      q: "The entire trilogy pivots on one moment: a 12-year-old girl about to die in this location aboard the Gigantic, saved only by a puzzle her partner solves nine years in the future.",
+      q: "The entire trilogy pivots on one moment, a 12 year old girl about to die in this location aboard the Gigantic, saved only by a puzzle her partner solves nine years in the future.",
       a: "What is the incinerator?" } },
-  { id: "fnaf", name: "FNAF: The Night Shift", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/871720/library_600x900.jpg", icon: "F", accent: "#b07ce8",
+  { id: "fnaf", name: "FNAF, The Night Shift", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/871720/library_600x900.jpg", icon: "F", accent: "#b07ce8",
     tagline: "Every game from the first office to the Pizzaplex, plus the songs the fans built. (Updated July 2026)",
     textBoard: [
       { category: "Clocking In", questions: [
-        { value: 100, q: "Survive all five nights of the first game and your reward prints on screen, a paycheck for this princely amount.", a: "What is $120?", note: "A week of mortal terror at roughly four dollars an hour.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/319510/header.jpg" },
-        { value: 200, q: "Watching the cameras does nothing to slow most of the cast, but one original band member is famously stalled while you keep him on screen.", a: "Who is Freddy Fazbear himself?", note: "Veterans park the monitor on him; the other three do not care if you are watching." },
-        { value: 300, q: "Between FNAF 4's nights you can play a reaction minigame against a small green rabbit; winning it skips your next night ahead to 2 AM.", a: "What is Fun with Plushtrap?", note: "Keep the flashlight beam on the X at the right moment.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/388090/header.jpg" },
+        { value: 100, q: "Survive all five nights of the first game and your reward prints on screen, a paycheck for this princely amount.", a: "What is $120?", note: "A week of mortal terror at roughly four dollars an hour.", aimg: "https://static.wikia.nocookie.net/freddy-fazbears-pizza/images/f/fb/Mike_Schmidt_cheque.png/revision/latest" },
+        { value: 200, q: "Watching the cameras does nothing to slow most of the cast, but one original band member is famously stalled while you keep him on screen.", a: "Who is Freddy Fazbear himself?", note: "Veterans park the monitor on him. the other three do not care if you are watching." },
+        { value: 300, q: "Between FNAF 4's nights you can play a reaction minigame against a small green rabbit. winning it skips your next night ahead to 2 AM.", a: "What is Fun with Plushtrap?", note: "Keep the flashlight beam on the X at the right moment.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/388090/header.jpg" },
         { value: 400, format: "sequence", q: "Put these five games in STORY order, earliest events first.",
           items: ["Five Nights at Freddy's 4", "Five Nights at Freddy's 2", "Five Nights at Freddy's", "Five Nights at Freddy's 3", "Freddy Fazbear's Pizzeria Simulator"],
           correctOrder: [0, 1, 2, 3, 4],
@@ -1071,9 +1083,9 @@ var BUILTIN_BOARDS = [
       { category: "Animatronic Anatomy", questions: [
         { value: 100, q: "The Fazbear band's third member, a yellow chicken whose bib politely announces LET'S EAT.", a: "Who is Chica?", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/319510/header.jpg" },
         { value: 200, q: "Ignore him and each pounding on your door siphons a growing chunk of power, and leaving the cameras alone only makes him bolder.", a: "Who is Foxy?", note: "Each sprint down the west hall costs more power than the last if he reaches the door." },
-        { value: 300, q: "The Funtime endoskeletons' merged form, last seen slithering into a sewer after being evicted from a body.", a: "Who is Ennard?", note: "Sister Location's endings; the scooping room did the dirty work.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/506610/header.jpg" },
+        { value: 300, q: "The Funtime endoskeletons' merged form, last seen slithering into a sewer after being evicted from a body.", a: "Who is Ennard?", note: "Sister Location's endings. the scooping room did the dirty work.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/506610/header.jpg" },
         { value: 400, q: "Fans call this silhouetted rabbit Shadow Bonnie, but its actual name in the FNAF 2 files is a ten character keysmash. Give the keysmash, or accept the fan name plus the reason for it.", a: "What is RWQFSFASXC?", note: "It also stars in a hidden FNAF 3 minigame where it shifts between worlds." },
-        { value: 500, q: "DeeDee crashes Ultimate Custom Night to add surprise guests to your roster; rarer still is this colorless variant of her, who silently dumps every one of her hidden characters on you at once.", a: "Who is XOR (Shadow DeeDee)?", note: "Her deliveries include RWQFSFASXC, Plushtrap, Nightmare Chica, Bonnet, Minireena, and Lolbit." }
+        { value: 500, q: "DeeDee crashes Ultimate Custom Night to add surprise guests to your roster. rarer still is this colorless variant of her, who silently dumps every one of her hidden characters on you at once.", a: "Who is XOR (Shadow DeeDee)?", note: "Her deliveries include RWQFSFASXC, Plushtrap, Nightmare Chica, Bonnet, Minireena, and Lolbit." }
       ]},
       { category: "The Afton Files", questions: [
         { value: 100, q: "Before Freddy Fazbear's Pizza there was this cheery diner, founded by Afton and Henry Emily together, where the whole tragedy began.", a: "What is Fredbear's Family Diner?" },
@@ -1086,7 +1098,7 @@ var BUILTIN_BOARDS = [
         { value: 100, q: "One camera in the first game never shows video at all. This room's feed is permanently listed as audio only.", a: "What is the kitchen?", note: "You will hear clanging pots when someone is in there. That is all you get." },
         { value: 200, q: "The two word hallucination that flashes across the screen in the first game, as if the building itself is confessing.", a: "What is IT'S ME?" },
         { value: 300, q: "Catch the fish at this pixelated elder's pond in Ultimate Custom Night and he advises you to leave the demon to his demons.", a: "Who is Old Man Consequences?", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/871720/header.jpg" },
-        { value: 400, q: "On CAM 2B the cheery poster occasionally swaps to a golden closeup; lower your monitor after seeing it and this slumped visitor materializes in your office, his kill famously crashing the game outright.", a: "Who is Golden Freddy?", note: "The FNAF 1 summon ritual. Poster flips, camera down, do not stare." },
+        { value: 400, q: "On CAM 2B the cheery poster occasionally swaps to a golden closeup. lower your monitor after seeing it and this slumped visitor materializes in your office, his kill famously crashing the game outright.", a: "Who is Golden Freddy?", note: "The FNAF 1 summon ritual. Poster flips, camera down, do not stare." },
         { value: 500, q: "Type 1983 into the Private Room's keypad in Sister Location and the wall of monitors switches to camera feeds of this location.", a: "What is the FNAF 4 house (the crying child's bedroom hallways)?", note: "The single strongest piece of evidence tying FNAF 4's nightmares to 1983.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/506610/header.jpg" }
       ]},
       { category: "Made by the Fans", questions: [
@@ -1101,10 +1113,10 @@ var BUILTIN_BOARDS = [
       q: "Daughter of Afton's business partner Henry Emily, she was the first victim, and her spirit went on to give the gift of life to the others from inside this vessel. Name the girl or the animatronic she became.",
       a: "Who is Charlotte (Charlie) Emily, the Puppet (Marionette)?" } },
   { id: "worm", name: "Worm / Parahumans", genre: "Web Serials", icon: "W", accent: "#6b7fd7",
-    tagline: "Deep-cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026-07-03)",
+    tagline: "Deep cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026)",
     textBoard: WORM_TEXT_BOARD,
     final: { category: "Deep Cuts",
-      q: "A slow, rarely-seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
+      q: "A slow, rarely seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
       a: "Who is Ziggurat (Tōng Líng Tǎ)?" } },
 ];
 
@@ -1508,6 +1520,13 @@ function handleBuzzerData(conn, d) {
       state.finalWagerInput = String(parseInt(d.amount, 10) || 0);
       submitFinalWager();
     }
+  } else if (d.type === "pick") {
+    var pkI = playerIndexByName(conn.buzzName || "");
+    if (state.phase === "board" && !state.wheel && pkI !== -1 && pkI === state.turn) {
+      var pc = parseInt(d.cat, 10), pr = parseInt(d.row, 10);
+      var pkCats = getCategories();
+      if (pkCats[pc] && pkCats[pc].questions[pr] && !state.used[pc + "-" + pr]) openQuestion(pc, pr);
+    }
   } else if (d.type === "finalAnswer") {
     var ansI = playerIndexByName(conn.buzzName || "");
     if (state.phase === "final" && state.finalStage === "clue" && ansI !== -1) {
@@ -1608,6 +1627,15 @@ function buzzerSyncPayload() {
       if (ddp) p.clue.dd = { player: ddp.name, cap: ddWagerCap(ddp) };
     }
     if (state.timerEnabled && !state.revealed && !state.wagering) p.timerDuration = state.timerDuration;
+  } else if (state.phase === "board" && state.boardId && !state.wheel) {
+    var pcats = getCategories();
+    var turnP = state.players[state.turn];
+    p.pick = {
+      turn: turnP ? turnP.name : "",
+      cats: pcats.map(function (c) { return c.category; }),
+      used: Object.keys(state.used),
+      values: pcats[0] ? pcats[0].questions.map(function (q) { return q.value * roundMultiplier(); }) : [],
+    };
   } else if (state.phase === "final" && state.finalStage) {
     var fin = currentBoard().final;
     p.final = { stage: state.finalStage, category: fin.category };
@@ -1760,6 +1788,10 @@ function phoneSendWager() {
   bc.wagerInput = "";
   bc.wagerSent = true;
   render();
+}
+function phonePick(cat, row) {
+  if (!clientConn) return;
+  try { clientConn.send({ type: "pick", cat: cat, row: row }); } catch (e) {}
 }
 function phoneSendFinalAnswer() {
   var bc = state.buzzClient;
@@ -3427,6 +3459,29 @@ function buzzMirrorHtml(bc) {
       (c.revealed ? '<p class="buzz-mirror-revealed">Answer is up on the host screen</p>' : '') +
     '</div>';
   }
+  if (g && g.pick && g.pick.cats && g.pick.cats.length) {
+    var myTurn = g.pick.turn && g.pick.turn.toLowerCase() === bc.name.toLowerCase();
+    if (!myTurn) {
+      return '<div class="buzz-mirror buzz-mirror-idle">' +
+        '<p class="buzz-mirror-cat">ON THE BOARD</p>' +
+        '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">' + esc(g.pick.turn || "Someone") + ' is picking the next tile.</p>' +
+      '</div>';
+    }
+    var usedSet = {};
+    (g.pick.used || []).forEach(function (k) { usedSet[k] = true; });
+    var grid = g.pick.cats.map(function (cn) { return '<div class="buzz-pick-head">' + esc(cn) + '</div>'; }).join("");
+    for (var pr = 0; pr < g.pick.values.length; pr++) {
+      for (var pc = 0; pc < g.pick.cats.length; pc++) {
+        grid += usedSet[pc + "-" + pr]
+          ? '<div class="buzz-pick-tile buzz-pick-used"></div>'
+          : '<button class="buzz-pick-tile" data-action="phonePick" data-cat="' + pc + '" data-row="' + pr + '">' + g.pick.values[pr] + '</button>';
+      }
+    }
+    return '<div class="buzz-mirror">' +
+      '<p class="buzz-mirror-value">YOUR PICK, ' + esc(bc.name.toUpperCase()) + '</p>' +
+      '<div class="buzz-pick-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr))">' + grid + '</div>' +
+    '</div>';
+  }
   return '<div class="buzz-mirror buzz-mirror-idle">' +
     '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next clue shows up here too.</p>' +
   '</div>';
@@ -4203,6 +4258,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "phoneSendWager") phoneSendWager();
   else if (action === "phoneSendFinalWager") phoneSendFinalWager();
   else if (action === "phoneSendFinalAnswer") phoneSendFinalAnswer();
+  else if (action === "phonePick") phonePick(+t.getAttribute("data-cat"), +t.getAttribute("data-row"));
   else if (action === "editFinalAnswer") editFinalAnswer();
   else if (action === "reconnectBuzzer") reconnectBuzzer();
   else if (action === "rejoinBuzzer") rejoinBuzzer();
