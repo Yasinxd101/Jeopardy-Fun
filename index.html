@@ -514,6 +514,40 @@
   }
   .clip-vol-row span { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
   .clip-vol-row input { flex: 1; }
+  .tile-zoom {
+    position: fixed; z-index: 90; background: #1d2455; color: #ffd166;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 18px; border-radius: 8px;
+    transition: all 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+  }
+  .tile-zoom-full {
+    left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important;
+    font-size: clamp(48px, 14vw, 96px); border-radius: 0;
+  }
+  .confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 95; }
+  .buzz-flash {
+    position: fixed; inset: 0; pointer-events: none; z-index: 94;
+    box-shadow: inset 0 0 90px rgba(255, 209, 102, 0.9);
+    animation: buzz-flash-fade 0.55s ease-out forwards;
+  }
+  @keyframes buzz-flash-fade { from { opacity: 1; } to { opacity: 0; } }
+  .avatar { display: inline-block; flex-shrink: 0; }
+  .av-circle { border-radius: 50%; }
+  .av-square { border-radius: 2px; }
+  .av-diamond { transform: rotate(45deg) scale(0.82); border-radius: 2px; }
+  .av-triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .av-hex { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+  .av-star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .av-ring { border-radius: 50%; }
+  .av-cross { clip-path: polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%); }
+  .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .shape-pick {
+    background: #0d1230; border: 1px solid #2a2f55; border-radius: 8px;
+    padding: 7px 9px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .shape-pick-sel { border-color: #ffd166; background: rgba(255, 209, 102, 0.12); }
+  @media (prefers-reduced-motion: reduce) { .tile-zoom { transition: none; } }
   .recent-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; justify-content: center; }
   .recent-label { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
   .recent-chip {
@@ -1220,6 +1254,7 @@ var state = {
   managePlayers: false,
   editingPlayerIndex: null,
   editingScoreIndex: null,
+  nextShape: null,        // avatar shape chosen for the next player added
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
@@ -1360,6 +1395,42 @@ function getAudioCtx() {
   if (audioCtx.state === "suspended") audioCtx.resume();
   return audioCtx;
 }
+function fireConfetti(durationMs) {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var cv = document.createElement("canvas");
+  cv.className = "confetti-canvas";
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  document.body.appendChild(cv);
+  var c2 = cv.getContext("2d");
+  var colors = ["#ffd166", "#3da9fc", "#2cb67d", "#ff5470", "#a786df", "#ffffff"];
+  var parts = [];
+  for (var i = 0; i < 130; i++) {
+    parts.push({ x: Math.random() * cv.width, y: -30 - Math.random() * cv.height * 0.6,
+      vx: (Math.random() - 0.5) * 2.6, vy: 2.2 + Math.random() * 3.4,
+      sz: 4 + Math.random() * 6, c: colors[i % colors.length],
+      rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.22 });
+  }
+  var end = Date.now() + (durationMs || 2600);
+  (function tick() {
+    c2.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(function (pt) {
+      pt.x += pt.vx; pt.y += pt.vy; pt.rot += pt.vr;
+      c2.save(); c2.translate(pt.x, pt.y); c2.rotate(pt.rot);
+      c2.fillStyle = pt.c; c2.fillRect(-pt.sz / 2, -pt.sz / 2, pt.sz, pt.sz * 0.6);
+      c2.restore();
+    });
+    if (Date.now() < end) requestAnimationFrame(tick);
+    else if (cv.parentNode) cv.parentNode.removeChild(cv);
+  })();
+}
+function flashScreen() {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var f = document.createElement("div");
+  f.className = "buzz-flash";
+  document.body.appendChild(f);
+  setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 550);
+}
 function beep(freq, duration, type, volume) {
   if (state.muted || state.volume <= 0) return;
   try {
@@ -1380,6 +1451,33 @@ function beep(freq, duration, type, volume) {
   }
 }
 function sndSelect() { beep(440, 0.1, "triangle", 0.12); }
+function sndDailyDouble() {
+  [392, 523.25, 659.25, 783.99].forEach(function (f, i) {
+    setTimeout(function () { beep(f, 0.14, "triangle", 0.16); }, i * 95);
+  });
+  setTimeout(function () { beep(196, 0.4, "sawtooth", 0.1); }, 420);
+}
+function sndRoundStart() {
+  [523.25, 659.25, 783.99].forEach(function (f, i) {
+    setTimeout(function () { beep(f, 0.16, "sine", 0.14); }, i * 130);
+  });
+}
+var thinkLoopTimer = null;
+var thinkLoopStep = 0;
+function syncThinkLoop() {
+  var wantOn = state.phase === "final" && state.finalStage === "clue";
+  if (wantOn && !thinkLoopTimer) {
+    thinkLoopStep = 0;
+    thinkLoopTimer = setInterval(function () {
+      if (state.phase !== "final" || state.finalStage !== "clue") { syncThinkLoop(); return; }
+      beep(thinkLoopStep % 2 === 0 ? 523.25 : 659.25, 0.3, "sine", 0.05);
+      thinkLoopStep++;
+    }, 1500);
+  } else if (!wantOn && thinkLoopTimer) {
+    clearInterval(thinkLoopTimer);
+    thinkLoopTimer = null;
+  }
+}
 function sndReveal() { beep(660, 0.18, "sine", 0.14); }
 function sndCorrect() {
   beep(523.25, 0.12, "sine", 0.16);
@@ -1509,8 +1607,10 @@ function handleBuzzerData(conn, d) {
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     var idx = playerIndexByName(conn.buzzName);
     if (idx === -1 && state.players.length < 6) {
-      state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), immune: false, skipNextTurn: false });
+      state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), shape: d.shape || "circle", immune: false, skipNextTurn: false });
       idx = state.players.length - 1;
+    } else if (idx !== -1 && d.shape) {
+      state.players[idx].shape = d.shape;
     }
     conn.playerIndex = idx;
     if (state.buzzer.clients.indexOf(conn.buzzName) === -1) state.buzzer.clients.push(conn.buzzName);
@@ -1522,6 +1622,7 @@ function handleBuzzerData(conn, d) {
     state.buzzer.winnerName = conn.buzzName || "Player";
     state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
     sndBuzz();
+    flashScreen();
     broadcastBuzzer({ type: "lockout", winner: state.buzzer.winnerName });
     try { conn.send({ type: "youwon" }); } catch (e) {}
     renderOrUpdateClue();
@@ -1617,7 +1718,7 @@ function stopHostRoom() {
 var lastSyncBase = "";
 function buzzerSyncPayload() {
   var p = { type: "sync", screen: state.phase };
-  p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color }; });
+  p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
   if (state.wheel && (state.wheel.stage === "spinning" || state.wheel.stage === "result")) {
     var w = state.wheel;
     var seg = w.stage === "result" && w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
@@ -1724,7 +1825,7 @@ function connectBuzzer(bc) {
   catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
   clientPeer.on("open", function () {
     clientConn = clientPeer.connect(BUZZ_PREFIX + bc.code);
-    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name }); });
+    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle" }); });
     clientConn.on("data", function (d) { handleClientData(d); });
     clientConn.on("close", function () {
       var cur = state.buzzClient;
@@ -1860,7 +1961,7 @@ function saveGameSnapshot() {
     boardId: state.boardId,
     used: state.used,
     turn: state.turn,
-    players: state.players.map(function (p) { return { name: p.name, score: p.score, color: p.color, immune: !!p.immune, skipNextTurn: !!p.skipNextTurn }; }),
+    players: state.players.map(function (p) { return { name: p.name, score: p.score, color: p.color, shape: p.shape, immune: !!p.immune, skipNextTurn: !!p.skipNextTurn }; }),
     match: state.match,
     dailyDouble: state.dailyDouble,
     dailyDoubleB: state.dailyDoubleB,
@@ -2148,12 +2249,25 @@ function nextAvailableColor() {
   }
   return PLAYER_COLORS[state.players.length % PLAYER_COLORS.length];
 }
+var AVATAR_SHAPES = ["circle", "square", "diamond", "triangle", "hex", "star", "ring", "cross"];
+function avatarHtml(p, size) {
+  var sz = size || 12;
+  var shape = p.shape || "circle";
+  var style = "width:" + sz + "px;height:" + sz + "px;" +
+    (shape === "ring" ? "border:3px solid " + p.color + ";background:none;border-radius:50%" : "background:" + p.color);
+  return '<span class="avatar av-' + shape + '" style="' + style + '"></span>';
+}
+function nextAvatarShape() {
+  if (state.nextShape) return state.nextShape;
+  return AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length];
+}
 function addPlayer() {
   var name = state.nameInput.trim();
   if (!name || state.players.length >= 6) return;
   var dupe = state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.nameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
-  state.players.push({ name: name, score: 0, color: nextAvailableColor(), immune: false, skipNextTurn: false });
+  state.players.push({ name: name, score: 0, color: nextAvailableColor(), shape: nextAvatarShape(), immune: false, skipNextTurn: false });
+  state.nextShape = null;
   state.nameInput = "";
   state.nameError = "";
   render();
@@ -2272,6 +2386,7 @@ function surpriseMe() {
 }
 function selectBoard(id) {
   recordRecent(id);
+  sndRoundStart();
   state.match = null;
   state.matchPending = null;
   state.boardId = id;
@@ -2325,6 +2440,7 @@ function selectRound2(id) {
 function startRound2() {
   if (!state.match) return;
   recordRecent(state.match.round2BoardId);
+  sndRoundStart();
   state.match.round = 2;
   state.boardId = state.match.round2BoardId;
   state.used = {};
@@ -2685,6 +2801,28 @@ function respinWheel() {
   render();
   spinActiveWheel();
 }
+function zoomThenOpen(tileEl, catKey, qIndex) {
+  if (state.used[catKey + "-" + qIndex]) return;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!tileEl || reduce) { openQuestion(catKey, qIndex); return; }
+  var r = tileEl.getBoundingClientRect();
+  var ov = document.createElement("div");
+  ov.className = "tile-zoom";
+  ov.textContent = tileEl.textContent;
+  ov.style.left = r.left + "px";
+  ov.style.top = r.top + "px";
+  ov.style.width = r.width + "px";
+  ov.style.height = r.height + "px";
+  document.body.appendChild(ov);
+  sndSelect();
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { ov.classList.add("tile-zoom-full"); });
+  });
+  setTimeout(function () {
+    openQuestion(catKey, qIndex);
+    setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 80);
+  }, 400);
+}
 function openQuestion(catKey, qIndex) {
   var key = catKey + "-" + qIndex;
   if (state.used[key]) return;
@@ -2711,6 +2849,7 @@ function openQuestion(catKey, qIndex) {
     state.seqOrder = seqOrder;
   }
   state.clueOpenedAt = Date.now();
+  if (state.wagering) { sndDailyDouble(); fireConfetti(1600); }
   if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
 }
@@ -3235,7 +3374,7 @@ function viewBoardPreview() {
 function viewPlayers() {
   var playerRows = state.players.map(function (p, i) {
     return '<div class="row-item">' +
-      '<span class="dot" style="background:' + p.color + '"></span>' +
+      avatarHtml(p, 14) +
       '<span style="flex:1;font-weight:600">' + esc(p.name) + '</span>' +
       '<button class="x-btn" data-action="remove" data-i="' + i + '">&times;</button>' +
     '</div>';
@@ -3269,6 +3408,11 @@ function viewPlayers() {
         '<input class="input" id="nameInput" placeholder="Type a name..." value="' + esc(state.nameInput) + '" />' +
         '<button class="btn-gold" data-action="add">Add</button>' +
       '</div>' +
+      '<div class="shape-row">' + AVATAR_SHAPES.map(function (sh) {
+        var sel = (state.nextShape || AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length]) === sh;
+        return '<button class="shape-pick' + (sel ? ' shape-pick-sel' : '') + '" data-action="pickShape" data-shape="' + sh + '" aria-label="' + sh + '">' +
+          avatarHtml({ shape: sh, color: sel ? '#ffd166' : '#8b92c0' }, 16) + '</button>';
+      }).join('') + '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
       '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:14px;color:#fff;cursor:pointer">' +
@@ -3616,13 +3760,15 @@ function viewBuzzer() {
     if (bc.buzzState === "armed") { cls += " buzz-armed"; label = "BUZZ!"; }
     else if (bc.buzzState === "won") { cls += " buzz-won"; label = "YOU'RE IN!"; }
     else if (bc.buzzState === "locked") { cls += " buzz-locked"; label = esc(bc.lockWinner || "Someone") + " got it"; }
-    var myScore = null;
+    var myScore = null, myAv = "";
     if (bc.game && bc.game.players) {
-      bc.game.players.forEach(function (pl) { if (pl.name.toLowerCase() === bc.name.toLowerCase()) myScore = pl.score; });
+      bc.game.players.forEach(function (pl) {
+        if (pl.name.toLowerCase() === bc.name.toLowerCase()) { myScore = pl.score; myAv = avatarHtml(pl, 12) + " "; }
+      });
     }
     return reconnectBar + '<div class="buzz-pad buzz-pad-live"' + (bc.disconnected ? ' style="padding-top:64px"' : '') + '>' +
       '<div class="buzz-topline">' +
-        '<span class="buzz-room-chip">Room <span class="buzz-room-code">' + esc(bc.code) + '</span> &middot; ' + esc(bc.name) + '</span>' +
+        '<span class="buzz-room-chip">' + myAv + 'Room <span class="buzz-room-code">' + esc(bc.code) + '</span> &middot; ' + esc(bc.name) + '</span>' +
         '<span class="buzz-score">' + (myScore == null ? "&mdash;" : myScore) + '<em>pts</em></span>' +
       '</div>' +
       buzzMirrorHtml(bc) +
@@ -3640,6 +3786,11 @@ function viewBuzzer() {
       '<input class="input" id="buzzCodeInput" maxlength="4" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:6px;font-weight:900;text-align:center" value="' + esc(bc.code) + '"' + (connecting ? " disabled" : "") + ' />' +
       '<label class="lbl" style="display:block;margin-top:12px">Your name</label>' +
       '<input class="input" id="buzzNameInput" placeholder="Same name as on the host screen" value="' + esc(bc.name) + '"' + (connecting ? " disabled" : "") + ' />' +
+      '<div class="shape-row" style="margin-top:10px">' + AVATAR_SHAPES.map(function (sh) {
+        var sel = (bc.shape || "circle") === sh;
+        return '<button class="shape-pick' + (sel ? ' shape-pick-sel' : '') + '" data-action="pickBuzzShape" data-shape="' + sh + '">' +
+          avatarHtml({ shape: sh, color: sel ? '#ffd166' : '#8b92c0' }, 16) + '</button>';
+      }).join('') + '</div>' +
       (bc.msg ? '<p class="err">' + esc(bc.msg) + '</p>' : '') +
       '<button class="big-gold" data-action="submitBuzzerJoin"' + (connecting ? " disabled" : "") + '>' + (connecting ? "Connecting&hellip;" : "Join Room") + '</button>' +
       '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back</button>' +
@@ -3673,8 +3824,9 @@ function viewHostRoom() {
   var chips = (b.clients || []).map(function (name, i) {
     var pi = playerIndexByName(name);
     var color = pi !== -1 ? state.players[pi].color : "#8b92c0";
+    var lobbyP = pi !== -1 ? state.players[pi] : { shape: "circle", color: color };
     return '<span class="host-join-chip" style="animation-delay:' + (i * 60) + 'ms;border-color:' + color + '">' +
-      '<span class="dot" style="background:' + color + '"></span>' + esc(name) +
+      avatarHtml(lobbyP, 12) + esc(name) +
       '<button class="host-chip-x" data-action="kickBuzzer" data-name="' + esc(name) + '" aria-label="Remove this phone">&times;</button>' +
     '</span>';
   }).join("");
@@ -3983,7 +4135,7 @@ function viewBoard() {
   var chips = state.players.map(function (p, i) {
     var on = i === state.turn;
     return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
-      '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? "#0b0f24" : p.color) + ';flex-shrink:0"></span>' +
+      avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
       '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
       (p.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
       (p.skipNextTurn ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '') +
@@ -4283,13 +4435,14 @@ function render() {
   else if (state.phase === "question" && state.active) html = viewQuestion();
   else if (state.phase === "board" && isAllUsed()) {
     html = viewWin();
-    if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); }
+    if (!state.endSoundPlayed) { state.endSoundPlayed = true; sndEnd(); fireConfetti(3200); }
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
   root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate();
   saveGameSnapshot();
   broadcastSync();
+  syncThinkLoop();
 
   var nameField = document.getElementById("nameInput");
   if (nameField) {
@@ -4381,7 +4534,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleMenu") toggleMenu();
   else if (action === "add") addPlayer();
   else if (action === "remove") removePlayer(+t.getAttribute("data-i"));
-  else if (action === "open") openQuestion(+t.getAttribute("data-cat"), +t.getAttribute("data-row"));
+  else if (action === "open") zoomThenOpen(t, +t.getAttribute("data-cat"), +t.getAttribute("data-row"));
   else if (action === "reveal") reveal();
   else if (action === "toggleAnswer") toggleAnswer();
   else if (action === "play") playVideo();
@@ -4414,6 +4567,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "cancelScoreEdit") cancelScoreEdit();
   else if (action === "saveScoreEdit") saveScoreEdit(+t.getAttribute("data-i"));
   else if (action === "surpriseMe") surpriseMe();
+  else if (action === "pickShape") { state.nextShape = t.getAttribute("data-shape"); render(); }
+  else if (action === "pickBuzzShape") { if (state.buzzClient) { state.buzzClient.shape = t.getAttribute("data-shape"); render(); } }
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
