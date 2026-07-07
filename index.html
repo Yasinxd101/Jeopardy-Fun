@@ -468,6 +468,32 @@
     font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px;
   }
   .board-card-create { border-style: dashed; border-left-width: 1px; justify-content: center; }
+  /* 18+ section + wheel-effect indicators */
+  .adult-badge {
+    display: inline-block; background: #ff5470; color: #2a0410; font-size: 10px;
+    font-weight: 900; letter-spacing: 1px; border-radius: 5px; padding: 2px 6px;
+    vertical-align: 2px; margin-left: 4px;
+  }
+  .boards-tab-adult { color: #ff8aa0; }
+  .adult-banner {
+    text-align: center; color: #ff8aa0; font-weight: 800; font-size: 12px;
+    letter-spacing: 1px; margin: 0 0 12px; padding: 8px 12px;
+    border: 1px dashed rgba(255, 84, 112, 0.5); border-radius: 10px;
+  }
+  .manage-effects { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 8px 22px; }
+  .fx-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 900;
+    letter-spacing: 1px; border-radius: 999px; padding: 3px 10px;
+  }
+  .fx-chip button { background: none; border: none; font-size: 14px; font-weight: 900; cursor: pointer; padding: 0; color: inherit; }
+  .fx-good { background: rgba(126, 226, 176, 0.16); color: #7ee2b0; border: 1px solid rgba(126, 226, 176, 0.5); }
+  .fx-bad { background: rgba(255, 84, 112, 0.14); color: #ff8aa0; border: 1px solid rgba(255, 84, 112, 0.5); }
+  .chip-fx {
+    font-size: 9px; font-weight: 900; letter-spacing: 1px; border-radius: 4px;
+    padding: 1px 4px; margin-left: 5px; vertical-align: 1px;
+  }
+  .chip-fx-good { background: rgba(126, 226, 176, 0.25); color: #0b3d26; }
+  .chip-fx-bad { background: rgba(255, 84, 112, 0.3); color: #4a0917; }
   .my-import-row { text-align: center; margin-top: 16px; }
   .my-import-link {
     display: inline-block; background: none; border: none; color: #8b92c0;
@@ -1181,6 +1207,7 @@ var state = {
   builder: null,          // {draft, catIndex, error, shareUrl} while editing a custom board
   importPrompt: null,     // a board decoded from a #b= share link, awaiting accept
   importFileMsg: "",      // result line after importing a board JSON file
+  adultGate: null,        // {type: "tab"|"preview"|"notice", id?} pending 18+ check
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1191,7 +1218,7 @@ var CHAOS_OUTCOMES = [
   { id: "c_wordle", label: "Wordle Wager", short: "Wordle", type: "challenge", weight: 5, desc: "Solve today's Wordle in 4 tries or fewer." },
   { id: "c_versus", label: "Versus Challenge", short: "Versus", type: "challenge", weight: 5, desc: "Pick an opponent and face off at something of your choosing (thumb war, staring contest, rock-paper-scissors best of three)." },
   { id: "c_dare", label: "Silly Dare", short: "Dare", type: "challenge", weight: 5, desc: "Pull off a dare picked by the group (impression, dance move, weird noise)." },
-  { id: "c_anime", label: "Anime Opening Karaoke", short: "Karaoke", type: "challenge", weight: 4, desc: "Sing or hum an anime opening for everyone else to guess within 20 seconds." },
+  { id: "c_anime", label: "Theme Song Karaoke", short: "Karaoke", type: "challenge", weight: 4, desc: "Sing or hum a theme tied to tonight's board (anime opening, game OST, movie score) for everyone else to guess within 20 seconds." },
   { id: "c_speed", label: "Speed Trivia Burst", short: "Speed Trivia", type: "challenge", weight: 4, desc: "Answer 3 rapid-fire questions from the host in 15 seconds. 2 or more correct counts as a pass." },
   { id: "c_bonus_trivia", label: "Bonus Trivia", short: "Trivia", type: "challenge", trivia: true, weight: 6, desc: "A snap bonus trivia question." },
   { id: "c_impression", label: "Impression Contest", short: "Impression", type: "challenge", weight: 4, desc: "Do an impression of a character chosen by the group; the group votes pass or fail." },
@@ -1200,6 +1227,10 @@ var CHAOS_OUTCOMES = [
   { id: "c_lightning", label: "Lightning Round", short: "Lightning", type: "challenge", weight: 4, desc: "Answer 5 quickfire trivia questions; 3 or more correct counts as a pass." },
   { id: "c_blitz", label: "Category Blitz", short: "Blitz", type: "challenge", weight: 4, desc: "Name 5 things in a category the host picks (anime openings, RE bosses, pizza toppings) in 15 seconds." },
   { id: "c_pokerface", label: "Poker Face", short: "Poker Face", type: "challenge", weight: 4, desc: "Keep a straight face for 30 seconds while everyone else tries to crack you up. No talking allowed." },
+  { id: "c_topic", label: "Topic Recall", short: "Recall", type: "challenge", trivia: "board", weight: 5, desc: "A question about tonight's board. Were you paying attention?" },
+  { id: "c_draw", label: "Draw It", short: "Draw It", type: "challenge", weight: 4, desc: "You have 30 seconds to draw something from tonight's board's world (finger in the air counts) for the others to guess." },
+  { id: "c_spell", label: "Spelling Bee", short: "Spell It", type: "challenge", weight: 4, desc: "Spell a tricky word chosen by the host - backwards - within 15 seconds." },
+  { id: "c_math", label: "Math Blitz", short: "Math", type: "challenge", weight: 4, desc: "Solve a three-step mental math problem from the host (for example 17 x 3, minus 11, doubled) in 15 seconds." },
 ];
 
 // Success Wheel: rewards of varying size, auto-spun after a Pass on the Chaos Wheel.
@@ -1886,6 +1917,7 @@ function cleanDraft(d) {
     });
   });
   if (!out.art) delete out.art;
+  if (!out.adult) delete out.adult;
   if (!out.icon) out.icon = (out.name || "?").trim().charAt(0).toUpperCase() || "?";
   out.genre = "My Boards";
   return out;
@@ -2050,7 +2082,12 @@ function addPlayer() {
 function removePlayer(i) { state.players.splice(i, 1); render(); }
 function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
-function previewBoard(id) { state.previewBoardId = id; render(); }
+function previewBoard(id) {
+  var b = BOARDS.filter(function (x) { return x.id === id; })[0];
+  if (b && b.adult && !adultOk()) { state.adultGate = { type: "preview", id: id }; render(); return; }
+  state.previewBoardId = id;
+  render();
+}
 function cancelPreview() { state.previewBoardId = null; render(); }
 
 // ---- manage players mid-game (board screen) ----
@@ -2096,6 +2133,19 @@ function confirmRemovePlayerInGame(i) {
   var p = state.players[i];
   if (!p) return;
   askConfirm("Remove " + p.name + "? Their score and progress in this round will be lost.", "removePlayerInGame", i);
+}
+function clearEffect(i, fx) {
+  var p = state.players[i];
+  if (!p) return;
+  if (fx === "immune") p.immune = false;
+  else if (fx === "skip") p.skipNextTurn = false;
+  render();
+}
+function giveTurn(i) {
+  if (!state.players[i]) return;
+  state.players[i].skipNextTurn = false; // handing them the pick also frees them
+  state.turn = i;
+  render();
 }
 function removePlayerInGame(i) {
   var removed = state.players[i];
@@ -2434,7 +2484,8 @@ function landActiveWheel() {
   sndWheelLand(outcome, w.activeWheel);
   if (w.activeWheel === "chaos" && outcome.type === "challenge") {
     w.judged = false;
-    if (outcome.trivia) w.triviaQ = BONUS_TRIVIA[Math.floor(Math.random() * BONUS_TRIVIA.length)];
+    if (outcome.trivia === "board") w.triviaQ = boardRecallQuestion();
+    else if (outcome.trivia) w.triviaQ = BONUS_TRIVIA[Math.floor(Math.random() * BONUS_TRIVIA.length)];
   } else {
     applyWheelEffect(outcome);
     w.judged = true;
@@ -2442,6 +2493,22 @@ function landActiveWheel() {
   render();
 }
 function revealWheelTriviaAnswer() { state.wheel.showTriviaAnswer = true; render(); }
+// Topic Recall pulls a question the group has ALREADY seen this game, so it
+// tests attention without spoiling unopened tiles. Falls back to bonus trivia.
+function boardRecallQuestion() {
+  var pool = [];
+  try {
+    var cats = getCategories();
+    Object.keys(state.used).forEach(function (key) {
+      var parts = key.split("-");
+      var col = cats[+parts[0]];
+      var item = col && col.questions[+parts[1]];
+      if (item && item.q && item.a) pool.push({ q: "From earlier this game: " + item.q, a: item.a });
+    });
+  } catch (e) {}
+  if (!pool.length) return BONUS_TRIVIA[Math.floor(Math.random() * BONUS_TRIVIA.length)];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function judgeMainChallenge(pass) {
   var w = state.wheel;
   if (!w || w.activeWheel !== "chaos" || w.stage !== "result" || w.judged) return;
@@ -2636,10 +2703,42 @@ function playVideo() {
 }
 function setBoardsTab(genre) {
   if (genre === activeBoardsTab()) return;
+  if (genre === ADULT_TAB && !adultOk()) { state.adultGate = { type: "tab" }; render(); return; }
   sndSelect();
   state.boardsTab = genre;
   state.importFileMsg = "";
   render();
+}
+// ---- 18+ section: one-time verification gate, stored on this device ----
+var ADULT_TAB = "After Dark 18+";
+function adultOk() { return !!jfRead("jf.adult.v1", false); }
+function confirmAdultGate() {
+  var g = state.adultGate;
+  state.adultGate = null;
+  jfWrite("jf.adult.v1", true);
+  if (g && g.type === "tab") state.boardsTab = ADULT_TAB;
+  if (g && g.type === "preview") state.previewBoardId = g.id;
+  render();
+}
+function dismissAdultGate() { state.adultGate = null; render(); }
+function renderAdultGate() {
+  var g = state.adultGate;
+  if (!g) return "";
+  if (g.type === "notice") {
+    return '<div class="confirm-overlay"><div class="confirm-card">' +
+      '<p class="confirm-msg" style="color:#ff8aa0">EXAMPLE BOARD &mdash; AFTER DARK</p>' +
+      '<p class="muted" style="margin:10px 0 16px;text-align:center">This placeholder is not playable yet. A reminder while you are here: boards in this section may not be appropriate for everyone &mdash; dark humor, mature themes, or images not suited for all ages. Only play them if you are an adult.</p>' +
+      '<button class="big-gold" style="width:100%;margin-top:0" data-action="dismissAdultGate">Understood</button>' +
+    '</div></div>';
+  }
+  return '<div class="confirm-overlay"><div class="confirm-card">' +
+    '<p class="confirm-msg" style="color:#ff8aa0">18+ CONTENT AHEAD</p>' +
+    '<p class="muted" style="margin:10px 0 16px;text-align:center">By entering you may see boards with dark humor or images not suited for all ages. Continue only if you are an adult.</p>' +
+    '<div class="confirm-actions">' +
+      '<button class="confirm-btn-cancel" data-action="dismissAdultGate">Go Back</button>' +
+      '<button class="confirm-btn-yes" data-action="confirmAdultGate">I am 18+ &mdash; Enter</button>' +
+    '</div>' +
+  '</div></div>';
 }
 function clearSearch() {
   state.searchQuery = "";
@@ -2808,56 +2907,24 @@ function boardCardHtml(b, riseIndex) {
     backdrop +
     iconBox +
     '<div class="board-card-body">' +
-      '<div class="board-card-title">' + esc(b.name) + '</div>' +
+      '<div class="board-card-title">' + esc(b.name) + (b.adult ? ' <span class="adult-badge">18+</span>' : '') + '</div>' +
       '<div class="board-card-tagline">' + esc(b.tagline) + '</div>' +
     '</div>' +
     '<div class="board-card-cta">PREVIEW &rarr;</div>' +
   '</button>';
 }
 // Host tool: search boards by name first, then every clue and answer.
+// Search matches board titles (plus genre/tagline) only — clue and answer
+// text is deliberately NOT searchable so answers can't leak mid-game.
 function searchResultsHtml() {
   var q = (state.searchQuery || "").trim().toLowerCase();
   if (q.length < 2) return '<p class="muted" style="margin-top:10px">Type at least two characters.</p>';
-
-  // 1. boards whose name, genre, or tagline matches — shown as real cards
   var boardHits = BOARDS.filter(function (b) {
+    if (b.adult && !adultOk()) return false;
     return (b.name + " " + (b.genre || "") + " " + (b.tagline || "")).toLowerCase().indexOf(q) !== -1;
   });
-
-  // 2. individual clues (question, answer, note, or category name)
-  var hits = [];
-  BOARDS.forEach(function (b) {
-    b.textBoard.forEach(function (col) {
-      col.questions.forEach(function (item) {
-        var hay = (col.category + " " + (item.q || "") + " " + (item.a || "") + " " + (item.note || "")).toLowerCase();
-        if (hay.indexOf(q) !== -1) hits.push({ board: b, cat: col.category, item: item });
-      });
-    });
-    if (b.final) {
-      var fhay = ((b.final.q || "") + " " + (b.final.a || "") + " " + (b.final.category || "")).toLowerCase();
-      if (fhay.indexOf(q) !== -1) hits.push({ board: b, cat: "Final: " + b.final.category, item: { value: "", q: b.final.q, a: b.final.a } });
-    }
-  });
-
-  var html = "";
-  if (boardHits.length) {
-    html += '<div class="search-results-title" style="margin-top:2px">BOARDS</div>' +
-      boardHits.map(function (b) { return boardCardHtml(b); }).join("");
-  }
-  if (hits.length) {
-    var shown = hits.slice(0, 15);
-    html += '<div class="search-results-title" style="margin-top:' + (boardHits.length ? '18px' : '2px') + '">CLUES &amp; ANSWERS</div>' +
-      shown.map(function (h) {
-        return '<button class="search-hit" style="border-left-color:' + h.board.accent + '" data-action="previewBoard" data-id="' + esc(h.board.id) + '">' +
-          '<div class="search-hit-meta">' + esc(h.board.name) + ' &middot; ' + esc(h.cat) + (h.item.value ? ' &middot; ' + h.item.value : '') + '</div>' +
-          '<div class="search-hit-q">' + esc(h.item.q || "(video clue)") + '</div>' +
-          '<div class="search-hit-a">' + esc(h.item.a) + '</div>' +
-        '</button>';
-      }).join("");
-    if (hits.length > shown.length) html += '<p class="muted" style="margin-top:8px">' + (hits.length - shown.length) + ' more clues — keep typing to narrow it down.</p>';
-  }
-  if (!html) return '<p class="muted" style="margin-top:10px">No boards or clues match that.</p>';
-  return html;
+  if (!boardHits.length) return '<p class="muted" style="margin-top:10px">No boards match that name.</p>';
+  return boardHits.map(function (b) { return boardCardHtml(b); }).join("");
 }
 function boardGenres() {
   var order = [];
@@ -2868,6 +2935,8 @@ function boardGenres() {
   // My Boards always shows a tab (with at least the Create card) so users
   // can build even before they have any custom boards.
   if (order.indexOf("My Boards") === -1) order.push("My Boards");
+  // The 18+ tab always exists, gated behind the age check.
+  if (order.indexOf(ADULT_TAB) === -1) order.push(ADULT_TAB);
   return order;
 }
 function activeBoardsTab() {
@@ -2879,19 +2948,23 @@ function viewBoards() {
   var activeTab = activeBoardsTab();
   var searching = (state.searchQuery || "").trim().length >= 2;
 
+  function boardsInTab(g) {
+    if (g === ADULT_TAB) return BOARDS.filter(function (b) { return !!b.adult; });
+    return BOARDS.filter(function (b) { return (b.genre || "Other") === g && !b.adult; });
+  }
   var tabs = genres.map(function (g) {
-    var boardsIn = BOARDS.filter(function (b) { return (b.genre || "Other") === g; });
     var active = g === activeTab;
-    return '<button class="boards-tab' + (active ? " boards-tab-active" : "") + '" data-action="setBoardsTab" data-genre="' + esc(g) + '">' +
-      esc(g.toUpperCase()) + '<span class="tab-count">' + boardsIn.length + '</span>' +
+    return '<button class="boards-tab' + (active ? " boards-tab-active" : "") + (g === ADULT_TAB ? " boards-tab-adult" : "") + '" data-action="setBoardsTab" data-genre="' + esc(g) + '">' +
+      esc(g.toUpperCase()) + '<span class="tab-count">' + boardsInTab(g).length + '</span>' +
     '</button>';
   }).join("");
 
-  var tabBoards = BOARDS.filter(function (b) { return (b.genre || "Other") === activeTab; });
+  var tabBoards = boardsInTab(activeTab);
   var isMyBoards = activeTab === "My Boards";
+  var isAdultTab = activeTab === ADULT_TAB;
   var cards = tabBoards.map(function (b, i) {
     var card = boardCardHtml(b, i);
-    if (isMyBoards) {
+    if (isMyBoards || (isAdultTab && /^custom-/.test(b.id))) {
       // custom boards get edit/delete controls under the card
       card = '<div class="my-board-wrap">' + card +
         '<div class="my-board-controls">' +
@@ -2907,6 +2980,14 @@ function viewBoards() {
       '<div class="board-card-icon" style="background:rgba(255,209,102,0.18)">+</div>' +
       '<div class="board-card-body"><div class="board-card-title">Create a Board</div>' +
       '<div class="board-card-tagline">Build your own 5&times;5 board and share it by link.</div></div>' +
+    '</button>';
+  }
+  // the 18+ tab keeps a non-playable example card that repeats the warning
+  if (isAdultTab) {
+    cards += '<button class="board-card board-card-create" data-action="adultExample" style="--accent:#ff5470">' +
+      '<div class="board-card-icon" style="background:rgba(255,84,112,0.16);color:#ff8aa0">18+</div>' +
+      '<div class="board-card-body"><div class="board-card-title">Example After Dark Board</div>' +
+      '<div class="board-card-tagline">Placeholder only &mdash; not playable yet. Adults only when it arrives.</div></div>' +
     '</button>';
   }
 
@@ -2927,14 +3008,15 @@ function viewBoards() {
       '<button data-action="cancelMatchSetup" style="background:none;border:none;color:#ff8aa0;font-weight:800;font-size:13px;cursor:pointer;padding:0">cancel match</button></span></div>'
     : '') +
     '<div class="search-box">' +
-      '<input class="input" id="searchInput" placeholder="Host search: find any question or answer..." value="' + esc(state.searchQuery || "") + '" />' +
+      '<input class="input" id="searchInput" placeholder="Search boards by name..." value="' + esc(state.searchQuery || "") + '" />' +
       '<button class="search-clear" data-action="clearSearch" aria-label="Clear search">&times;</button>' +
     '</div>' +
     '<div class="search-results-panel">' +
-      '<div class="search-results-title">SEARCH RESULTS &middot; ALL BOARDS</div>' +
+      '<div class="search-results-title">SEARCH RESULTS &middot; BOARD TITLES</div>' +
       '<div id="searchResults">' + searchResultsHtml() + '</div>' +
     '</div>' +
     '<div class="boards-tabs">' + tabs + '</div>' +
+    (isAdultTab ? '<p class="adult-banner">18+ ONLY: boards here can contain dark humor or imagery not suited for all ages.</p>' : '') +
     '<div class="boards-grid">' + cards + '</div>' +
     (isMyBoards ?
       '<div class="my-import-row">' +
@@ -3155,6 +3237,10 @@ function viewBuilder() {
         '<div style="flex:2"><label class="lbl">Cover image URL (optional)</label>' +
           '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" /></div>' +
       '</div>' +
+      '<label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer">' +
+        '<input type="checkbox" id="builderAdult"' + (d.adult ? ' checked' : '') + ' style="margin-top:3px" />' +
+        '<span class="muted" style="text-align:left;font-size:13px">18+ board &mdash; it will live in the After Dark tab, and by entering it players are warned they may see dark humor or images not suited for all ages.</span>' +
+      '</label>' +
 
       '<p class="lbl" style="display:block;margin:18px 0 8px">CATEGORY ' + (ci + 1) + ' OF 5</p>' +
       '<div class="builder-cat-tabs">' + catTabs + '</div>' +
@@ -3689,6 +3775,8 @@ function viewBoard() {
     return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? "#0b0f24" : p.color) + ';flex-shrink:0"></span>' +
       '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
+      (p.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
+      (p.skipNextTurn ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '') +
     '</div>';
   }).join("");
 
@@ -3812,18 +3900,30 @@ function viewManagePlayers() {
         '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="cancelEditPlayerName">&#10005;</button>' +
       '</div>';
     }
-    return '<div class="manage-row">' +
+    var fx = "";
+    if (p.immune || p.skipNextTurn) {
+      fx = '<div class="manage-effects">' +
+        (p.immune ?
+          '<span class="fx-chip fx-good">IMMUNE<button data-action="clearEffect" data-i="' + i + '" data-fx="immune" aria-label="Remove immunity">&times;</button></span>' : '') +
+        (p.skipNextTurn ?
+          '<span class="fx-chip fx-bad">SKIPS NEXT TURN<button data-action="clearEffect" data-i="' + i + '" data-fx="skip" aria-label="Let them play">&times;</button></span>' : '') +
+      '</div>';
+    }
+    return '<div class="manage-row"' + (fx ? ' style="margin-bottom:2px"' : '') + '>' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
-      '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
+      '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) +
+        (i === state.turn ? ' <span style="color:#ffd166;font-size:11px;font-weight:900">TURN</span>' : '') + '</span>' +
       '<span style="color:#aab0d8;font-weight:700;font-size:13px">' + p.score + '</span>' +
+      (i !== state.turn ? '<button class="edit-icon-btn" style="color:#7ee2b0" data-action="giveTurn" data-i="' + i + '" aria-label="Give them the next pick">&#9654;</button>' : '') +
       '<button class="edit-icon-btn" data-action="startEditPlayerName" data-i="' + i + '">&#9998;</button>' +
       '<button class="edit-icon-btn" style="color:#ff8aa0" data-action="confirmRemovePlayerInGame" data-i="' + i + '">&times;</button>' +
-    '</div>';
+    '</div>' + fx;
   }).join("");
   if (!state.players.length) rows = '<p class="muted">No players left.</p>';
   return '<div class="manage-overlay">' +
     '<div class="manage-card">' +
-      '<p class="confirm-msg" style="margin-bottom:14px">Manage Players</p>' +
+      '<p class="confirm-msg" style="margin-bottom:4px">Manage Players</p>' +
+      '<p class="muted" style="margin:0 0 12px;font-size:12px">Wheel effects show under each player; the &times; clears them. The arrow hands someone the next pick.</p>' +
       rows +
       (state.editNameError ? '<p class="err">' + esc(state.editNameError) + '</p>' : '') +
       '<button class="confirm-btn-cancel" style="width:100%;margin-top:14px" data-action="closeManagePlayers">Done</button>' +
@@ -3961,7 +4061,7 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm() + renderImportPrompt();
+  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate();
   saveGameSnapshot();
   broadcastSync();
 
@@ -4019,6 +4119,7 @@ document.getElementById("root").addEventListener("input", function (e) {
 document.getElementById("root").addEventListener("change", function (e) {
   var t = e.target;
   if (t && t.id === "importBoardFile" && t.files && t.files[0]) importBoardFile(t.files[0]);
+  if (t && t.id === "builderAdult" && state.builder) state.builder.draft.adult = !!t.checked;
 });
 
 document.getElementById("root").addEventListener("click", function (e) {
@@ -4054,6 +4155,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "reconnectBuzzer") reconnectBuzzer();
   else if (action === "rejoinBuzzer") rejoinBuzzer();
   else if (action === "kickBuzzer") kickBuzzer(t.getAttribute("data-name"));
+  else if (action === "confirmAdultGate") confirmAdultGate();
+  else if (action === "dismissAdultGate") dismissAdultGate();
+  else if (action === "adultExample") { state.adultGate = { type: "notice" }; render(); }
+  else if (action === "clearEffect") clearEffect(+t.getAttribute("data-i"), t.getAttribute("data-fx"));
+  else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
   else if (action === "leaveBuzzer") leaveBuzzer();
