@@ -6,100 +6,161 @@
     "accent": "#7ee2b0",
     "icon": "F",
     "textBoard": [
-      { "category": "Mascots", "questions": [
-        { "value": 100, "q": "This mustachioed plumber first stomped a barrel-throwing ape in 1981.", "a": "Who is Mario?" },
-        { "value": 200, "q": "Sega's blue blur, built for speed and chili dogs.", "a": "Who is Sonic the Hedgehog?" },
-        { "value": 300, "q": "This pink puffball inhales enemies and steals their powers.", "a": "Who is Kirby?" },
-        { "value": 400, "q": "Capcom's blue bomber, who defeats Robot Masters and takes their weapons.", "a": "Who is Mega Man?" },
-        { "value": 500, "q": "This bandicoot spun his way onto the original PlayStation in 1996.", "a": "Who is Crash Bandicoot?" }
-      ]},
-      { "category": "Consoles", "questions": [
-        { "value": 100, "q": "The 1985 Nintendo console that revived home gaming in the West.", "a": "What is the NES (Nintendo Entertainment System)?" },
-        { "value": 200, "q": "Sony's first game console, launched in 1994.", "a": "What is the PlayStation?" },
-        { "value": 300, "q": "This Sega console's add-ons included a CD drive and the 32X.", "a": "What is the Genesis (Mega Drive)?" },
-        { "value": 400, "q": "Nintendo's 1996 console introduced the analog stick to its controllers.", "a": "What is the Nintendo 64?" },
-        { "value": 500, "q": "Sega's final home console, beloved and discontinued in 2001.", "a": "What is the Dreamcast?" }
-      ]},
-      { "category": "Cartridge Lore", "questions": [
-        { "value": 100, "q": "The classic fix attempted on misbehaving cartridges, despite officially being a bad idea.", "a": "What is blowing into the cartridge?" },
-        { "value": 200, "q": "This 1986 NES adventure introduced battery-backed saves so you could shut off the console without losing Hyrule.", "a": "What is The Legend of Zelda?" },
-        { "value": 300, "q": "The infamous cheat code most associated with Konami games.", "a": "What is the Konami Code (up, up, down, down, left, right, left, right, B, A)?" },
-        { "value": 400, "q": "This Game Boy title was bundled with the handheld in the West and made falling blocks a global obsession.", "a": "What is Tetris?" },
-        { "value": 500, "q": "The gold NES cartridge was a Zelda trademark; this other Nintendo franchise also shipped a gold cart for its second NES entry.", "a": "What is Zelda II: The Adventure of Link? (Accept: it was still Zelda - the trick question everyone falls for.)" }
-      ]},
-      { "category": "Arcade Days", "questions": [
-        { "value": 100, "q": "This 1980 maze chase starred a yellow circle with an appetite.", "a": "What is Pac-Man?" },
-        { "value": 200, "q": "Aliens descend in rows in this 1978 shooter that popularized the high score.", "a": "What is Space Invaders?" },
-        { "value": 300, "q": "This 1991 Capcom fighter gave the world Hadoukens and quarter-circle inputs.", "a": "What is Street Fighter II?" },
-        { "value": 400, "q": "The four-player 1987 beat-em-up where you picked Leonardo, Raphael, Michelangelo, or Donatello... in the sewer.", "a": "What is Teenage Mutant Ninja Turtles (the arcade game)?" },
-        { "value": 500, "q": "This 1981 Williams shooter about rescuing astronauts is famed as one of the hardest arcade games ever.", "a": "What is Defender?" }
-      ]},
-      { "category": "Finish the Catchphrase-ish", "questions": [
-        { "value": 100, "q": "In classic fighting games, the announcer starts every match with 'Round one...'", "a": "What is 'Fight!'?" },
-        { "value": 200, "q": "The Mortal Kombat announcer's famous instruction when your opponent is dazed.", "a": "What is 'Finish Him!' (or 'Finish Her!')?" },
-        { "value": 300, "q": "Zero Wing's legendarily mistranslated line about the ownership of bases.", "a": "What is 'All your base are belong to us'?" },
-        { "value": 400, "q": "The arcade plea that appears when your fighter falls and the timer counts down from 10.", "a": "What is 'Continue?'" },
-        { "value": 500, "q": "The Oregon Trail's most famous cause of death, now a t-shirt industry.", "a": "What is dysentery ('You have died of dysentery')?" }
-      ]}
+      {
+        "category": "Mascots",
+        "questions": [
+          {
+            "value": 100,
+            "q": "This mustachioed plumber first stomped a barrel-throwing ape in 1981.",
+            "a": "Who is Mario?"
+          },
+          {
+            "value": 200,
+            "q": "Sega's blue blur, built for speed and chili dogs.",
+            "a": "Who is Sonic the Hedgehog?"
+          },
+          {
+            "value": 300,
+            "q": "This pink puffball inhales enemies and steals their powers.",
+            "a": "Who is Kirby?"
+          },
+          {
+            "value": 400,
+            "q": "Capcom's blue bomber, who defeats Robot Masters and takes their weapons.",
+            "a": "Who is Mega Man?"
+          },
+          {
+            "value": 500,
+            "q": "This bandicoot spun his way onto the original PlayStation in 1996.",
+            "a": "Who is Crash Bandicoot?"
+          }
+        ]
+      },
+      {
+        "category": "Consoles",
+        "questions": [
+          {
+            "value": 100,
+            "q": "The 1985 Nintendo console that revived home gaming in the West.",
+            "a": "What is the NES (Nintendo Entertainment System)?"
+          },
+          {
+            "value": 200,
+            "q": "Sony's first game console, launched in 1994.",
+            "a": "What is the PlayStation?"
+          },
+          {
+            "value": 300,
+            "q": "This Sega console's add-ons included a CD drive and the 32X.",
+            "a": "What is the Genesis (Mega Drive)?"
+          },
+          {
+            "value": 400,
+            "q": "Nintendo's 1996 console introduced the analog stick to its controllers.",
+            "a": "What is the Nintendo 64?"
+          },
+          {
+            "value": 500,
+            "q": "Sega's final home console, beloved and discontinued in 2001.",
+            "a": "What is the Dreamcast?"
+          }
+        ]
+      },
+      {
+        "category": "Cartridge Lore",
+        "questions": [
+          {
+            "value": 100,
+            "q": "The classic fix attempted on misbehaving cartridges, despite officially being a bad idea.",
+            "a": "What is blowing into the cartridge?"
+          },
+          {
+            "value": 200,
+            "q": "This 1986 NES adventure introduced battery-backed saves so you could shut off the console without losing Hyrule.",
+            "a": "What is The Legend of Zelda?"
+          },
+          {
+            "value": 300,
+            "q": "The infamous cheat code most associated with Konami games.",
+            "a": "What is the Konami Code (up, up, down, down, left, right, left, right, B, A)?"
+          },
+          {
+            "value": 400,
+            "q": "This Game Boy title was bundled with the handheld in the West and made falling blocks a global obsession.",
+            "a": "What is Tetris?"
+          },
+          {
+            "value": 500,
+            "q": "The gold NES cartridge was a Zelda trademark; this other Nintendo franchise also shipped a gold cart for its second NES entry.",
+            "a": "What is Zelda II: The Adventure of Link? (Accept: it was still Zelda - the trick question everyone falls for.)"
+          }
+        ]
+      },
+      {
+        "category": "Arcade Days",
+        "questions": [
+          {
+            "value": 100,
+            "q": "This 1980 maze chase starred a yellow circle with an appetite.",
+            "a": "What is Pac-Man?"
+          },
+          {
+            "value": 200,
+            "q": "Aliens descend in rows in this 1978 shooter that popularized the high score.",
+            "a": "What is Space Invaders?"
+          },
+          {
+            "value": 300,
+            "q": "This 1991 Capcom fighter gave the world Hadoukens and quarter-circle inputs.",
+            "a": "What is Street Fighter II?"
+          },
+          {
+            "value": 400,
+            "q": "The four-player 1987 beat-em-up where you picked Leonardo, Raphael, Michelangelo, or Donatello... in the sewer.",
+            "a": "What is Teenage Mutant Ninja Turtles (the arcade game)?"
+          },
+          {
+            "value": 500,
+            "q": "This 1981 Williams shooter about rescuing astronauts is famed as one of the hardest arcade games ever.",
+            "a": "What is Defender?"
+          }
+        ]
+      },
+      {
+        "category": "Finish the Catchphrase-ish",
+        "questions": [
+          {
+            "value": 100,
+            "q": "In classic fighting games, the announcer starts every match with 'Round one...'",
+            "a": "What is 'Fight!'?"
+          },
+          {
+            "value": 200,
+            "q": "The Mortal Kombat announcer's famous instruction when your opponent is dazed.",
+            "a": "What is 'Finish Him!' (or 'Finish Her!')?"
+          },
+          {
+            "value": 300,
+            "q": "Zero Wing's legendarily mistranslated line about the ownership of bases.",
+            "a": "What is 'All your base are belong to us'?"
+          },
+          {
+            "value": 400,
+            "q": "The arcade plea that appears when your fighter falls and the timer counts down from 10.",
+            "a": "What is 'Continue?'"
+          },
+          {
+            "value": 500,
+            "q": "The Oregon Trail's most famous cause of death, now a t-shirt industry.",
+            "a": "What is dysentery ('You have died of dysentery')?"
+          }
+        ]
+      }
     ],
     "final": {
       "category": "The High Score",
       "q": "This 1972 Atari table-tennis game is widely credited with launching the commercial video game industry.",
       "a": "What is Pong?"
-    }
-  },
-  {
-    "id": "fan-fnaf-nightshift",
-    "name": "FNAF: The Night Shift",
-    "tagline": "Every game from the first office to the Pizzaplex, plus the songs the fans built. Scales from easy 100s to brutal 500s.",
-    "accent": "#b07ce8",
-    "icon": "F",
-    "art": "https://cdn.cloudflare.steamstatic.com/steam/apps/871720/library_600x900.jpg",
-    "textBoard": [
-      { "category": "Clocking In", "questions": [
-        { "value": 100, "q": "Your only defenses in the first game are two doors, two lights, and a dwindling supply of this resource.", "a": "What is power?" },
-        { "value": 200, "q": "FNAF 2 takes the doors away; instead, you shove this on your face and pray the animatronics buy it.", "a": "What is the empty Freddy Fazbear head (the Freddy mask)?" },
-        { "value": 300, "q": "FNAF 3 trades the pizzeria for this horror attraction built out of the old locations' salvaged relics, where only one decayed rabbit is actually real.", "a": "What is Fazbear's Fright?", "note": "Set thirty years after the original restaurant closed." },
-        { "value": 400, "q": "FNAF 4 removes the cameras and the office entirely; before you dare flash your light at a doorway, you survive by doing this.", "a": "What is listening for breathing at the door?", "note": "Flash on something breathing and you die; flash on silence and you push them back." },
-        { "value": 500, "format": "sequence", "q": "Put these five releases in order, earliest first.",
-          "items": ["Five Nights at Freddy's 4", "FNAF World", "Sister Location", "Freddy Fazbear's Pizzeria Simulator", "Ultimate Custom Night"],
-          "correctOrder": [0, 1, 2, 3, 4],
-          "a": "FNAF 4 (July 2015), FNAF World (Jan 2016), Sister Location (Oct 2016), Pizzeria Simulator (Dec 2017), Ultimate Custom Night (June 2018)",
-          "note": "The trap is FNAF World: the goofy RPG spinoff landed BETWEEN FNAF 4 and Sister Location." }
-      ]},
-      { "category": "Animatronic Anatomy", "questions": [
-        { "value": 100, "q": "The top-hatted, microphone-wielding headliner bear the entire franchise is named after.", "a": "Who is Freddy Fazbear?" },
-        { "value": 200, "q": "This hook-handed pirate lurks behind the curtains of his own cove and sprints down the west hall if you watch him too little.", "a": "Who is Foxy?" },
-        { "value": 300, "q": "FNAF 2's tangle of loose parts that staff eventually stopped reassembling, leaving it as a take-apart-and-put-back-together attraction for the toddlers.", "a": "Who is Mangle?" },
-        { "value": 400, "q": "The Funtime animatronics' combined endoskeleton form, which escaped Circus Baby's rental facility by wearing Michael Afton as a disguise.", "a": "Who is Ennard?", "note": "Sister Location's endings; the scooping room did the dirty work." },
-        { "value": 500, "q": "Fans call this silhouetted rabbit Shadow Bonnie, but its actual name in the FNAF 2 files is a ten-character keysmash. Give the keysmash or accept the fan name with the file-name explanation.", "a": "What is RWQFSFASXC?", "note": "It also stars in a hidden FNAF 3 minigame where it shifts between worlds." }
-      ]},
-      { "category": "The Afton Files", "questions": [
-        { "value": 100, "q": "In the retro death minigames, the serial killer at the heart of the series always appears as a smiling figure of this color.", "a": "What is purple?" },
-        { "value": 200, "q": "William Afton became Springtrap when the springlocks failed on this golden rabbit suit he was hiding inside.", "a": "What is the Spring Bonnie suit?" },
-        { "value": 300, "q": "Circus Baby was built to count children, and the one she was designed to lure with ice cream turned out to be this member of Afton's own family.", "a": "Who is Elizabeth Afton, his daughter?" },
-        { "value": 400, "q": "FNAF 4's minigames build to a birthday party where the crying child's older brother and his friends stage a prank that causes this infamous tragedy.", "a": "What is the Bite of '83?", "note": "Not to be confused with the Bite of '87 that Phone Guy mentions in the first game." },
-        { "value": 500, "q": "In this secret Pizzeria Simulator minigame, an orange-tinted driver speeds home from JR's to find a bedroom door locked from the inside and, out back, an open window with footprints leading away.", "a": "What is Midnight Motorist?", "note": "Fans still argue about who the orange man is; the footprints scene is the lore wound that never closed." }
-      ]},
-      { "category": "Between the Static", "questions": [
-        { "value": 100, "q": "Survive a night and you are rewarded with chimes, children cheering, and the clock rolling over to this time.", "a": "What is 6 AM?" },
-        { "value": 200, "q": "The two-word hallucination that flashes across the screen in the first game, as if the building itself is confessing.", "a": "What is IT'S ME?" },
-        { "value": 300, "q": "FNAF 3's good ending is earned by completing these hidden retro-style minigames and delivering cake to the children's spirits, one by one.", "a": "What are the secret minigames?", "note": "Finish all of them and the fifth child's spirit is freed; the attraction burns down either way." },
-        { "value": 400, "q": "Catch the fish at this pixelated elder's pond in Ultimate Custom Night and he advises you to leave the demon to his demons.", "a": "Who is Old Man Consequences?" },
-        { "value": 500, "q": "In Security Breach, Vanny is truly defeated not by Freddy but by clearing all three cabinets of this arcade series hidden around the Pizzaplex.", "a": "What is Princess Quest?", "note": "The three-cabinet ending is the only one that actually frees Vanessa." }
-      ]},
-      { "category": "Made by the Fans", "questions": [
-        { "value": 100, "id": "l18A5BOTlzE", "q": "Press play. This 2014 track became the fandom's unofficial anthem and its creators' most-viewed video ever. Name the song or the group behind it.", "a": "What is Five Nights at Freddy's by The Living Tombstone?" },
-        { "value": 200, "id": "gk-aCL6eyGc", "q": "Press play. Same group, one game later: their FNAF 2 song is told from the perspective of a grieving mother. Name it.", "a": "What is It's Been So Long?", "note": "The Living Tombstone's sequel song, December 2014." },
-        { "value": 300, "q": "This YouTube theorist spent a full decade untangling the FNAF timeline across dozens of episodes, and even scored a cameo in the 2023 movie.", "a": "Who is MatPat of Game Theory?" },
-        { "value": 400, "q": "This fan-made series pits you against an immortal, reality-warping egg and his surreal housemates for a single night.", "a": "What is One Night at Flumpty's?", "note": "Flumpty Bumpty himself: exempt from the plot and capable of transcending time and space." },
-        { "value": 500, "id": "bhJGXzOE5fQ", "q": "Press play. This 2015 swing-flavored fan song circles the mystery of Golden Freddy. Name the song or the artist.", "a": "What is Just Gold by MandoPony?" }
-      ]}
-    ],
-    "final": {
-      "category": "Lost Souls",
-      "q": "Daughter of Afton's business partner Henry Emily, she was the first victim, and her spirit went on to give the gift of life to the others from inside this vessel. Name the girl or the animatronic she became.",
-      "a": "Who is Charlotte (Charlie) Emily, the Puppet (Marionette)?"
     }
   }
 ]
