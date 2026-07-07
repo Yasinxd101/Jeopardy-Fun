@@ -2,7 +2,7 @@
   {
     "id": "fan-example-classics",
     "name": "Retro Gaming Classics",
-    "tagline": "Example fan board - submit yours with a share link from the Board Builder!",
+    "tagline": "Example fan board, submit yours with a share link from the Board Builder!",
     "accent": "#7ee2b0",
     "icon": "F",
     "textBoard": [
@@ -11,7 +11,7 @@
         "questions": [
           {
             "value": 100,
-            "q": "This mustachioed plumber first stomped a barrel-throwing ape in 1981.",
+            "q": "This mustachioed plumber first stomped a barrel throwing ape in 1981.",
             "a": "Who is Mario?"
           },
           {
@@ -51,7 +51,7 @@
           },
           {
             "value": 300,
-            "q": "This Sega console's add-ons included a CD drive and the 32X.",
+            "q": "This Sega console's add ons included a CD drive and the 32X.",
             "a": "What is the Genesis (Mega Drive)?"
           },
           {
@@ -76,7 +76,7 @@
           },
           {
             "value": 200,
-            "q": "This 1986 NES adventure introduced battery-backed saves so you could shut off the console without losing Hyrule.",
+            "q": "This 1986 NES adventure introduced battery backed saves so you could shut off the console without losing Hyrule.",
             "a": "What is The Legend of Zelda?"
           },
           {
@@ -91,8 +91,8 @@
           },
           {
             "value": 500,
-            "q": "The gold NES cartridge was a Zelda trademark; this other Nintendo franchise also shipped a gold cart for its second NES entry.",
-            "a": "What is Zelda II: The Adventure of Link? (Accept: it was still Zelda - the trick question everyone falls for.)"
+            "q": "The gold NES cartridge was a Zelda trademark. this other Nintendo franchise also shipped a gold cart for its second NES entry.",
+            "a": "What is Zelda II, The Adventure of Link? (Accept, it was still Zelda, the trick question everyone falls for.)"
           }
         ]
       },
@@ -102,7 +102,7 @@
           {
             "value": 100,
             "q": "This 1980 maze chase starred a yellow circle with an appetite.",
-            "a": "What is Pac-Man?"
+            "a": "What is Pac Man?"
           },
           {
             "value": 200,
@@ -111,12 +111,12 @@
           },
           {
             "value": 300,
-            "q": "This 1991 Capcom fighter gave the world Hadoukens and quarter-circle inputs.",
+            "q": "This 1991 Capcom fighter gave the world Hadoukens and quarter circle inputs.",
             "a": "What is Street Fighter II?"
           },
           {
             "value": 400,
-            "q": "The four-player 1987 beat-em-up where you picked Leonardo, Raphael, Michelangelo, or Donatello... in the sewer.",
+            "q": "The four player 1987 beat em up where you picked Leonardo, Raphael, Michelangelo, or Donatello... in the sewer.",
             "a": "What is Teenage Mutant Ninja Turtles (the arcade game)?"
           },
           {
@@ -127,7 +127,7 @@
         ]
       },
       {
-        "category": "Finish the Catchphrase-ish",
+        "category": "Finish the Catchphrase ish",
         "questions": [
           {
             "value": 100,
@@ -151,7 +151,7 @@
           },
           {
             "value": 500,
-            "q": "The Oregon Trail's most famous cause of death, now a t-shirt industry.",
+            "q": "The Oregon Trail's most famous cause of death, now a t shirt industry.",
             "a": "What is dysentery ('You have died of dysentery')?"
           }
         ]
@@ -159,7 +159,7 @@
     ],
     "final": {
       "category": "The High Score",
-      "q": "This 1972 Atari table-tennis game is widely credited with launching the commercial video game industry.",
+      "q": "This 1972 Atari table tennis game is widely credited with launching the commercial video game industry.",
       "a": "What is Pong?"
     }
   }
