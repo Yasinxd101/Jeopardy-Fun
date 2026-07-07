@@ -425,6 +425,26 @@
     100% { transform: scale(1); opacity: 1; }
   }
   .host-join-count { margin: 8px 0 0; color: #7ee2b0; font-weight: 800; font-size: 13px; letter-spacing: 1px; }
+  .host-chip-x {
+    background: none; border: none; color: #8b92c0; font-size: 17px; font-weight: 900;
+    cursor: pointer; padding: 0 0 0 2px; line-height: 1;
+  }
+  .host-chip-x:hover { color: #ff8aa0; }
+  .host-qr-wrap { margin-top: 12px; }
+  .host-qr {
+    width: 172px; height: 172px; border-radius: 12px; background: #fff; padding: 8px;
+    display: inline-block;
+  }
+  .buzz-reconnect-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    background: #3d1420; border-bottom: 2px solid #ff5470; color: #ffb3c2;
+    font-size: 13px; font-weight: 700; padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  }
+  .buzz-reconnect-bar button {
+    background: none; border: none; color: #7ee2b0; font-weight: 900; font-size: 13px;
+    cursor: pointer; text-decoration: underline; padding: 2px 6px;
+  }
   @media (prefers-reduced-motion: reduce) { .host-join-chip, .buzz-wheel-spin { animation: none; } }
 
   /* board builder + custom board cards */
@@ -996,9 +1016,9 @@ var BUILTIN_BOARDS = [
     tagline: "Every game from the first office to the Pizzaplex, plus the songs the fans built. (Updated 2026-07-07)",
     textBoard: [
       { category: "Clocking In", questions: [
-        { value: 100, q: "Your only defenses in the first game are two doors, two lights, and a dwindling supply of this resource.", a: "What is power?" },
-        { value: 200, q: "FNAF 2 takes the doors away; instead, you shove this on your face and pray the animatronics buy it.", a: "What is the empty Freddy Fazbear head (the Freddy mask)?" },
-        { value: 300, q: "FNAF 4 removes the cameras and the office entirely; before you dare flash your light at a doorway, you survive by doing this.", a: "What is listening for breathing at the door?", note: "Flash on something breathing and you die; flash on silence and you push them back." },
+        { value: 100, q: "Survive all five nights of the first game and your reward prints on screen: a paycheck for this princely amount.", a: "What is $120?", note: "A week of mortal terror at roughly four dollars an hour.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/319510/header.jpg" },
+        { value: 200, q: "FNAF 2's most nerve-wracking chore: this must be kept wound from the camera view, or the thing waiting inside its box comes out.", a: "What is the music box (keeping the Puppet in)?" },
+        { value: 300, q: "FNAF 4 removes the cameras and the office entirely; before you dare flash your light at a doorway, you survive by doing this.", a: "What is listening for breathing at the door?", note: "Flash on something breathing and you die; flash on silence and you push them back.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/388090/header.jpg" },
         { value: 400, format: "sequence", q: "Put these five releases in order, earliest first.",
           items: ["Five Nights at Freddy's 4", "FNAF World", "Sister Location", "Freddy Fazbear's Pizzeria Simulator", "Ultimate Custom Night"],
           correctOrder: [0, 1, 2, 3, 4],
@@ -1007,28 +1027,28 @@ var BUILTIN_BOARDS = [
         { value: 500, q: "The power is gone and Freddy's face is strobing in the left doorway: the tune he plinks out before lunging is borrowed from this 19th-century French opera.", a: "What is Carmen (the Toreador March, by Bizet)?", note: "When the music stops, the room goes dark. Then it is a coin flip every few seconds." }
       ]},
       { category: "Animatronic Anatomy", questions: [
-        { value: 100, q: "The top-hatted, microphone-wielding headliner bear the entire franchise is named after.", a: "Who is Freddy Fazbear?" },
+        { value: 100, q: "The Fazbear band's third member: a yellow chicken whose bib politely announces LET'S EAT.", a: "Who is Chica?" },
         { value: 200, q: "This hook-handed pirate lurks behind the curtains of his own cove and sprints down the west hall if you watch him too little.", a: "Who is Foxy?" },
-        { value: 300, q: "The Funtime animatronics' combined endoskeleton form, which escaped Circus Baby's rental facility by wearing Michael Afton as a disguise.", a: "Who is Ennard?", note: "Sister Location's endings; the scooping room did the dirty work." },
+        { value: 300, q: "The Funtime animatronics' combined endoskeleton form, which escaped Circus Baby's rental facility by wearing Michael Afton as a disguise.", a: "Who is Ennard?", note: "Sister Location's endings; the scooping room did the dirty work.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/506610/header.jpg" },
         { value: 400, q: "Fans call this silhouetted rabbit Shadow Bonnie, but its actual name in the FNAF 2 files is a ten-character keysmash. Give the keysmash or accept the fan name with the file-name explanation.", a: "What is RWQFSFASXC?", note: "It also stars in a hidden FNAF 3 minigame where it shifts between worlds." },
         { value: 500, q: "DeeDee crashes Ultimate Custom Night to add surprise guests to your roster; rarer still is this colorless variant of her, who silently dumps every one of her hidden characters on you at once.", a: "Who is XOR (Shadow DeeDee)?", note: "Her deliveries include RWQFSFASXC, Plushtrap, Nightmare Chica, Bonnet, Minireena, and Lolbit." }
       ]},
       { category: "The Afton Files", questions: [
-        { value: 100, q: "In the retro death minigames, the serial killer at the heart of the series always appears as a smiling figure of this color.", a: "What is purple?" },
+        { value: 100, q: "Before Freddy Fazbear's Pizza there was this cheery diner, co-founded by Afton and Henry Emily, where the whole tragedy began.", a: "What is Fredbear's Family Diner?" },
         { value: 200, q: "William Afton became Springtrap when the springlocks failed on this golden rabbit suit he was hiding inside.", a: "What is the Spring Bonnie suit?" },
         { value: 300, q: "FNAF 4's minigames build to a birthday party where the crying child's older brother and his friends stage a prank that causes this infamous tragedy.", a: "What is the Bite of '83?", note: "Not to be confused with the Bite of '87 that Phone Guy mentions in the first game." },
-        { value: 400, q: "In this secret Pizzeria Simulator minigame, an orange-tinted driver speeds home from JR's to find a bedroom door locked from the inside and, out back, an open window with footprints leading away.", a: "What is Midnight Motorist?", note: "Fans still argue about who the orange man is; the footprints scene is the lore wound that never closed." },
+        { value: 400, q: "In this secret Pizzeria Simulator minigame, an orange-tinted driver speeds home from JR's to find a bedroom door locked from the inside and, out back, an open window with footprints leading away.", a: "What is Midnight Motorist?", note: "Fans still argue about who the orange man is; the footprints scene is the lore wound that never closed.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/738060/header.jpg" },
         { value: 500, q: "The vengeful spirit believed to run Afton's Ultimate Custom Night torment, tied to Golden Freddy, is known to fans by this name, pieced together from faded letters hidden in the Survival Logbook.", a: "Who is Cassidy?", note: "The logbook's altered pages spell the name out one faint character at a time." }
       ]},
       { category: "Between the Static", questions: [
-        { value: 100, q: "Survive a night and you are rewarded with chimes, children cheering, and the clock rolling over to this time.", a: "What is 6 AM?" },
+        { value: 100, q: "One camera in the first game never shows video at all: this room's feed is permanently listed as audio only.", a: "What is the kitchen?", note: "You will hear clanging pots when someone is in there. That is all you get." },
         { value: 200, q: "The two-word hallucination that flashes across the screen in the first game, as if the building itself is confessing.", a: "What is IT'S ME?" },
-        { value: 300, q: "Catch the fish at this pixelated elder's pond in Ultimate Custom Night and he advises you to leave the demon to his demons.", a: "Who is Old Man Consequences?" },
-        { value: 400, q: "In Security Breach, Vanny is truly defeated not by Freddy but by clearing all three cabinets of this arcade series hidden around the Pizzaplex.", a: "What is Princess Quest?", note: "The three-cabinet ending is the only one that actually frees Vanessa." },
+        { value: 300, q: "Catch the fish at this pixelated elder's pond in Ultimate Custom Night and he advises you to leave the demon to his demons.", a: "Who is Old Man Consequences?", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/871720/header.jpg" },
+        { value: 400, q: "In Security Breach, Vanny is truly defeated not by Freddy but by clearing all three cabinets of this arcade series hidden around the Pizzaplex.", a: "What is Princess Quest?", note: "The three-cabinet ending is the only one that actually frees Vanessa.", aimg: "https://cdn.cloudflare.steamstatic.com/steam/apps/747660/header.jpg" },
         { value: 500, q: "On CAM 2B the cheery pin-up poster occasionally swaps to a golden close-up; lower your monitor after seeing it and this slumped visitor materializes in your office, his kill famously crashing the game outright.", a: "Who is Golden Freddy?", note: "The FNAF 1 summon ritual: poster flips, camera down, do not stare." }
       ]},
       { category: "Made by the Fans", questions: [
-        { value: 100, id: "l18A5BOTlzE", q: "Press play. This 2014 track became the fandom's unofficial anthem and its creators' most-viewed video ever. Name the song or the group behind it.", a: "What is Five Nights at Freddy's by The Living Tombstone?" },
+        { value: 100, id: "l18A5BOTlzE", q: "Press play. This 2014 track became the fandom's unofficial anthem and is its creators' most-viewed video ever. Name the group behind it.", a: "Who is The Living Tombstone? (The song is simply titled Five Nights at Freddy's.)" },
         { value: 200, id: "gk-aCL6eyGc", q: "Press play. Same group, one game later: their FNAF 2 song is told from the perspective of a grieving mother. Name it.", a: "What is It's Been So Long?", note: "The Living Tombstone's sequel song, December 2014." },
         { value: 300, q: "This fan-made series pits you against an immortal, reality-warping egg and his surreal housemates for a single night.", a: "What is One Night at Flumpty's?", note: "Flumpty Bumpty himself: exempt from the plot and capable of transcending time and space." },
         { value: 400, id: "bhJGXzOE5fQ", q: "Press play. This 2015 swing-flavored fan song circles the mystery of Golden Freddy. Name the song or the artist.", a: "What is Just Gold by MandoPony?" },
@@ -1392,7 +1412,8 @@ function startBuzzerRoom() {
     if (hostPeer && state.buzzer.on) { try { hostPeer.reconnect(); } catch (e) {} }
   });
 }
-function stopBuzzerRoom() {
+function stopBuzzerRoom(reason) {
+  broadcastBuzzer({ type: "roomClosed", reason: reason || "The host closed the buzzer room." });
   state.buzzer.on = false;
   state.buzzer.status = "off";
   state.buzzer.code = null;
@@ -1430,7 +1451,31 @@ function handleBuzzerData(conn, d) {
     broadcastBuzzer({ type: "lockout", winner: state.buzzer.winnerName });
     try { conn.send({ type: "youwon" }); } catch (e) {}
     renderOrUpdateClue();
+  } else if (d.type === "wager") {
+    // the daily double player locked their wager in from their phone
+    var wi = playerIndexByName(conn.buzzName || "");
+    if (state.phase === "question" && state.wagering && wi === state.turn) {
+      state.wagerInput = String(parseInt(d.amount, 10) || 0);
+      submitWager();
+    }
+  } else if (d.type === "finalWager") {
+    var fi = playerIndexByName(conn.buzzName || "");
+    if (state.phase === "final" && state.finalStage === "wager" && fi === state.finalPlayerIndex) {
+      state.finalWagerInput = String(parseInt(d.amount, 10) || 0);
+      submitFinalWager();
+    }
   }
+}
+// Kick a phone out of the room (they stay in the game on the host screen).
+function kickBuzzer(name) {
+  var n = String(name || "").toLowerCase();
+  hostConns.slice().forEach(function (c) {
+    if ((c.buzzName || "").toLowerCase() === n) {
+      try { c.send({ type: "booted" }); } catch (e) {}
+      try { c.close(); } catch (e) {}
+      dropBuzzerConn(c);
+    }
+  });
 }
 function dropBuzzerConn(conn) {
   var i = hostConns.indexOf(conn);
@@ -1508,12 +1553,29 @@ function buzzerSyncPayload() {
       playing: !!state.playing,
       revealed: !!state.revealed,
     };
+    if (state.wagering) {
+      var ddp = state.players[state.turn];
+      if (ddp) p.clue.dd = { player: ddp.name, cap: ddWagerCap(ddp) };
+    }
     if (state.timerEnabled && !state.revealed && !state.wagering) p.timerDuration = state.timerDuration;
+  } else if (state.phase === "final" && state.finalStage) {
+    var fin = currentBoard().final;
+    p.final = { stage: state.finalStage, category: fin.category };
+    if (state.finalStage === "wager") {
+      var pend = state.players[state.finalPlayerIndex];
+      if (pend) { p.final.pending = pend.name; p.final.cap = Math.max(pend.score, 0); }
+    } else {
+      p.final.q = fin.q; // the clue is public once wagers are locked; the answer never is
+    }
   }
   return p;
 }
+function remapBuzzerConns() {
+  hostConns.forEach(function (c) { if (c.buzzName) c.playerIndex = playerIndexByName(c.buzzName); });
+}
 function broadcastSync() {
   if (!state.buzzer.on || !hostConns.length) return;
+  remapBuzzerConns();
   var p = buzzerSyncPayload();
   var base = JSON.stringify(p);
   if (base === lastSyncBase) return; // only real changes go over the wire
@@ -1549,9 +1611,14 @@ function submitBuzzerJoin() {
   bc.name = (bc.name || "").trim();
   if (bc.code.length !== 4 || !bc.name) { bc.msg = "Enter the 4-letter room code and your name."; render(); return; }
   if (!buzzerAvailable()) { bc.msg = "The buzzer service failed to load. Check your connection and refresh."; render(); return; }
+  connectBuzzer(bc);
+}
+function connectBuzzer(bc) {
   bc.stage = "connecting";
   bc.msg = "";
+  bc.disconnected = false;
   render();
+  if (clientPeer) { try { clientPeer.destroy(); } catch (e) {} clientPeer = null; clientConn = null; }
   try { clientPeer = new Peer(); }
   catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
   clientPeer.on("open", function () {
@@ -1559,16 +1626,40 @@ function submitBuzzerJoin() {
     clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name }); });
     clientConn.on("data", function (d) { handleClientData(d); });
     clientConn.on("close", function () {
-      if (state.buzzClient) { state.buzzClient.stage = "join"; state.buzzClient.msg = "Disconnected from the room."; render(); }
+      var cur = state.buzzClient;
+      if (!cur) return;
+      if (cur.stage === "ready") {
+        // connection dropped mid-game: keep the screen, offer a reconnect
+        cur.disconnected = true;
+        cur.buzzState = "idle";
+      } else if (cur.stage !== "closed") {
+        cur.stage = "join";
+        cur.msg = "Disconnected from the room.";
+      }
+      render();
     });
   });
   clientPeer.on("error", function (err) {
-    if (state.buzzClient && state.buzzClient.stage !== "ready") {
+    if (state.buzzClient && state.buzzClient.stage !== "ready" && state.buzzClient.stage !== "closed") {
       state.buzzClient.stage = "join";
       state.buzzClient.msg = err && err.type === "peer-unavailable" ? "No room found with that code." : "Connection error — try again.";
       render();
     }
   });
+}
+function reconnectBuzzer() {
+  var bc = state.buzzClient;
+  if (!bc) return;
+  connectBuzzer(bc);
+}
+function rejoinBuzzer() {
+  var bc = state.buzzClient;
+  if (!bc) { openBuzzerJoin(); return; }
+  bc.stage = "join";
+  bc.msg = "";
+  bc.game = null;
+  bc.disconnected = false;
+  render();
 }
 function handleClientData(d) {
   var bc = state.buzzClient;
@@ -1578,11 +1669,15 @@ function handleClientData(d) {
   else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
   else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
   else if (d.type === "youwon") { bc.buzzState = "won"; }
+  else if (d.type === "roomClosed") { bc.stage = "closed"; bc.msg = String(d.reason || "The room was closed."); bc.game = null; }
+  else if (d.type === "booted") { bc.stage = "closed"; bc.msg = "The host removed this phone from the room. You are still in the game on the host screen."; bc.game = null; }
   else if (d.type === "sync") {
     // a different clue (or no clue) stops any clip the phone was playing
     var clueKey = d.clue ? d.clue.cat + "|" + (d.clue.videoId || d.clue.q) : "";
     if (clueKey !== bc.clueKey) { bc.playingClip = false; bc.clueKey = clueKey; }
     if (d.clue && !d.clue.playing) bc.playingClip = false;
+    var wagerOpen = (d.clue && d.clue.wagering) || (d.final && d.final.stage === "wager");
+    if (!wagerOpen) bc.wagerSent = false;
     // anchor the mirrored timer to local clock time
     bc.timerAnchor = d.timerDuration ? Date.now() - (d.timerElapsed || 0) * 1000 : null;
     bc.game = d;
@@ -1600,6 +1695,22 @@ function phonePlayClip() {
   var bc = state.buzzClient;
   if (!bc || !bc.game || !bc.game.clue || !bc.game.clue.videoId) return;
   bc.playingClip = true;
+  render();
+}
+function phoneSendWager() {
+  var bc = state.buzzClient;
+  if (!bc || !clientConn) return;
+  try { clientConn.send({ type: "wager", amount: parseInt(bc.wagerInput, 10) || 0 }); } catch (e) {}
+  bc.wagerInput = "";
+  bc.wagerSent = true;
+  render();
+}
+function phoneSendFinalWager() {
+  var bc = state.buzzClient;
+  if (!bc || !clientConn) return;
+  try { clientConn.send({ type: "finalWager", amount: parseInt(bc.wagerInput, 10) || 0 }); } catch (e) {}
+  bc.wagerInput = "";
+  bc.wagerSent = true;
   render();
 }
 
@@ -1865,6 +1976,14 @@ function importBoardFile(file) {
   };
   reader.readAsText(file);
 }
+// A #join=CODE hash (from the lobby QR code) opens the join screen prefilled.
+function checkJoinInUrl() {
+  var m = (location.hash || "").match(/[#&]join=([A-Za-z0-9]{4})/);
+  if (!m) return;
+  state.buzzClient = { stage: "join", code: m[1].toUpperCase(), name: "", buzzState: "idle", lockWinner: "", msg: "" };
+  state.phase = "buzzer";
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+}
 // On load, a #b= hash offers to import a shared board.
 function checkSharedBoardInUrl() {
   var h = location.hash || "";
@@ -1969,6 +2088,8 @@ function confirmRemovePlayerInGame(i) {
   askConfirm("Remove " + p.name + "? Their score and progress in this round will be lost.", "removePlayerInGame", i);
 }
 function removePlayerInGame(i) {
+  var removed = state.players[i];
+  if (removed && state.buzzer.on) kickBuzzer(removed.name);
   state.players.splice(i, 1);
   if (!state.players.length) { state.turn = 0; }
   else { state.turn = state.turn % state.players.length; }
@@ -2057,6 +2178,7 @@ function switchBoard() {
 }
 function newPlayers() {
   state.menuOpen = false;
+  if (state.buzzer.on) stopBuzzerRoom("The host started a brand-new game, so this room closed.");
   state.match = null;
   state.matchPending = null;
   state.dailyDoubleB = null;
@@ -2905,13 +3027,6 @@ function viewPlayers() {
             '<span style="font-weight:700;font-size:14px">Wheel of Chaos</span>' +
             '<span style="font-weight:800;font-size:13px;color:' + (state.wheelOfChaosEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.wheelOfChaosEnabled ? "ON" : "OFF") + '</span>' +
           '</button>' +
-          '<button data-action="toggleBuzzerRoom" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
-            '<span style="font-weight:700;font-size:14px">Phone Buzzer Room</span>' +
-            '<span style="font-weight:800;font-size:13px;color:' + (state.buzzer.on ? "#7ee2b0" : "#6a72a8") + '">' +
-              (state.buzzer.on ? "ROOM " + esc(state.buzzer.code || "") :
-                state.buzzer.status === "unavailable" || !buzzerAvailable() ? "UNAVAILABLE" : "OFF") +
-            '</span>' +
-          '</button>' +
         '</div>'
       : "") +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
@@ -3073,6 +3188,12 @@ function viewInterlude() {
 }
 
 // Phone-side buzzer screens: join form, then the full-screen buzz pad.
+function phoneWagerInputHtml(bc, sendAction) {
+  return '<div style="display:flex;gap:8px;margin-top:8px">' +
+    '<input class="input" id="phoneWagerInput" type="number" min="0" placeholder="0" value="' + esc(bc.wagerInput || "") + '" style="flex:1" />' +
+    '<button class="btn-gold" data-action="' + sendAction + '">Lock In</button>' +
+  '</div>';
+}
 // What the phone mirrors from the host: clue text, timer, wheel, your score.
 function buzzMirrorHtml(bc) {
   var g = bc.game;
@@ -3091,13 +3212,46 @@ function buzzMirrorHtml(bc) {
       (w.desc ? '<p class="buzz-mirror-q">' + esc(w.desc) + '</p>' : '') +
     '</div>';
   }
+  if (g && g.final) {
+    var f = g.final;
+    var mine = f.pending && f.pending.toLowerCase() === bc.name.toLowerCase();
+    var body;
+    if (f.stage === "wager") {
+      if (bc.wagerSent) {
+        body = '<p class="buzz-mirror-revealed">Wager locked in!</p>';
+      } else if (mine) {
+        body = '<p class="buzz-mirror-q" style="text-align:center">Your wager (0 &ndash; ' + f.cap + '):</p>' +
+          phoneWagerInputHtml(bc, "phoneSendFinalWager");
+      } else {
+        body = '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Waiting for ' + esc(f.pending || "the next player") + ' to set a wager&hellip;</p>';
+      }
+    } else if (f.stage === "clue") {
+      body = (f.q ? '<p class="buzz-mirror-q">' + esc(f.q) + '</p>' : '') +
+        '<p class="buzz-timer-note">Give your answer before the host reveals it.</p>';
+    } else {
+      body = '<p class="buzz-mirror-revealed">Answer is up on the host screen</p>';
+    }
+    return '<div class="buzz-mirror">' +
+      '<p class="buzz-mirror-cat">FINAL JEOPARDY' + (f.category ? ' &middot; ' + esc(f.category.toUpperCase()) : '') + '</p>' +
+      body +
+    '</div>';
+  }
   if (g && g.clue) {
     var c = g.clue;
     if (c.wagering) {
+      var ddMine = c.dd && c.dd.player && c.dd.player.toLowerCase() === bc.name.toLowerCase();
+      var ddBody;
+      if (bc.wagerSent) ddBody = '<p class="buzz-mirror-revealed">Wager locked in!</p>';
+      else if (ddMine) {
+        ddBody = '<p class="buzz-mirror-q" style="text-align:center">' + esc(bc.name) + ', it hit YOUR board. Wager 0 &ndash; ' + c.dd.cap + ':</p>' +
+          phoneWagerInputHtml(bc, "phoneSendWager");
+      } else {
+        ddBody = '<p class="buzz-mirror-q" style="text-align:center">' + esc(c.dd ? c.dd.player : "Someone") + ' is setting a wager&hellip;</p>';
+      }
       return '<div class="buzz-mirror">' +
         '<p class="buzz-mirror-cat">' + esc(c.cat.toUpperCase()) + '</p>' +
         '<p class="buzz-mirror-value">DAILY DOUBLE</p>' +
-        '<p class="buzz-mirror-q" style="text-align:center">A wager is being set on the host screen&hellip;</p>' +
+        ddBody +
       '</div>';
     }
     var timerHtml = "";
@@ -3132,7 +3286,24 @@ function buzzMirrorHtml(bc) {
 }
 function viewBuzzer() {
   var bc = state.buzzClient || { stage: "join", code: "", name: "", msg: "" };
+  if (bc.stage === "closed") {
+    return '<div class="wrap"><div class="inner" style="max-width:420px;margin:0 auto;text-align:center">' +
+      '<h1 class="title" style="font-size:34px">ROOM CLOSED</h1>' +
+      '<div class="card">' +
+        '<p class="buzz-mirror-q" style="text-align:center">' + esc(bc.msg || "The room was closed.") + '</p>' +
+        '<button class="big-gold" data-action="rejoinBuzzer">Join a Room</button>' +
+        '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back to Start</button>' +
+      '</div>' +
+    '</div></div>';
+  }
   if (bc.stage === "ready") {
+    var reconnectBar = bc.disconnected ?
+      '<div class="buzz-reconnect-bar">Connection lost &mdash; you are still in the game on the host screen.' +
+        '<span>' +
+          '<button data-action="reconnectBuzzer">Reconnect</button>' +
+          '<button data-action="leaveBuzzer" style="color:#ff8aa0">Close</button>' +
+        '</span>' +
+      '</div>' : '';
     var cls = "buzz-btn", label = "WAIT&hellip;";
     if (bc.buzzState === "armed") { cls += " buzz-armed"; label = "BUZZ!"; }
     else if (bc.buzzState === "won") { cls += " buzz-won"; label = "YOU'RE IN!"; }
@@ -3141,7 +3312,7 @@ function viewBuzzer() {
     if (bc.game && bc.game.players) {
       bc.game.players.forEach(function (pl) { if (pl.name.toLowerCase() === bc.name.toLowerCase()) myScore = pl.score; });
     }
-    return '<div class="buzz-pad buzz-pad-live">' +
+    return reconnectBar + '<div class="buzz-pad buzz-pad-live"' + (bc.disconnected ? ' style="padding-top:64px"' : '') + '>' +
       '<div class="buzz-topline">' +
         '<span class="buzz-room-chip">Room <span class="buzz-room-code">' + esc(bc.code) + '</span> &middot; ' + esc(bc.name) + '</span>' +
         '<span class="buzz-score">' + (myScore == null ? "&mdash;" : myScore) + '<em>pts</em></span>' +
@@ -3180,13 +3351,23 @@ function viewHostRoom() {
   } else if (b.status === "error") {
     statusLine = '<p class="err" style="text-align:center">Room connection lost. Close and reopen the room.</p>';
   } else {
-    statusLine = '<p class="host-join-line">On your phone: open <strong>' + esc(joinUrl) + '</strong>, tap <strong>JOIN A ROOM</strong>, and enter the code.</p>';
+    statusLine = '<p class="host-join-line">Scan the code, or open <strong>' + esc(joinUrl) + '</strong> and tap <strong>JOIN A ROOM</strong>.</p>';
+  }
+  var qrBlock = "";
+  if (b.status === "open" && b.code) {
+    var joinLink = location.origin + location.pathname + "#join=" + b.code;
+    var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(joinLink);
+    qrBlock = '<div class="host-qr-wrap">' +
+      '<img class="host-qr" src="' + esc(qrSrc) + '" alt="QR code to join room ' + esc(b.code) + '" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
+      '<p class="buzz-timer-note">Scanning opens the app with the code filled in</p>' +
+    '</div>';
   }
   var chips = (b.clients || []).map(function (name, i) {
     var pi = playerIndexByName(name);
     var color = pi !== -1 ? state.players[pi].color : "#8b92c0";
     return '<span class="host-join-chip" style="animation-delay:' + (i * 60) + 'ms;border-color:' + color + '">' +
       '<span class="dot" style="background:' + color + '"></span>' + esc(name) +
+      '<button class="host-chip-x" data-action="kickBuzzer" data-name="' + esc(name) + '" aria-label="Remove this phone">&times;</button>' +
     '</span>';
   }).join("");
   return '<div class="wrap"><div class="inner" style="max-width:560px;margin:0 auto;text-align:center">' +
@@ -3196,6 +3377,7 @@ function viewHostRoom() {
       '<p class="lbl" style="display:block">ROOM CODE</p>' +
       '<div class="host-code">' + esc(b.code || "----") + '</div>' +
       statusLine +
+      qrBlock +
       '<div class="host-join-list">' +
         (chips || '<p class="muted" style="margin:6px 0">Nobody has joined yet &mdash; codes work as soon as the room is open.</p>') +
       '</div>' +
@@ -3771,6 +3953,10 @@ function render() {
     nameField.addEventListener("input", function (e) { state.nameInput = e.target.value; });
     nameField.addEventListener("keydown", function (e) { if (e.key === "Enter") addPlayer(); });
   }
+  var phoneWagerField = document.getElementById("phoneWagerInput");
+  if (phoneWagerField) {
+    phoneWagerField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.wagerInput = e.target.value; });
+  }
   var buzzCodeField = document.getElementById("buzzCodeInput");
   if (buzzCodeField) {
     buzzCodeField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.code = e.target.value; });
@@ -3846,6 +4032,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "closeHostRoom") closeHostRoom();
   else if (action === "stopHostRoom") stopHostRoom();
   else if (action === "phonePlayClip") phonePlayClip();
+  else if (action === "phoneSendWager") phoneSendWager();
+  else if (action === "phoneSendFinalWager") phoneSendFinalWager();
+  else if (action === "reconnectBuzzer") reconnectBuzzer();
+  else if (action === "rejoinBuzzer") rejoinBuzzer();
+  else if (action === "kickBuzzer") kickBuzzer(t.getAttribute("data-name"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
   else if (action === "leaveBuzzer") leaveBuzzer();
@@ -3907,12 +4098,14 @@ document.getElementById("root").addEventListener("click", function (e) {
 
 rebuildBoards();
 checkSharedBoardInUrl();
+checkJoinInUrl();
 loadFanBoards();
 render();
-// A share link pasted into an already-open tab only changes the hash.
+// A share or join link pasted into an already-open tab only changes the hash.
 window.addEventListener("hashchange", function () {
   checkSharedBoardInUrl();
-  if (state.importPrompt) render();
+  checkJoinInUrl();
+  if (state.importPrompt || state.phase === "buzzer") render();
 });
 </script>
 </body>
