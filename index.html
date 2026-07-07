@@ -373,6 +373,29 @@
   .buzz-locked { background: #ff5470; color: #2a0410; font-size: 20px; padding: 0 18px; }
   @media (prefers-reduced-motion: reduce) { .buzz-armed, .buzz-banner { animation: none; } }
 
+  /* board builder + custom board cards */
+  .builder-cat-tabs { display: flex; gap: 6px; }
+  .builder-cat-tab {
+    flex: 1; border: 1px solid #2a2f55; border-radius: 10px; padding: 10px 4px;
+    background: #0d1230; color: #8b92c0; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .builder-cat-tab-active { background: #ffd166; color: #0b0f24; border-color: #ffd166; }
+  .builder-clue { background: #0d1230; border-radius: 12px; padding: 12px; }
+  .builder-clue-head { color: #ffd166; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 8px; }
+  .builder-input { margin-top: 6px; font-size: 14px; padding: 10px 12px; }
+  .builder-optionals { border-top: 1px dashed #2a2f55; margin-top: 8px; padding-top: 4px; }
+  .builder-optionals .builder-input { font-size: 12px; padding: 8px 10px; opacity: 0.85; }
+  .my-board-wrap { position: relative; }
+  .my-board-controls {
+    display: flex; gap: 14px; justify-content: flex-end; margin: -8px 4px 0;
+  }
+  .my-board-controls button {
+    background: none; border: none; color: #8b92c0; font-weight: 800;
+    font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px;
+  }
+  .board-card-create { border-style: dashed; border-left-width: 1px; justify-content: center; }
+  .board-card-create .board-card-icon { font-size: 30px; color: #ffd166; font-weight: 900; }
+
   /* ---- confirmation dialog ---- */
   .confirm-overlay {
     position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72);
@@ -872,7 +895,7 @@ var RE5_TEXT_BOARD = [
   ]},
 ];
 
-var BOARDS = [
+var BUILTIN_BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg", icon: "🎌", accent: "#a786df",
     tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026-07-03)",
     textBoard: ANIME_MUSIC_BOARD,
@@ -916,6 +939,46 @@ var BOARDS = [
       q: "A slow, rarely-seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
       a: "Who is Ziggurat (Tōng Líng Tǎ)?" } },
 ];
+
+// The live registry = built-ins + owner-curated fan boards + this device's
+// custom boards. Rebuilt whenever fan boards load or a custom board changes.
+var FAN_BOARDS = [];
+var BOARDS = BUILTIN_BOARDS.slice();
+function customBoards() {
+  var list = jfRead("jf.myboards.v1", []);
+  return Array.isArray(list) ? list.filter(isValidBoard) : [];
+}
+function rebuildBoards() {
+  BOARDS = BUILTIN_BOARDS.concat(FAN_BOARDS).concat(customBoards());
+}
+// A board is playable if it has 5 categories x 5 filled clues and a final.
+function isValidBoard(b) {
+  if (!b || !b.id || !b.name || !Array.isArray(b.textBoard) || b.textBoard.length !== 5) return false;
+  for (var c = 0; c < 5; c++) {
+    var col = b.textBoard[c];
+    if (!col || !col.category || !Array.isArray(col.questions) || col.questions.length !== 5) return false;
+    for (var q = 0; q < 5; q++) {
+      var it = col.questions[q];
+      if (!it || (!it.q && !it.id) || !it.a) return false;
+    }
+  }
+  return b.final && b.final.category && b.final.q && b.final.a;
+}
+function loadFanBoards() {
+  if (typeof fetch !== "function") return;
+  fetch("fan-boards.json", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (list) {
+      if (!Array.isArray(list)) return;
+      FAN_BOARDS = list.filter(isValidBoard).map(function (b) {
+        b.genre = "Fan Boards";
+        return b;
+      });
+      rebuildBoards();
+      if (state.phase === "boards") render();
+    })
+    .catch(function () {});
+}
 
 var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
 var gold = "#ffd166";
@@ -969,6 +1032,8 @@ var state = {
   match: null,            // {round: 1|2, round1BoardId, round2BoardId} — null = classic single-board game
   matchPending: null,     // board id chosen as Round 1 while the host picks Round 2
   dailyDoubleB: null,     // second daily double (Double Jeopardy round only)
+  builder: null,          // {draft, catIndex, error, shareUrl} while editing a custom board
+  importPrompt: null,     // a board decoded from a #b= share link, awaiting accept
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1439,6 +1504,138 @@ function closeStats() {
   state.phase = state.boardId ? "board" : "players";
   render();
 }
+
+// ---- board builder + sharing (localStorage jf.myboards.v1) ----
+var JF_MYBOARDS_KEY = "jf.myboards.v1";
+function blankDraft() {
+  var cats = [];
+  for (var c = 0; c < 5; c++) {
+    var qs = [];
+    for (var r = 0; r < 5; r++) qs.push({ value: (r + 1) * 100, q: "", a: "", note: "", id: "", img: "", aimg: "" });
+    cats.push({ category: "", questions: qs });
+  }
+  return {
+    id: "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: "", tagline: "", accent: "#a786df", art: "",
+    textBoard: cats,
+    final: { category: "", q: "", a: "" },
+  };
+}
+function openBuilder(existingId) {
+  state.menuOpen = false;
+  var draft = null;
+  if (existingId) {
+    var found = customBoards().filter(function (b) { return b.id === existingId; })[0];
+    if (found) draft = JSON.parse(JSON.stringify(found));
+  }
+  state.builder = { draft: draft || blankDraft(), catIndex: 0, error: "", shareUrl: "" };
+  state.phase = "builder";
+  render();
+}
+function closeBuilder() {
+  state.builder = null;
+  state.phase = "boards";
+  render();
+}
+function builderSetField(path, value) {
+  if (!state.builder) return;
+  var d = state.builder.draft;
+  if (path === "name") d.name = value;
+  else if (path === "tagline") d.tagline = value;
+  else if (path === "accent") d.accent = value;
+  else if (path === "art") d.art = value;
+  else if (path === "finalCategory") d.final.category = value;
+  else if (path === "finalQ") d.final.q = value;
+  else if (path === "finalA") d.final.a = value;
+  else if (path === "catName") d.textBoard[state.builder.catIndex].category = value;
+  else {
+    var m = path.split(":"); // clue:<row>:<field>
+    if (m[0] === "clue") d.textBoard[state.builder.catIndex].questions[+m[1]][m[2]] = value;
+  }
+  // do not re-render on every keystroke (inputs keep focus); state is captured live
+}
+function builderSelectCat(i) {
+  if (!state.builder) return;
+  state.builder.catIndex = i;
+  render();
+}
+function cleanDraft(d) {
+  // strip empty optional fields so saved boards match the built-in shape
+  var out = JSON.parse(JSON.stringify(d));
+  out.textBoard.forEach(function (col) {
+    col.questions.forEach(function (it) {
+      ["note", "id", "img", "aimg"].forEach(function (f) { if (!it[f]) delete it[f]; });
+    });
+  });
+  if (!out.art) delete out.art;
+  out.genre = "My Boards";
+  return out;
+}
+function saveBuilder() {
+  if (!state.builder) return;
+  var d = cleanDraft(state.builder.draft);
+  if (!isValidBoard(d)) {
+    state.builder.error = "Every category needs a title, all 25 clues need a question and answer, and Final Jeopardy needs all three fields.";
+    render();
+    return;
+  }
+  var list = jfRead(JF_MYBOARDS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  var idx = list.map(function (b) { return b.id; }).indexOf(d.id);
+  if (idx !== -1) list[idx] = d; else list.push(d);
+  jfWrite(JF_MYBOARDS_KEY, list);
+  rebuildBoards();
+  state.builder = null;
+  state.phase = "boards";
+  state.boardsTab = "My Boards";
+  render();
+}
+function deleteCustomBoard(id) {
+  var list = jfRead(JF_MYBOARDS_KEY, []).filter(function (b) { return b.id !== id; });
+  jfWrite(JF_MYBOARDS_KEY, list);
+  rebuildBoards();
+  render();
+}
+// Share a board by packing it into the URL hash (#b=<base64 json>).
+function shareBuilder() {
+  if (!state.builder) return;
+  var d = cleanDraft(state.builder.draft);
+  if (!isValidBoard(d)) { state.builder.error = "Finish the board before sharing it."; render(); return; }
+  try {
+    var packed = btoa(unescape(encodeURIComponent(JSON.stringify(d))));
+    state.builder.shareUrl = location.origin + location.pathname + "#b=" + packed;
+    state.builder.error = "";
+  } catch (e) { state.builder.error = "Could not build a share link."; }
+  render();
+}
+// On load, a #b= hash offers to import a shared board.
+function checkSharedBoardInUrl() {
+  var h = location.hash || "";
+  var m = h.match(/[#&]b=([^&]+)/);
+  if (!m) return;
+  try {
+    var json = decodeURIComponent(escape(atob(m[1])));
+    var board = JSON.parse(json);
+    if (isValidBoard(board)) state.importPrompt = board;
+  } catch (e) {}
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+}
+function acceptSharedBoard() {
+  var board = state.importPrompt;
+  if (!board) return;
+  board.genre = "My Boards";
+  if (!/^custom-/.test(board.id)) board.id = "custom-" + Date.now().toString(36);
+  var list = jfRead(JF_MYBOARDS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  if (list.map(function (b) { return b.id; }).indexOf(board.id) === -1) list.push(board);
+  jfWrite(JF_MYBOARDS_KEY, list);
+  rebuildBoards();
+  state.importPrompt = null;
+  state.phase = "boards";
+  state.boardsTab = "My Boards";
+  render();
+}
+function dismissSharedBoard() { state.importPrompt = null; render(); }
 
 // ---- actions ----
 function toggleMenu() {
@@ -2153,6 +2350,7 @@ function confirmYes() {
   else if (action === "newRound") newRound();
   else if (action === "newPlayers") newPlayers();
   else if (action === "removePlayerInGame") removePlayerInGame(payload);
+  else if (action === "deleteCustomBoard") deleteCustomBoard(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -2262,6 +2460,9 @@ function boardGenres() {
     var g = b.genre || "Other";
     if (order.indexOf(g) === -1) order.push(g);
   });
+  // My Boards always shows a tab (with at least the Create card) so users
+  // can build even before they have any custom boards.
+  if (order.indexOf("My Boards") === -1) order.push("My Boards");
   return order;
 }
 function activeBoardsTab() {
@@ -2281,10 +2482,32 @@ function viewBoards() {
     '</button>';
   }).join("");
 
-  var cards = BOARDS.filter(function (b) { return (b.genre || "Other") === activeTab; })
-    .map(function (b, i) { return boardCardHtml(b, i); }).join("");
+  var tabBoards = BOARDS.filter(function (b) { return (b.genre || "Other") === activeTab; });
+  var isMyBoards = activeTab === "My Boards";
+  var cards = tabBoards.map(function (b, i) {
+    var card = boardCardHtml(b, i);
+    if (isMyBoards) {
+      // custom boards get edit/delete controls under the card
+      card = '<div class="my-board-wrap">' + card +
+        '<div class="my-board-controls">' +
+          '<button data-action="openBuilder" data-id="' + esc(b.id) + '">Edit</button>' +
+          '<button data-action="deleteCustomBoard" data-id="' + esc(b.id) + '" style="color:#ff8aa0">Delete</button>' +
+        '</div></div>';
+    }
+    return card;
+  }).join("");
+  // the create card always closes out the My Boards tab
+  if (isMyBoards) {
+    cards += '<button class="board-card board-card-create" data-action="openBuilder">' +
+      '<div class="board-card-icon" style="background:rgba(255,209,102,0.18)">+</div>' +
+      '<div class="board-card-body"><div class="board-card-title">Create a Board</div>' +
+      '<div class="board-card-tagline">Build your own 5&times;5 board and share it by link.</div></div>' +
+    '</button>';
+  }
 
   var menu = renderMenu([
+    { label: "Create a Board", action: "openBuilder" },
+    { label: "Stats & History", action: "openStats" },
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
@@ -2477,6 +2700,75 @@ function viewStats() {
       '<p class="lbl" style="display:block;margin:18px 0 4px">RECENT MATCHES</p>' +
       matchRows +
       '<button class="big-gold" data-action="closeStats">Back</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// Board builder: edit one category at a time, with live tab switching.
+function viewBuilder() {
+  var bd = state.builder;
+  var d = bd.draft;
+  var ci = bd.catIndex;
+  var col = d.textBoard[ci];
+
+  var catTabs = d.textBoard.map(function (c, i) {
+    var filled = c.category && c.questions.every(function (q) { return (q.q || q.id) && q.a; });
+    return '<button class="builder-cat-tab' + (i === ci ? " builder-cat-tab-active" : "") + '" data-action="builderSelectCat" data-i="' + i + '">' +
+      (i + 1) + (filled ? " &#10003;" : "") +
+    '</button>';
+  }).join("");
+
+  var clueFields = col.questions.map(function (q, r) {
+    return '<div class="builder-clue">' +
+      '<div class="builder-clue-head">' + q.value + ' pts</div>' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="Clue / question" value="' + esc(q.q) + '" />' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="Answer" value="' + esc(q.a) + '" />' +
+      '<div class="builder-optionals">' +
+        '<input class="input builder-input" data-bind="clue:' + r + ':note" placeholder="Note (optional)" value="' + esc(q.note || "") + '" />' +
+        '<input class="input builder-input" data-bind="clue:' + r + ':aimg" placeholder="Answer image URL (optional)" value="' + esc(q.aimg || "") + '" />' +
+        '<input class="input builder-input" data-bind="clue:' + r + ':img" placeholder="Question image URL (optional)" value="' + esc(q.img || "") + '" />' +
+        '<input class="input builder-input" data-bind="clue:' + r + ':id" placeholder="YouTube video ID (optional, makes it a clip)" value="' + esc(q.id || "") + '" />' +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  return '<div class="wrap"><div class="inner" style="max-width:560px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:30px">BOARD BUILDER</h1>' +
+    '<p class="sub">Make your own 5&times;5 board. It saves to this device and can be shared by link.</p>' +
+    '<div class="card">' +
+      '<label class="lbl">Board name</label>' +
+      '<input class="input builder-input" data-bind="name" placeholder="e.g. Studio Ghibli Jeopardy" value="' + esc(d.name) + '" />' +
+      '<label class="lbl" style="display:block;margin-top:10px">Tagline</label>' +
+      '<input class="input builder-input" data-bind="tagline" placeholder="A short description" value="' + esc(d.tagline) + '" />' +
+      '<div style="display:flex;gap:10px;margin-top:10px">' +
+        '<div style="flex:1"><label class="lbl">Accent color</label>' +
+          '<input class="input builder-input" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" /></div>' +
+        '<div style="flex:2"><label class="lbl">Cover image URL (optional)</label>' +
+          '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" /></div>' +
+      '</div>' +
+
+      '<p class="lbl" style="display:block;margin:18px 0 8px">CATEGORY ' + (ci + 1) + ' OF 5</p>' +
+      '<div class="builder-cat-tabs">' + catTabs + '</div>' +
+      '<input class="input builder-input" style="margin-top:10px" data-bind="catName" placeholder="Category title" value="' + esc(col.category) + '" />' +
+      '<div style="margin-top:12px;display:flex;flex-direction:column;gap:14px">' + clueFields + '</div>' +
+
+      '<p class="lbl" style="display:block;margin:18px 0 8px">FINAL JEOPARDY</p>' +
+      '<input class="input builder-input" data-bind="finalCategory" placeholder="Final category" value="' + esc(d.final.category) + '" />' +
+      '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="Final clue" value="' + esc(d.final.q) + '" />' +
+      '<input class="input builder-input" style="margin-top:8px" data-bind="finalA" placeholder="Final answer" value="' + esc(d.final.a) + '" />' +
+
+      (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
+      (bd.shareUrl ?
+        '<div style="margin-top:14px"><label class="lbl">Share link (copy and send it)</label>' +
+          '<input class="input" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px" />' +
+          '<p class="muted" style="text-align:left;margin-top:6px">To submit it to the Fan Boards tab, send this link to the game owner.</p></div>'
+      : '') +
+
+      '<div style="display:flex;gap:10px;margin-top:18px">' +
+        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeBuilder">Cancel</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="shareBuilder">Share Link</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveBuilder">Save Board</button>' +
+      '</div>' +
     '</div>' +
   '</div></div>';
 }
@@ -3052,6 +3344,18 @@ function renderConfirm() {
   '</div>';
 }
 
+function renderImportPrompt() {
+  if (!state.importPrompt) return "";
+  var b = state.importPrompt;
+  return '<div class="confirm-overlay"><div class="confirm-card">' +
+    '<p class="confirm-msg">Someone shared the board "' + esc(b.name) + '" with you. Add it to My Boards?</p>' +
+    '<div class="confirm-actions">' +
+      '<button class="confirm-btn-cancel" data-action="dismissSharedBoard">Not Now</button>' +
+      '<button class="confirm-btn-yes" data-action="acceptSharedBoard">Add Board</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
 // ---- render + events ----
 function render() {
   var root = document.getElementById("root");
@@ -3060,6 +3364,7 @@ function render() {
   else if (state.phase === "buzzer") html = viewBuzzer();
   else if (state.phase === "interlude") html = viewInterlude();
   else if (state.phase === "stats") html = viewStats();
+  else if (state.phase === "builder") html = viewBuilder();
   else if (state.phase === "players") html = viewPlayers();
   else if (state.phase === "boards") html = state.previewBoardId ? viewBoardPreview() : viewBoards();
   else if (state.phase === "final") html = viewFinal();
@@ -3070,7 +3375,7 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm();
+  root.innerHTML = html + renderConfirm() + renderImportPrompt();
   saveGameSnapshot();
 
   var nameField = document.getElementById("nameInput");
@@ -3116,6 +3421,11 @@ function render() {
   }
 }
 
+document.getElementById("root").addEventListener("input", function (e) {
+  var t = e.target;
+  if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+});
+
 document.getElementById("root").addEventListener("click", function (e) {
   var t = e.target.closest("[data-action]");
   if (!t) return;
@@ -3152,6 +3462,14 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "discardSave") discardSave();
   else if (action === "openStats") openStats();
   else if (action === "closeStats") closeStats();
+  else if (action === "openBuilder") openBuilder(t.getAttribute("data-id"));
+  else if (action === "closeBuilder") closeBuilder();
+  else if (action === "builderSelectCat") builderSelectCat(+t.getAttribute("data-i"));
+  else if (action === "saveBuilder") saveBuilder();
+  else if (action === "shareBuilder") shareBuilder();
+  else if (action === "deleteCustomBoard") askConfirm("Delete this custom board? A saved share link can bring it back.", "deleteCustomBoard", t.getAttribute("data-id"));
+  else if (action === "acceptSharedBoard") acceptSharedBoard();
+  else if (action === "dismissSharedBoard") dismissSharedBoard();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
   else if (action === "confirmNewRound") confirmNewRound();
@@ -3189,7 +3507,15 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "respinWheel") respinWheel();
 });
 
+rebuildBoards();
+checkSharedBoardInUrl();
+loadFanBoards();
 render();
+// A share link pasted into an already-open tab only changes the hash.
+window.addEventListener("hashchange", function () {
+  checkSharedBoardInUrl();
+  if (state.importPrompt) render();
+});
 </script>
 </body>
 </html>
