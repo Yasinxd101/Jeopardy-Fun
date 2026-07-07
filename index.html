@@ -508,6 +508,23 @@
   }
   .chip-fx-good { background: rgba(126, 226, 176, 0.25); color: #0b3d26; }
   .chip-fx-bad { background: rgba(255, 84, 112, 0.3); color: #4a0917; }
+  .spectate { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px 70px; text-align: center; overflow-y: auto; }
+  .spectate-backdrop { position: fixed; inset: 0; z-index: -1; }
+  .spectate-backdrop img { width: 100%; height: 100%; object-fit: cover; opacity: 0.12; filter: blur(3px); }
+  .spectate-body { width: 100%; max-width: 860px; }
+  .spectate-kicker { color: #8b92c0; font-weight: 900; letter-spacing: 3px; font-size: clamp(13px, 2vw, 18px); margin: 0 0 14px; }
+  .spectate-big { color: #fff; font-weight: 900; font-size: clamp(34px, 6vw, 64px); margin: 8px 0; }
+  .spectate-clue { color: #fff; font-weight: 600; font-size: clamp(22px, 3.6vw, 38px); line-height: 1.45; margin: 10px 0 0; }
+  .spectate-note { color: #aab0d8; font-size: clamp(15px, 2vw, 20px); margin: 16px 0 0; }
+  .spectate-buzzline { color: #ffd166; font-weight: 900; font-size: clamp(20px, 3vw, 32px); margin: 18px 0 0; animation: video-hint-pulse 1.2s ease-in-out infinite; }
+  .spectate-chip { position: fixed; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 8px; background: rgba(22, 27, 61, 0.9); border: 1px solid #2a2f55; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #aab0d8; z-index: 5; }
+  .spectate-chip button { background: none; border: none; color: #8b92c0; font-size: 15px; font-weight: 900; cursor: pointer; padding: 0; }
+  .spectate-scores { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 10px 12px; background: rgba(6, 9, 24, 0.85); }
+  .spectate-score-chip { display: inline-flex; align-items: center; gap: 6px; background: #161b3d; border: 1px solid #2a2f55; border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: 13px; color: #fff; }
+  .spectate-standings { max-width: 460px; margin: 18px auto 0; display: flex; flex-direction: column; gap: 8px; }
+  .spectate-standrow { display: flex; align-items: center; gap: 12px; background: rgba(22, 27, 61, 0.9); border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: clamp(16px, 2.4vw, 22px); color: #fff; }
+  .spectate-champ { border: 1px solid #ffd166; color: #ffd166; }
+  .spectate-rank { color: #8b92c0; min-width: 20px; }
   .buzz-judge {
     border: none; border-radius: 8px; padding: 8px 16px; font-weight: 900;
     font-size: 14px; cursor: pointer;
@@ -1618,7 +1635,14 @@ function broadcastBuzzer(msg) {
 }
 function handleBuzzerData(conn, d) {
   if (!d || !state.buzzer.on) return;
-  if (d.type === "hello") {
+  if (d.type === "hello" && d.role === "screen") {
+    conn.role = "screen";
+    conn.buzzName = "TV";
+    if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
+    try { conn.send({ type: "joined", room: state.buzzer.code, armed: false }); } catch (e) {}
+    try { conn.send(withTimerElapsed(extendScreenPayload(buzzerSyncPayload()))); } catch (e) {}
+    renderOrUpdateClue();
+  } else if (d.type === "hello") {
     conn.buzzName = String(d.name || "Player").slice(0, 14);
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     var idx = playerIndexByName(conn.buzzName);
@@ -1752,6 +1776,8 @@ var lastSyncBase = "";
 function buzzerSyncPayload() {
   var p = { type: "sync", screen: state.phase };
   p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
+  var curB = state.boardId ? currentBoard() : null;
+  if (curB && curB.art) p.art = curB.art;
   if (state.wheel && (state.wheel.stage === "spinning" || state.wheel.stage === "result")) {
     var w = state.wheel;
     var seg = w.stage === "result" && w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
@@ -1778,6 +1804,7 @@ function buzzerSyncPayload() {
       var ddp = state.players[state.turn];
       if (ddp) p.clue.dd = { player: ddp.name, cap: ddWagerCap(ddp) };
     }
+    p.buzz = { winner: state.buzzer.winnerName || null, armed: !!state.buzzer.armed };
     if (state.timerEnabled && !state.revealed && !state.wagering) p.timerDuration = state.timerDuration;
   } else if (state.phase === "board" && state.boardId && !state.wheel) {
     var pcats = getCategories();
@@ -1808,6 +1835,27 @@ function buzzerSyncPayload() {
 function remapBuzzerConns() {
   hostConns.forEach(function (c) { if (c.buzzName) c.playerIndex = playerIndexByName(c.buzzName); });
 }
+// Screens (TVs) get everything phones get, plus answers once revealed and
+// the standings screens. Player phones never receive answer text.
+function extendScreenPayload(p) {
+  if (state.phase === "question" && state.active && state.revealed && p.clue) {
+    var item = questionItem();
+    p.clue.a = item.a;
+    p.clue.note = item.note || null;
+    p.clue.aimg = item.aimg || (item.id ? "https://i.ytimg.com/vi/" + item.id + "/hqdefault.jpg" : null);
+  }
+  if (state.phase === "final" && state.finalStage === "answer" && p.final) {
+    p.final.a = currentBoard().final.a;
+  }
+  if ((state.phase === "board" && state.boardId && isAllUsed()) || state.phase === "interlude") {
+    p.win = {
+      title: state.phase === "interlude" ? "ROUND 1 COMPLETE" : "ROUND OVER",
+      rows: state.players.slice().sort(function (a, b) { return b.score - a.score; })
+        .map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; }),
+    };
+  }
+  return p;
+}
 function broadcastSync() {
   if (!state.buzzer.on || !hostConns.length) return;
   remapBuzzerConns();
@@ -1815,7 +1863,11 @@ function broadcastSync() {
   var base = JSON.stringify(p);
   if (base === lastSyncBase) return; // only real changes go over the wire
   lastSyncBase = base;
-  broadcastBuzzer(withTimerElapsed(p));
+  var playerMsg = withTimerElapsed(p);
+  var screenMsg = withTimerElapsed(extendScreenPayload(JSON.parse(base)));
+  hostConns.forEach(function (c) {
+    try { c.send(c.role === "screen" ? screenMsg : playerMsg); } catch (e) {}
+  });
 }
 // Elapsed seconds ride along outside the dedup compare, so the ticking
 // clock alone never re-triggers a broadcast.
@@ -1839,11 +1891,18 @@ function leaveBuzzer() {
   state.phase = "players";
   render();
 }
+function watchAsTv() {
+  var bc = state.buzzClient;
+  if (!bc || bc.stage === "connecting") return;
+  bc.role = "screen";
+  submitBuzzerJoin();
+}
 function submitBuzzerJoin() {
   var bc = state.buzzClient;
   if (!bc || bc.stage === "connecting") return;
   bc.code = (bc.code || "").trim().toUpperCase();
   bc.name = (bc.name || "").trim();
+  if (bc.role === "screen" && !bc.name) bc.name = "TV";
   if (bc.code.length !== 4 || !bc.name) { bc.msg = "Enter the 4-letter room code and your name."; render(); return; }
   if (!buzzerAvailable()) { bc.msg = "The buzzer service failed to load. Check your connection and refresh."; render(); return; }
   connectBuzzer(bc);
@@ -1858,7 +1917,7 @@ function connectBuzzer(bc) {
   catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
   clientPeer.on("open", function () {
     clientConn = clientPeer.connect(BUZZ_PREFIX + bc.code);
-    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle" }); });
+    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle", role: bc.role || "player" }); });
     clientConn.on("data", function (d) { handleClientData(d); });
     clientConn.on("close", function () {
       var cur = state.buzzClient;
@@ -3794,6 +3853,82 @@ function buzzMirrorHtml(bc) {
     '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next clue shows up here too.</p>' +
   '</div>';
 }
+function spectateTimerHtml(bc) {
+  var g = bc.game;
+  if (!g || !g.timerDuration || !bc.timerAnchor) return "";
+  var elapsed = Math.min(g.timerDuration, (Date.now() - bc.timerAnchor) / 1000);
+  return '<div class="timer-track" style="max-width:640px;margin:18px auto 0"><div class="timer-bar" style="--timer-duration:' + g.timerDuration + 's;animation-delay:-' + elapsed.toFixed(2) + 's"></div></div>';
+}
+function viewSpectate(bc) {
+  var g = bc.game || {};
+  var backdrop = g.art ?
+    '<div class="spectate-backdrop"><img src="' + esc(g.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;"></div>' : '';
+  var body;
+  if (g.wheel) {
+    var w = g.wheel;
+    body = '<p class="spectate-kicker">' + esc(w.title.toUpperCase()) + (w.target ? ' &middot; ' + esc(w.target) : '') + '</p>' +
+      (w.stage === "spinning"
+        ? '<div class="buzz-wheel-spin" style="width:80px;height:80px;border-width:7px"></div><p class="spectate-note">Spinning&hellip;</p>'
+        : '<h1 class="spectate-big">' + esc(w.label || "") + '</h1><p class="spectate-note">' + esc(w.desc || "") + '</p>');
+  } else if (g.clue) {
+    var c = g.clue;
+    if (c.wagering) {
+      body = '<p class="spectate-kicker">' + esc(c.cat.toUpperCase()) + '</p>' +
+        '<h1 class="spectate-big" style="color:#ffd166">DAILY DOUBLE</h1>' +
+        '<p class="spectate-note">' + esc(c.dd ? c.dd.player : "Someone") + ' is setting a wager&hellip;</p>';
+    } else {
+      var buzzLine = "";
+      if (g.buzz && g.buzz.winner) buzzLine = '<p class="spectate-buzzline">' + esc(g.buzz.winner) + ' buzzed in!</p>';
+      else if (g.buzz && g.buzz.armed && !c.revealed) buzzLine = '<p class="spectate-note">Buzzers open</p>';
+      body = '<p class="spectate-kicker">' + esc(c.cat.toUpperCase()) + ' &middot; ' + c.value + '</p>' +
+        (c.q ? '<p class="spectate-clue">' + esc(c.q) + '</p>' : '') +
+        (c.isVideo && !c.revealed ? '<p class="spectate-note">' + (c.playing ? "Clip is playing" : "Clip not started yet") + '</p>' : '') +
+        spectateTimerHtml(bc) +
+        buzzLine +
+        (c.revealed && c.a ?
+          '<div class="answer-box" style="max-width:680px;margin:22px auto 0">' + esc(c.a) + '</div>' +
+          (c.aimg ? '<img class="answer-art" src="' + esc(c.aimg) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
+          (c.note ? '<p class="answer-note">' + esc(c.note) + '</p>' : '')
+        : (c.revealed ? '<p class="spectate-note">Answer is on the host screen</p>' : ''));
+    }
+  } else if (g.final) {
+    var f = g.final;
+    body = '<p class="spectate-kicker">FINAL JEOPARDY' + (f.category ? ' &middot; ' + esc(f.category.toUpperCase()) : '') + '</p>' +
+      (f.stage === "wager" ? '<p class="spectate-note">Wagers are being locked in&hellip;</p>' :
+       f.stage === "clue" ? '<p class="spectate-clue">' + esc(f.q || "") + '</p><p class="spectate-note">Answers are going in&hellip;</p>' :
+       (f.a ? '<div class="answer-box" style="max-width:680px;margin:22px auto 0">' + esc(f.a) + '</div>' : '<p class="spectate-note">Judging&hellip;</p>'));
+  } else if (g.win) {
+    body = '<h1 class="spectate-big" style="color:#ffd166">' + esc(g.win.title) + '</h1>' +
+      '<div class="spectate-standings">' + g.win.rows.map(function (r, i) {
+        return '<div class="spectate-standrow' + (i === 0 ? ' spectate-champ' : '') + '">' +
+          '<span class="spectate-rank">' + (i + 1) + '</span>' + avatarHtml(r, 16) +
+          '<span style="flex:1;text-align:left">' + esc(r.name) + '</span><span>' + r.score + '</span></div>';
+      }).join("") + '</div>';
+  } else if (g.pick && g.pick.cats && g.pick.cats.length) {
+    var usedSet = {};
+    (g.pick.used || []).forEach(function (k) { usedSet[k] = true; });
+    var grid = g.pick.cats.map(function (cn) { return '<div class="buzz-pick-head" style="font-size:12px">' + esc(cn) + '</div>'; }).join("");
+    for (var pr = 0; pr < g.pick.values.length; pr++) {
+      for (var pc = 0; pc < g.pick.cats.length; pc++) {
+        grid += '<div class="buzz-pick-tile' + (usedSet[pc + "-" + pr] ? ' buzz-pick-used' : '') + '" style="font-size:20px;padding:16px 0;cursor:default">' +
+          (usedSet[pc + "-" + pr] ? '' : g.pick.values[pr]) + '</div>';
+      }
+    }
+    body = '<div class="buzz-pick-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr));max-width:820px;margin:0 auto;gap:6px">' + grid + '</div>' +
+      '<p class="spectate-note" style="margin-top:16px">' + esc(g.pick.turn || "Someone") + ' is picking</p>';
+  } else {
+    body = '<p class="spectate-note">Waiting for the game&hellip;</p>';
+  }
+  var scoreStrip = (g.players || []).map(function (pl) {
+    return '<span class="spectate-score-chip">' + avatarHtml(pl, 11) + esc(pl.name) + ' ' + pl.score + '</span>';
+  }).join("");
+  return '<div class="spectate">' + backdrop +
+    '<span class="spectate-chip">Room <span class="buzz-room-code">' + esc(bc.code) + '</span>' +
+      '<button data-action="leaveBuzzer" aria-label="Leave">&times;</button></span>' +
+    '<div class="spectate-body">' + body + '</div>' +
+    (scoreStrip ? '<div class="spectate-scores">' + scoreStrip + '</div>' : '') +
+  '</div>';
+}
 function viewBuzzer() {
   var bc = state.buzzClient || { stage: "join", code: "", name: "", msg: "" };
   if (bc.stage === "closed") {
@@ -3805,6 +3940,13 @@ function viewBuzzer() {
         '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back to Start</button>' +
       '</div>' +
     '</div></div>';
+  }
+  if (bc.stage === "ready" && bc.role === "screen") {
+    var tvBar = bc.disconnected ?
+      '<div class="buzz-reconnect-bar">Connection lost.' +
+        '<span><button data-action="reconnectBuzzer">Reconnect</button><button data-action="leaveBuzzer" style="color:#ff8aa0">Close</button></span>' +
+      '</div>' : '';
+    return tvBar + viewSpectate(bc);
   }
   if (bc.stage === "ready") {
     var reconnectBar = bc.disconnected ?
@@ -3852,6 +3994,7 @@ function viewBuzzer() {
       }).join('') + '</div>' +
       (bc.msg ? '<p class="err">' + esc(bc.msg) + '</p>' : '') +
       '<button class="big-gold" data-action="submitBuzzerJoin"' + (connecting ? " disabled" : "") + '>' + (connecting ? "Connecting&hellip;" : "Join Room") + '</button>' +
+      '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="watchAsTv"' + (connecting ? " disabled" : "") + '>Watch on TV (no buzzer)</button>' +
       '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back</button>' +
     '</div>' +
   '</div></div>';
@@ -3926,8 +4069,13 @@ function viewHostRoom() {
       '<div class="host-join-list">' +
         (chips || '<p class="muted" style="margin:6px 0">Nobody has joined yet &mdash; codes work as soon as the room is open.</p>') +
       '</div>' +
-      (b.clients && b.clients.length ?
-        '<p class="host-join-count">' + b.clients.length + (b.clients.length === 1 ? ' phone' : ' phones') + ' connected</p>' : '') +
+      (function () {
+        var screens = hostConns.filter(function (c) { return c.role === "screen"; }).length;
+        var bits = [];
+        if (b.clients && b.clients.length) bits.push(b.clients.length + (b.clients.length === 1 ? ' phone' : ' phones'));
+        if (screens) bits.push(screens + (screens === 1 ? ' TV' : ' TVs'));
+        return bits.length ? '<p class="host-join-count">' + bits.join(' + ') + ' connected</p>' : '';
+      })() +
       '<p class="lbl" style="display:block;margin:16px 0 6px;text-align:left">ROOM RULES</p>' +
       '<div style="display:flex;flex-direction:column;gap:8px;text-align:left">' + matchRulesRowsHtml() + '</div>' +
       '<div style="display:flex;gap:10px;margin-top:18px">' +
@@ -4667,6 +4815,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "ddCountAdj") ddCountAdj(+t.getAttribute("data-d"));
   else if (action === "toggleStreakBonus") toggleStreakBonus();
   else if (action === "toggleOneBuzz") toggleOneBuzz();
+  else if (action === "watchAsTv") watchAsTv();
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
