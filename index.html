@@ -596,24 +596,38 @@
     font-weight: 900; font-size: 22px; color: #ffd166; margin-bottom: 4px;
     text-shadow: 0 2px 6px rgba(0,0,0,0.6);
   }
-  .wheel-size { width: min(82vw, 380px); height: min(82vw, 380px); margin: 14px auto 0; }
-  .wheel-wrap { position: relative; width: 100%; height: 100%; }
-  .wheel-pointer {
-    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
-    width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent;
-    border-top: 26px solid #ffd166; z-index: 2;
+  /* slot-reel spinner: options scroll vertically, text reads left to right */
+  .reel-frame { position: relative; width: min(88vw, 380px); margin: 18px auto 0; }
+  .reel-pointer {
+    position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+    color: #ffd166; font-size: 26px; z-index: 2;
+    text-shadow: 0 0 14px rgba(255, 209, 102, 0.8);
   }
-  .wheel-spinner {
-    width: 100%; height: 100%; border-radius: 50%; position: relative;
-    border: 8px solid #ffd166; box-shadow: 0 0 40px rgba(255, 209, 102, 0.35);
-    transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.15, 1);
+  .reel-window {
+    height: 74px; overflow: hidden; border-radius: 16px;
+    border: 3px solid #ffd166; background: #0d1230;
+    box-shadow: 0 0 34px rgba(255, 209, 102, 0.3), inset 0 10px 18px rgba(0,0,0,0.55), inset 0 -10px 18px rgba(0,0,0,0.55);
   }
-  .wheel-label {
-    position: absolute; left: 50%; top: 50%; transform-origin: 0 0;
-    white-space: nowrap; font-weight: 700; letter-spacing: -0.2px; line-height: 1;
-    color: #f5f3ff; text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8);
-    pointer-events: none;
+  .reel-success .reel-window { border-color: #7ee2b0; box-shadow: 0 0 34px rgba(126, 226, 176, 0.35), inset 0 10px 18px rgba(0,0,0,0.55), inset 0 -10px 18px rgba(0,0,0,0.55); }
+  .reel-success .reel-pointer { color: #7ee2b0; text-shadow: 0 0 14px rgba(126, 226, 176, 0.8); }
+  .reel-failure .reel-window { border-color: #ff5470; box-shadow: 0 0 34px rgba(255, 84, 112, 0.35), inset 0 10px 18px rgba(0,0,0,0.55), inset 0 -10px 18px rgba(0,0,0,0.55); }
+  .reel-failure .reel-pointer { color: #ff5470; text-shadow: 0 0 14px rgba(255, 84, 112, 0.8); }
+  .reel-strip { transition: transform 2.45s cubic-bezier(0.13, 0.82, 0.16, 1); will-change: transform; }
+  .reel-cell {
+    height: 74px; display: flex; align-items: center; justify-content: center;
+    font-size: 27px; font-weight: 900; letter-spacing: 1px; color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7); background: #1d2455; padding: 0 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .reel-cell-alt { background: #262c52; }
+  .reel-landed {
+    display: inline-block; padding: 14px 30px; border-radius: 14px;
+    font-size: 30px; font-weight: 900; letter-spacing: 1px; color: #0b0f24;
+    background: #ffd166; box-shadow: 0 0 34px rgba(255, 209, 102, 0.45);
+  }
+  .reel-landed.reel-success { background: #7ee2b0; box-shadow: 0 0 34px rgba(126, 226, 176, 0.5); }
+  .reel-landed.reel-failure { background: #ff5470; color: #2a0410; box-shadow: 0 0 34px rgba(255, 84, 112, 0.5); }
+  @media (prefers-reduced-motion: reduce) { .reel-strip { transition-duration: 0.4s; } }
   .wheel-result { margin-top: 18px; }
   .wheel-result-label { font-weight: 900; font-size: 30px; color: #ffd166; margin-top: 10px; }
   .wheel-result-desc { color: #aab0d8; margin-top: 8px; font-size: 17px; }
@@ -1174,14 +1188,6 @@ var state = {
 // Main Chaos Wheel: "auto" segments resolve instantly; "challenge" segments are judged
 // by the host (Pass/Fail), which then auto-spins the Success or Failure wheel.
 var CHAOS_OUTCOMES = [
-  { id: "c_gain_small", label: "Small Boost", short: "Boost", type: "auto", effect: "gain", amount: 150, weight: 6, desc: "Instant +150 points." },
-  { id: "c_gain_big", label: "Jackpot", short: "Jackpot", type: "auto", effect: "gain", amount: 400, weight: 3, desc: "Instant +400 points." },
-  { id: "c_lose_small", label: "Minor Setback", short: "Minor Loss", type: "auto", effect: "lose", amount: 150, weight: 6, desc: "Instant -150 points." },
-  { id: "c_lose_big", label: "Major Setback", short: "Major Loss", type: "auto", effect: "lose", amount: 350, weight: 3, desc: "Instant -350 points." },
-  { id: "c_steal", label: "Highway Robbery", short: "Robbery", type: "auto", effect: "steal", amount: 250, weight: 5, desc: "Steals 250 points from a random opponent." },
-  { id: "c_swap", label: "Score Swap", short: "Swap", type: "auto", effect: "swap", weight: 4, desc: "Swaps scores with a random opponent." },
-  { id: "c_double", label: "Double Up", short: "Double", type: "auto", effect: "double", weight: 3, desc: "Score is doubled." },
-  { id: "c_halve", label: "Halved", short: "Halved", type: "auto", effect: "halve", weight: 4, desc: "Score is cut in half." },
   { id: "c_wordle", label: "Wordle Wager", short: "Wordle", type: "challenge", weight: 5, desc: "Solve today's Wordle in 4 tries or fewer." },
   { id: "c_versus", label: "Versus Challenge", short: "Versus", type: "challenge", weight: 5, desc: "Pick an opponent and face off at something of your choosing (thumb war, staring contest, rock-paper-scissors best of three)." },
   { id: "c_dare", label: "Silly Dare", short: "Dare", type: "challenge", weight: 5, desc: "Pull off a dare picked by the group (impression, dance move, weird noise)." },
@@ -1192,6 +1198,8 @@ var CHAOS_OUTCOMES = [
   { id: "c_tongue", label: "Tongue Twister", short: "Twister", type: "challenge", weight: 4, desc: "Say a tongue twister picked by the host three times fast without messing up." },
   { id: "c_charades", label: "Charades Flash", short: "Charades", type: "challenge", weight: 4, desc: "Act out a word or phrase from the host for others to guess in 30 seconds." },
   { id: "c_lightning", label: "Lightning Round", short: "Lightning", type: "challenge", weight: 4, desc: "Answer 5 quickfire trivia questions; 3 or more correct counts as a pass." },
+  { id: "c_blitz", label: "Category Blitz", short: "Blitz", type: "challenge", weight: 4, desc: "Name 5 things in a category the host picks (anime openings, RE bosses, pizza toppings) in 15 seconds." },
+  { id: "c_pokerface", label: "Poker Face", short: "Poker Face", type: "challenge", weight: 4, desc: "Keep a straight face for 30 seconds while everyone else tries to crack you up. No talking allowed." },
 ];
 
 // Success Wheel: rewards of varying size, auto-spun after a Pass on the Chaos Wheel.
@@ -1204,6 +1212,7 @@ var SUCCESS_OUTCOMES = [
   { id: "s_free_tile", label: "Free Tile Pick", short: "Free Tile", type: "auto", effect: "freeTilePick", weight: 3, desc: "Gets to pick the next tile, regardless of turn order." },
   { id: "s_double", label: "Double Up", short: "Double", type: "auto", effect: "double", weight: 2, desc: "Score is doubled." },
   { id: "s_steal_rand", label: "Lucky Steal", short: "Lucky Steal", type: "auto", effect: "steal", amount: 200, weight: 4, desc: "Steals 200 points from a random opponent." },
+  { id: "s_trade_up", label: "Trade Up", short: "Trade Up", type: "auto", effect: "swapFirst", weight: 3, desc: "Swaps scores with whoever is currently in first place." },
 ];
 
 // Failure Wheel: punishments of varying size, auto-spun after a Fail on the Chaos Wheel.
@@ -1215,6 +1224,7 @@ var FAILURE_OUTCOMES = [
   { id: "f_skip_turn", label: "Skip Next Turn", short: "Skip Turn", type: "auto", effect: "skipTurn", weight: 4, desc: "Skips their next turn picking a tile." },
   { id: "f_halve", label: "Halved", short: "Halved", type: "auto", effect: "halve", weight: 3, desc: "Score is cut in half." },
   { id: "f_robbed", label: "Robbed", short: "Robbed", type: "auto", effect: "robbed", amount: 200, weight: 4, desc: "A random opponent steals 200 points from them." },
+  { id: "f_trade_down", label: "Trade Down", short: "Trade Down", type: "auto", effect: "swapLast", weight: 3, desc: "Swaps scores with whoever is currently in last place." },
 ];
 
 var WHEELS = { chaos: CHAOS_OUTCOMES, success: SUCCESS_OUTCOMES, failure: FAILURE_OUTCOMES };
@@ -1328,7 +1338,7 @@ function sndWheelSpin() {
     setTimeout(function () { beep(300 + Math.random() * 80, 0.05, "square", 0.08); }, delay);
   }
 }
-var NEGATIVE_WHEEL_EFFECTS = ["lose", "halve", "giveRival", "skipTurn", "robbed"];
+var NEGATIVE_WHEEL_EFFECTS = ["lose", "halve", "giveRival", "skipTurn", "robbed", "swapLast"];
 function sndWheelLand(outcome, wheelKey) {
   var bad = wheelKey === "failure" || (outcome.type === "auto" && NEGATIVE_WHEEL_EFFECTS.indexOf(outcome.effect) !== -1);
   if (bad) {
@@ -2230,29 +2240,6 @@ function findSegment(wheelKey, id) {
   for (var i = 0; i < list.length; i++) { if (list[i].id === id) return list[i]; }
   return null;
 }
-function wheelSegments(wheelKey) {
-  var removed = state.wheelRemoved[wheelKey];
-  var list = WHEELS[wheelKey].filter(function (o) { return removed.indexOf(o.id) === -1; });
-  if (!list.length) return [];
-  var slice = 360 / list.length;
-  return list.map(function (o, i) {
-    var start = i * slice;
-    var end = start + slice;
-    return { outcome: o, start: start, end: end, mid: (start + end) / 2 };
-  });
-}
-function wheelGradient(segs) {
-  var navyA = "#1d2455", navyB = "#262c52";
-  var parts = [];
-  segs.forEach(function (s, i) {
-    var fill = i % 2 === 0 ? navyA : navyB;
-    var sliver = Math.min(1.4, (s.end - s.start) * 0.18);
-    var fillEnd = s.end - sliver;
-    parts.push(fill + " " + s.start + "deg " + fillEnd + "deg");
-    parts.push(gold + " " + fillEnd + "deg " + s.end + "deg");
-  });
-  return parts.join(",");
-}
 function openWheel() {
   if (!state.wheelOfChaosEnabled || !state.players.length || state.wheel) return;
   state.menuOpen = false;
@@ -2273,11 +2260,13 @@ function chooseWheelTarget(mode) {
   render();
   spinActiveWheel();
 }
+var REEL_CELL_H = 74;
 function spinActiveWheel() {
   var w = state.wheel;
   if (!w) return;
-  var segs = wheelSegments(w.activeWheel);
-  if (!segs.length) {
+  var removed = state.wheelRemoved[w.activeWheel];
+  var opts = WHEELS[w.activeWheel].filter(function (o) { return removed.indexOf(o.id) === -1; });
+  if (!opts.length) {
     w.stage = "result";
     w.segmentId = null;
     w.judged = true;
@@ -2286,20 +2275,35 @@ function spinActiveWheel() {
     render();
     return;
   }
-  var r = Math.random() * 360;
-  var seg = segs[segs.length - 1];
-  for (var i = 0; i < segs.length; i++) {
-    if (r >= segs[i].start && r < segs[i].end) { seg = segs[i]; break; }
+  // weighted pick, then a reel strip of shuffled loops that ends on the pick
+  var total = 0;
+  opts.forEach(function (o) { total += (o.weight || 1); });
+  var roll = Math.random() * total;
+  var pick = opts[opts.length - 1];
+  for (var i = 0; i < opts.length; i++) {
+    roll -= (opts[i].weight || 1);
+    if (roll <= 0) { pick = opts[i]; break; }
   }
-  w.segmentId = seg.outcome.id;
-  var spins = 5 + Math.floor(Math.random() * 2);
-  w.rotation = spins * 360 + (360 - seg.mid);
+  w.segmentId = pick.id;
+  var strip = [];
+  for (var loop = 0; loop < 3; loop++) {
+    var shuffled = opts.slice();
+    for (var si = shuffled.length - 1; si > 0; si--) {
+      var sj = Math.floor(Math.random() * (si + 1));
+      var st = shuffled[si]; shuffled[si] = shuffled[sj]; shuffled[sj] = st;
+    }
+    strip = strip.concat(shuffled);
+  }
+  strip.push(pick);
+  w.reel = strip.map(function (o) { return o.short || o.label; });
   sndWheelSpin();
-  var el = document.getElementById("wheelSpinner");
+  render();
+  var el = document.getElementById("reelStrip");
   if (el) {
+    var target = -(w.reel.length - 1) * REEL_CELL_H;
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        el.style.transform = "rotate(" + w.rotation + "deg)";
+        el.style.transform = "translateY(" + target + "px)";
       });
     });
   }
@@ -2387,6 +2391,23 @@ function applyWheelEffect(outcome) {
       w.opponentIndex = rivalIdx;
       summary = target.name + " hands " + amt4 + " points to " + rival.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + rival.name + ": " + rivalOld + " → " + rival.score + ")";
       good = false;
+    }
+  } else if (outcome.effect === "swapFirst" || outcome.effect === "swapLast") {
+    if (!others.length) {
+      summary = "No other players to target — nothing happens.";
+    } else {
+      var pickIdx = others[0];
+      others.forEach(function (i5) {
+        if (outcome.effect === "swapFirst" ? state.players[i5].score > state.players[pickIdx].score
+                                           : state.players[i5].score < state.players[pickIdx].score) pickIdx = i5;
+      });
+      var mark = state.players[pickIdx];
+      var markOld = mark.score;
+      var tmp2 = target.score; target.score = mark.score; mark.score = tmp2;
+      w.opponentIndex = pickIdx;
+      summary = target.name + " swaps scores with " + (outcome.effect === "swapFirst" ? "the leader " : "last-place ") + mark.name +
+        "! (" + target.name + ": " + old + " → " + target.score + ", " + mark.name + ": " + markOld + " → " + mark.score + ")";
+      good = target.score >= old;
     }
   } else if (outcome.effect === "immunity") {
     target.immune = true;
@@ -3851,19 +3872,6 @@ function viewWheelChallengeClue(w, outcome) {
 function viewWheel() {
   var w = state.wheel;
   if (!w) return "";
-  var segs = wheelSegments(w.activeWheel);
-  var gradient = segs.length ? wheelGradient(segs) : "#1d2455 0deg 360deg";
-  var diameter = Math.min(window.innerWidth * 0.82, 380);
-  var labelOffset = Math.round(diameter * 0.073);
-  var labelFontSize = segs.length > 14 ? 13 : segs.length > 9 ? 15 : segs.length > 5 ? 17 : 19;
-  var labelsHtml = segs.map(function (s) {
-    var rot = s.mid - 90;
-    var text = s.outcome.short || s.outcome.label;
-    return '<span class="wheel-label" style="font-size:' + labelFontSize + 'px;transform:rotate(' + rot + 'deg) translate(' + labelOffset + 'px,-50%)">' + esc(text) + '</span>';
-  }).join("");
-  var wheelHtml = '<div class="wheel-pointer"></div>' +
-    '<div class="wheel-spinner" id="wheelSpinner" style="background:conic-gradient(' + gradient + ');transform:rotate(' + (w.rotation || 0) + 'deg)">' + labelsHtml + '</div>';
-
   var titleLine = '<p class="muted" style="margin-bottom:2px;font-size:15px">' + WHEEL_TITLES[w.activeWheel] + '</p>';
   var chainLine = w.chainNote ? '<p class="muted" style="margin-bottom:2px;color:#aab0d8">' + esc(w.chainNote) + '</p>' : "";
 
@@ -3879,16 +3887,25 @@ function viewWheel() {
     var target = state.players[w.targetIndex];
     var targetLine = titleLine + chainLine + '<div class="wheel-target-banner">' + esc(target.name) + '</div>';
     if (w.stage === "spinning") {
-      body = targetLine + '<div class="wheel-size"><div class="wheel-wrap">' + wheelHtml + '</div></div>' + '<p class="muted" style="margin-top:18px;font-size:16px">Spinning...</p>';
+      var cells = (w.reel || []).map(function (label, i) {
+        return '<div class="reel-cell' + (i % 2 ? ' reel-cell-alt' : '') + '">' + esc(label) + '</div>';
+      }).join("");
+      body = targetLine +
+        '<div class="reel-frame reel-' + w.activeWheel + '">' +
+          '<div class="reel-pointer">&#9654;</div>' +
+          '<div class="reel-window"><div class="reel-strip" id="reelStrip">' + cells + '</div></div>' +
+        '</div>' +
+        '<p class="muted" style="margin-top:16px;font-size:16px">Spinning&hellip;</p>';
     } else {
       var outcome = w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
       if (outcome && w.activeWheel === "chaos" && outcome.type === "challenge" && !w.judged) {
         body = viewWheelChallengeClue(w, outcome);
       } else {
-        body = targetLine + '<div class="wheel-size"><div class="wheel-wrap">' + wheelHtml + '</div></div>' +
-          '<div class="wheel-result">' +
+        body = targetLine +
+          '<div class="wheel-result" style="margin-top:14px">' +
             (outcome
-              ? '<div class="wheel-result-label">' + esc(outcome.label) + '</div>' +
+              ? '<div class="reel-landed reel-' + w.activeWheel + '">' + esc(outcome.short || outcome.label) + '</div>' +
+                '<div class="wheel-result-label">' + esc(outcome.label) + '</div>' +
                 '<p class="wheel-result-desc">' + esc(outcome.desc) + '</p>'
               : '<p class="muted" style="text-align:center">No options left on this wheel.</p>') +
             wheelOutcomeControls(w, outcome) +
