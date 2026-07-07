@@ -508,6 +508,12 @@
   }
   .chip-fx-good { background: rgba(126, 226, 176, 0.25); color: #0b3d26; }
   .chip-fx-bad { background: rgba(255, 84, 112, 0.3); color: #4a0917; }
+  .buzz-judge {
+    border: none; border-radius: 8px; padding: 8px 16px; font-weight: 900;
+    font-size: 14px; cursor: pointer;
+  }
+  .buzz-judge-right { background: #2cb67d; color: #04210f; }
+  .buzz-judge-wrong { background: #ff5470; color: #2a0410; }
   .clip-vol-row {
     display: flex; align-items: center; gap: 10px; margin-top: 12px;
     background: rgba(13, 18, 48, 0.8); border-radius: 10px; padding: 8px 12px;
@@ -1255,6 +1261,9 @@ var state = {
   editingPlayerIndex: null,
   editingScoreIndex: null,
   nextShape: null,        // avatar shape chosen for the next player added
+  roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1 },
+  dailyDoubles: [],       // all hidden daily double tiles this round
+  buzzedThisClue: {},     // playerIndex map for the one buzz per clue rule
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
@@ -1366,6 +1375,7 @@ function pickDailyDouble(board) {
 }
 function isDailyDoubleTile(catKey, qIndex) {
   function hit(d) { return !!d && d.catKey === catKey && d.qIndex === qIndex; }
+  if (state.dailyDoubles && state.dailyDoubles.length) return state.dailyDoubles.some(hit);
   return hit(state.dailyDouble) || hit(state.dailyDoubleB);
 }
 // Double Jeopardy round doubles every tile's stake.
@@ -1374,13 +1384,19 @@ function roundMultiplier() {
 }
 // One daily double normally; two distinct ones in the Double Jeopardy round.
 function assignDailyDoubles() {
-  state.dailyDouble = pickDailyDouble(currentBoard());
-  state.dailyDoubleB = null;
-  if (state.match && state.match.round === 2) {
-    do {
-      state.dailyDoubleB = pickDailyDouble(currentBoard());
-    } while (state.dailyDoubleB.catKey === state.dailyDouble.catKey && state.dailyDoubleB.qIndex === state.dailyDouble.qIndex);
+  var count = state.roomRules.ddCount;
+  if (state.match && state.match.round === 2 && count === 1) count = 2; // classic double jeopardy default
+  var list = [];
+  var guard = 0;
+  while (list.length < count && guard < 200) {
+    guard++;
+    var cand = pickDailyDouble(currentBoard());
+    var dup = list.some(function (d) { return d.catKey === cand.catKey && d.qIndex === cand.qIndex; });
+    if (!dup) list.push(cand);
   }
+  state.dailyDoubles = list;
+  state.dailyDouble = list[0] || null;
+  state.dailyDoubleB = list[1] || null;
 }
 function isAllUsed() {
   var categories = getCategories();
@@ -1619,6 +1635,7 @@ function handleBuzzerData(conn, d) {
     renderOrUpdateClue();
   } else if (d.type === "buzz") {
     if (!state.buzzer.armed || state.buzzer.winnerName != null) return;
+    if (state.roomRules.oneBuzz && conn.playerIndex != null && state.buzzedThisClue[conn.playerIndex]) return;
     state.buzzer.winnerName = conn.buzzName || "Player";
     state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
     sndBuzz();
@@ -1688,8 +1705,24 @@ function disarmBuzzers(keepWinner) {
   broadcastBuzzer({ type: "disarm" });
 }
 // Host judged the buzz wrong: reopen buzzing for everyone else.
+// One tap judging from the buzz banner. Right scores and reveals, Wrong
+// deducts and reopens buzzing for everyone still allowed to buzz.
+function judgeBuzz(correct) {
+  var i = state.buzzer.winnerIndex;
+  if (i == null || i === -1 || !state.players[i] || state.revealed) return;
+  scoreQuestion(i, correct);
+  if (correct) reveal();
+  else clearBuzz();
+}
 function clearBuzz() {
   if (!state.buzzer.on) return;
+  var spent = state.buzzer.winnerIndex;
+  if (state.roomRules.oneBuzz && spent != null && spent !== -1) {
+    state.buzzedThisClue[spent] = true;
+    hostConns.forEach(function (c) {
+      if (c.playerIndex === spent) { try { c.send({ type: "spent" }); } catch (e) {} }
+    });
+  }
   state.buzzer.winnerName = null;
   state.buzzer.winnerIndex = null;
   state.buzzer.armed = true;
@@ -1867,16 +1900,22 @@ function handleClientData(d) {
   var bc = state.buzzClient;
   if (!bc || !d) return;
   if (d.type === "joined") { bc.stage = "ready"; bc.buzzState = d.armed ? "armed" : "idle"; }
-  else if (d.type === "arm") { bc.buzzState = "armed"; bc.lockWinner = ""; }
+  else if (d.type === "arm") { if (bc.buzzState !== "spent") { bc.buzzState = "armed"; bc.lockWinner = ""; } }
   else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
   else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
   else if (d.type === "youwon") { bc.buzzState = "won"; }
+  else if (d.type === "spent") { bc.buzzState = "spent"; bc.lockWinner = ""; }
   else if (d.type === "roomClosed") { bc.stage = "closed"; bc.msg = String(d.reason || "The room was closed."); bc.game = null; }
   else if (d.type === "booted") { bc.stage = "closed"; bc.msg = "The host removed this phone from the room. You are still in the game on the host screen."; bc.game = null; }
   else if (d.type === "sync") {
     // a different clue (or no clue) stops any clip the phone was playing
     var clueKey = d.clue ? d.clue.cat + "|" + (d.clue.videoId || d.clue.q) : "";
-    if (clueKey !== bc.clueKey) { bc.playingClip = false; bc.clueKey = clueKey; }
+    if (clueKey !== bc.clueKey) {
+      bc.playingClip = false;
+      bc.clueKey = clueKey;
+      if (bc.buzzState === "spent") bc.buzzState = "idle";
+    }
+    if (!d.clue && bc.buzzState === "spent") bc.buzzState = "idle";
     if (d.clue && !d.clue.playing) bc.playingClip = false;
     var wagerOpen = (d.clue && d.clue.wagering) || (d.final && d.final.stage === "wager");
     if (!wagerOpen) bc.wagerSent = false;
@@ -1965,6 +2004,8 @@ function saveGameSnapshot() {
     match: state.match,
     dailyDouble: state.dailyDouble,
     dailyDoubleB: state.dailyDoubleB,
+    dailyDoubles: state.dailyDoubles,
+    roomRules: state.roomRules,
     timerEnabled: state.timerEnabled,
     timerDuration: state.timerDuration,
     muted: state.muted,
@@ -1992,6 +2033,8 @@ function resumeGame() {
   state.match = s.match || null;
   state.dailyDouble = s.dailyDouble || null;
   state.dailyDoubleB = s.dailyDoubleB || null;
+  state.dailyDoubles = s.dailyDoubles || [s.dailyDouble, s.dailyDoubleB].filter(Boolean);
+  if (s.roomRules) state.roomRules = s.roomRules;
   state.timerEnabled = !!s.timerEnabled;
   state.timerDuration = s.timerDuration || 20;
   state.muted = !!s.muted;
@@ -2392,7 +2435,7 @@ function selectBoard(id) {
   state.boardId = id;
   state.used = {};
   state.turn = 0;
-  state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
+  state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
   state.finalDone = false;
@@ -2423,7 +2466,7 @@ function selectRound2(id) {
   state.boardId = round1;
   state.used = {};
   state.turn = 0;
-  state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
+  state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
   state.finalDone = false;
@@ -2457,7 +2500,7 @@ function switchBoard() {
   state.boardId = null;
   state.used = {};
   state.turn = 0;
-  state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
+  state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   state.dailyDouble = null;
   state.finalDone = false;
@@ -2516,7 +2559,7 @@ function adjustTimerDuration(delta) {
 }
 function toggleMute() { state.muted = !state.muted; jfSaveSettings(); render(); }
 function jfSaveSettings() {
-  jfWrite("jf.settings.v1", { volume: state.volume, clipVolume: state.clipVolume, muted: state.muted });
+  jfWrite("jf.settings.v1", { volume: state.volume, clipVolume: state.clipVolume, muted: state.muted, roomRules: state.roomRules });
 }
 function loadSettings() {
   var s0 = jfRead("jf.settings.v1", null);
@@ -2524,6 +2567,11 @@ function loadSettings() {
   if (typeof s0.volume === "number") state.volume = Math.max(0, Math.min(1, s0.volume));
   if (typeof s0.clipVolume === "number") state.clipVolume = Math.max(0, Math.min(100, s0.clipVolume));
   state.muted = !!s0.muted;
+  if (s0.roomRules) {
+    state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
+    state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
+    if (typeof s0.roomRules.ddCount === "number") state.roomRules.ddCount = Math.max(0, Math.min(3, s0.roomRules.ddCount));
+  }
 }
 function applyClipVolume() {
   if (activeYtPlayer && activeYtPlayer.setVolume) { try { activeYtPlayer.setVolume(state.clipVolume); } catch (e) {} }
@@ -2849,6 +2897,7 @@ function openQuestion(catKey, qIndex) {
     state.seqOrder = seqOrder;
   }
   state.clueOpenedAt = Date.now();
+  state.buzzedThisClue = {};
   if (state.wagering) { sndDailyDouble(); fireConfetti(1600); }
   if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
@@ -2893,10 +2942,17 @@ function recordScoreSnapshot() {
 }
 function scoreQuestion(i, correct) {
   var val = activeValue();
-  var old = state.players[i].score;
+  var pl = state.players[i];
+  var old = pl.score;
   var delta = correct ? val : -val;
+  if (correct) {
+    pl.streak = (pl.streak || 0) + 1;
+    if (state.roomRules.streakBonus && pl.streak > 0 && pl.streak % 3 === 0) delta += 100;
+  } else {
+    pl.streak = 0;
+  }
   var next = old + delta;
-  state.players[i].score = next;
+  pl.score = next;
   recordScore(i, delta);
   if (correct) sndCorrect(); else sndIncorrect();
   renderOrUpdateClue();
@@ -3081,7 +3137,7 @@ function closeQuestion() {
 function newRound() {
   state.menuOpen = false;
   state.used = {};
-  state.players.forEach(function (p) { p.score = 0; p.immune = false; p.skipNextTurn = false; });
+  state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   state.turn = 0;
   if (state.match) { state.match.round = 1; state.boardId = state.match.round1BoardId; }
@@ -3442,6 +3498,8 @@ function viewPlayers() {
             '<span style="font-weight:700;font-size:14px">Wheel of Chaos</span>' +
             '<span style="font-weight:800;font-size:13px;color:' + (state.wheelOfChaosEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.wheelOfChaosEnabled ? "ON" : "OFF") + '</span>' +
           '</button>' +
+          '<p class="lbl" style="display:block;margin:6px 0 0">MATCH RULES</p>' +
+          matchRulesRowsHtml() +
         '</div>'
       : "") +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
@@ -3760,6 +3818,7 @@ function viewBuzzer() {
     if (bc.buzzState === "armed") { cls += " buzz-armed"; label = "BUZZ!"; }
     else if (bc.buzzState === "won") { cls += " buzz-won"; label = "YOU'RE IN!"; }
     else if (bc.buzzState === "locked") { cls += " buzz-locked"; label = esc(bc.lockWinner || "Someone") + " got it"; }
+    else if (bc.buzzState === "spent") { cls += " buzz-locked"; label = "NO REBUZZ"; }
     var myScore = null, myAv = "";
     if (bc.game && bc.game.players) {
       bc.game.players.forEach(function (pl) {
@@ -3799,6 +3858,32 @@ function viewBuzzer() {
 }
 
 // Host lobby: giant room code, join instructions, and live player list.
+function matchRulesRowsHtml() {
+  var r = state.roomRules;
+  function toggleRow(label, action, on, notes) {
+    return '<button data-action="' + action + '" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
+      '<span style="font-weight:700;font-size:14px;text-align:left">' + label + (notes ? ' <span style="color:#8b92c0;font-size:11px">' + notes + '</span>' : '') + '</span>' +
+      '<span style="font-weight:800;font-size:13px;color:' + (on ? "#7ee2b0" : "#6a72a8") + '">' + (on ? "ON" : "OFF") + '</span>' +
+    '</button>';
+  }
+  return '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px">' +
+      '<span style="font-weight:700;font-size:14px;color:#fff">Daily Doubles <span style="color:#8b92c0;font-size:11px">per board</span></span>' +
+      '<span style="display:flex;align-items:center;gap:8px">' +
+        '<button data-action="ddCountAdj" data-d="-1" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
+        '<span style="font-weight:900;color:#ffd166;min-width:14px;text-align:center">' + r.ddCount + '</span>' +
+        '<button data-action="ddCountAdj" data-d="1" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
+      '</span>' +
+    '</div>' +
+    toggleRow("Streak Bonus", "toggleStreakBonus", r.streakBonus, "+100 every 3 straight") +
+    toggleRow("One Buzz Per Clue", "toggleOneBuzz", r.oneBuzz, "buzzer rooms");
+}
+function ddCountAdj(d) {
+  state.roomRules.ddCount = Math.max(0, Math.min(3, state.roomRules.ddCount + d));
+  jfSaveSettings();
+  render();
+}
+function toggleStreakBonus() { state.roomRules.streakBonus = !state.roomRules.streakBonus; jfSaveSettings(); render(); }
+function toggleOneBuzz() { state.roomRules.oneBuzz = !state.roomRules.oneBuzz; jfSaveSettings(); render(); }
 function viewHostRoom() {
   var b = state.buzzer;
   var joinUrl = (location.host || "this site") + location.pathname.replace(/index\.html$/, "");
@@ -3843,6 +3928,8 @@ function viewHostRoom() {
       '</div>' +
       (b.clients && b.clients.length ?
         '<p class="host-join-count">' + b.clients.length + (b.clients.length === 1 ? ' phone' : ' phones') + ' connected</p>' : '') +
+      '<p class="lbl" style="display:block;margin:16px 0 6px;text-align:left">ROOM RULES</p>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;text-align:left">' + matchRulesRowsHtml() + '</div>' +
       '<div style="display:flex;gap:10px;margin-top:18px">' +
         '<button class="confirm-btn-cancel" style="flex:1" data-action="stopHostRoom">Close Room</button>' +
         '<button class="big-gold" style="flex:2;margin-top:0" data-action="closeHostRoom">' +
@@ -4020,8 +4107,14 @@ function viewClueFooter() {
   var buzzBlock = "";
   if (state.buzzer.on) {
     if (state.buzzer.winnerName) {
+      var canJudge = !state.revealed && state.buzzer.winnerIndex != null && state.buzzer.winnerIndex !== -1;
       buzzBlock = '<div class="buzz-banner"><span>' + esc(state.buzzer.winnerName) + ' buzzed in!</span>' +
-        (!state.revealed ? '<button class="buzz-clear" data-action="clearBuzz">Wrong &mdash; reopen buzzers</button>' : '') +
+        (canJudge ?
+          '<span style="display:flex;gap:8px">' +
+            '<button class="buzz-judge buzz-judge-right" data-action="judgeBuzz" data-correct="1">Right</button>' +
+            '<button class="buzz-judge buzz-judge-wrong" data-action="judgeBuzz" data-correct="0">Wrong</button>' +
+          '</span>' :
+          (!state.revealed ? '<button class="buzz-clear" data-action="clearBuzz">Wrong &mdash; reopen buzzers</button>' : '')) +
       '</div>';
     } else if (state.buzzer.armed && !state.revealed) {
       buzzBlock = '<div class="buzz-banner buzz-waiting">Buzzers armed &mdash; waiting for a buzz&hellip;</div>';
@@ -4137,6 +4230,7 @@ function viewBoard() {
     return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
       '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
+      (state.roomRules.streakBonus && (p.streak || 0) >= 3 ? '<span class="chip-fx chip-fx-good" title="On a streak">STREAK ' + p.streak + '</span>' : '') +
       (p.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
       (p.skipNextTurn ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '') +
     '</div>';
@@ -4569,6 +4663,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "surpriseMe") surpriseMe();
   else if (action === "pickShape") { state.nextShape = t.getAttribute("data-shape"); render(); }
   else if (action === "pickBuzzShape") { if (state.buzzClient) { state.buzzClient.shape = t.getAttribute("data-shape"); render(); } }
+  else if (action === "judgeBuzz") judgeBuzz(t.getAttribute("data-correct") === "1");
+  else if (action === "ddCountAdj") ddCountAdj(+t.getAttribute("data-d"));
+  else if (action === "toggleStreakBonus") toggleStreakBonus();
+  else if (action === "toggleOneBuzz") toggleOneBuzz();
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
