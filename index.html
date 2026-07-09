@@ -1206,18 +1206,69 @@ function customBoards() {
 function rebuildBoards() {
   BOARDS = BUILTIN_BOARDS.concat(FAN_BOARDS).concat(customBoards());
 }
-// A board is playable if it has 5 categories x 5 filled clues and a final.
-function isValidBoard(b) {
-  if (!b || !b.id || !b.name || !Array.isArray(b.textBoard) || b.textBoard.length !== 5) return false;
+// Explain exactly why a board can't be played, or "" when it is valid.
+// Does NOT require an id (that gets assigned on import) so hand-written or
+// AI-generated board files validate on their own merits.
+function boardValidationError(b) {
+  if (!b || typeof b !== "object" || Array.isArray(b)) return "the file is not a board object.";
+  if (!b.name) return 'the board needs a "name".';
+  if (!Array.isArray(b.textBoard) || b.textBoard.length !== 5) return "a board needs exactly 5 categories.";
   for (var c = 0; c < 5; c++) {
     var col = b.textBoard[c];
-    if (!col || !col.category || !Array.isArray(col.questions) || col.questions.length !== 5) return false;
+    if (!col || !col.category) return "category " + (c + 1) + " needs a title.";
+    if (!Array.isArray(col.questions) || col.questions.length !== 5) return 'category "' + col.category + '" needs exactly 5 clues.';
     for (var q = 0; q < 5; q++) {
       var it = col.questions[q];
-      if (!it || (!it.q && !it.id) || !it.a) return false;
+      if (!it || (!it.q && !it.id)) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
+      if (!it.a) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
     }
   }
-  return b.final && b.final.category && b.final.q && b.final.a;
+  if (!b.final || !b.final.category) return "Final Jeopardy needs a category.";
+  if (!b.final.q) return "Final Jeopardy needs a clue.";
+  if (!b.final.a) return "Final Jeopardy needs an answer.";
+  return "";
+}
+// A board is playable if it has an id, 5 categories x 5 filled clues and a final.
+function isValidBoard(b) {
+  return !!(b && b.id) && boardValidationError(b) === "";
+}
+// Coerce common hand-written / AI-generated shapes into the canonical board
+// format: accept question/answer key names, categories/clues arrays, missing
+// point values, and alternate final-round keys. Returns a fresh normalized copy.
+function normalizeBoard(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  var b;
+  try { b = JSON.parse(JSON.stringify(raw)); } catch (e) { return raw; }
+  if (!b.name && b.title) b.name = b.title;
+  if (!Array.isArray(b.textBoard)) {
+    if (Array.isArray(b.categories)) b.textBoard = b.categories;
+    else if (Array.isArray(b.board)) b.textBoard = b.board;
+  }
+  if (Array.isArray(b.textBoard)) {
+    b.textBoard.forEach(function (col) {
+      if (!col || typeof col !== "object") return;
+      if (!col.category) col.category = col.title || col.name || "";
+      var qs = col.questions || col.clues || col.items;
+      if (Array.isArray(qs)) {
+        col.questions = qs.map(function (it, i) {
+          if (!it || typeof it !== "object") return it;
+          if (it.q == null && it.question != null) it.q = it.question;
+          if (it.a == null && it.answer != null) it.a = it.answer;
+          if (it.value == null && it.points != null) it.value = it.points;
+          if (it.value == null) it.value = (i + 1) * 100;
+          return it;
+        });
+      }
+    });
+  }
+  var f = b.final || b.finalJeopardy || b.finalJ;
+  if (f && typeof f === "object") {
+    if (f.q == null && f.question != null) f.q = f.question;
+    if (f.a == null && f.answer != null) f.a = f.answer;
+    if (!f.category && f.title) f.category = f.title;
+    b.final = f;
+  }
+  return b;
 }
 function loadFanBoards() {
   if (typeof fetch !== "function") return;
@@ -2278,11 +2329,15 @@ function importBoardFile(file) {
   reader.onload = function () {
     var msg;
     try {
-      var b = JSON.parse(reader.result);
-      if (isValidBoard(b)) {
+      var b = normalizeBoard(JSON.parse(reader.result));
+      // Assign id/icon before validating so a board file without an id (the
+      // usual case for a hand-made or shared board) still imports fine.
+      if (!b || typeof b !== "object") throw new Error("not a board");
+      if (!/^custom-/.test(String(b.id || ""))) b.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      if (!b.icon) b.icon = (b.name || "?").trim().charAt(0).toUpperCase() || "?";
+      var err = boardValidationError(b);
+      if (!err) {
         b.genre = "My Boards";
-        if (!b.icon) b.icon = (b.name || "?").trim().charAt(0).toUpperCase() || "?";
-        if (!/^custom-/.test(String(b.id || ""))) b.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         var list = jfRead(JF_MYBOARDS_KEY, []);
         if (!Array.isArray(list)) list = [];
         var at = list.map(function (x) { return x.id; }).indexOf(b.id);
@@ -2291,9 +2346,9 @@ function importBoardFile(file) {
         rebuildBoards();
         msg = 'Imported "' + b.name + '".';
       } else {
-        msg = "That file is not a complete board (5 categories, 25 clues, and a Final).";
+        msg = "Could not import that board: " + err;
       }
-    } catch (e) { msg = "Could not read that file as board JSON."; }
+    } catch (e) { msg = "Could not read that file as board JSON. Make sure it is valid JSON."; }
     state.importFileMsg = msg;
     state.boardsTab = "My Boards";
     render();
@@ -2315,7 +2370,8 @@ function checkSharedBoardInUrl() {
   if (!m) return;
   try {
     var json = decodeURIComponent(escape(atob(m[1])));
-    var board = JSON.parse(json);
+    var board = normalizeBoard(JSON.parse(json));
+    if (board && typeof board === "object" && !board.id) board.id = "custom-" + Date.now().toString(36);
     if (isValidBoard(board)) state.importPrompt = board;
   } catch (e) {}
   try { history.replaceState(null, "", location.pathname); } catch (e) {}
