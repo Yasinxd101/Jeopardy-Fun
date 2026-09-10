@@ -772,6 +772,58 @@
     padding: 4px 10px; font-size: 12px; cursor: pointer;
   }
   .sequence-arrow-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* ---- responsive: phones, narrow widths, and short/landscape screens ---- */
+
+  /* Genre tabs used to run off the side of the screen (the 18+ tab was
+     unreachable on every phone). Let the row scroll instead of overflowing. */
+  .boards-tabs { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+  .boards-tabs::-webkit-scrollbar { display: none; }
+  .boards-tab { flex: 1 0 auto; white-space: nowrap; }
+
+  /* Long titles wrap inside the card instead of spilling past its edge. */
+  .board-card-title { overflow-wrap: anywhere; word-break: break-word; }
+  .board-card-tagline { overflow-wrap: anywhere; }
+
+  /* Comfortable tap targets for the small underlined links and steppers. */
+  .my-import-link { padding: 10px 6px; }
+  .stepper-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: none;
+    background: #2a2f55; color: #fff; font-weight: 900; font-size: 16px;
+    cursor: pointer; flex-shrink: 0; line-height: 1;
+    transition: background 0.15s ease, transform 0.12s ease;
+  }
+  .stepper-btn:active { transform: scale(0.92); background: #363d6e; }
+  @media (hover: hover) { .stepper-btn:hover { background: #363d6e; } }
+  /* Inline text links still need a finger-sized hit area. */
+  .inline-link { padding: 8px 2px; }
+
+  @media (max-width: 400px) {
+    /* The player name was collapsing to ~30px next to the score buttons. */
+    .row-item { gap: 6px; padding: 10px 8px; }
+    .plus-btn, .minus-btn { padding: 9px 7px; font-size: 13px; }
+    .board-card { padding: 14px; gap: 12px; }
+    .board-card-icon { width: 44px; height: 44px; font-size: 21px; }
+    .board-card-icon.board-card-artwrap.has-art { width: 48px; height: 67px; }
+    .board-card-title { font-size: 16px; }
+    .chip-name { max-width: 42vw; }
+  }
+
+  @media (max-width: 340px) {
+    .row-item { gap: 5px; padding: 10px 6px; }
+    .plus-btn, .minus-btn { padding: 9px 5px; font-size: 12px; }
+    .board-card { padding: 12px; gap: 10px; }
+    .chip-name { max-width: 38vw; }
+  }
+
+  /* Short screens (landscape phones): keep the whole 5x5 board on screen
+     instead of pushing the bottom row of tiles below the fold. */
+  @media (max-height: 560px) and (orientation: landscape) {
+    .tile { min-height: 0; padding: 7px 4px; font-size: 15px; }
+    .cat-head { min-height: 32px; padding: 4px 3px; }
+    .board-grid { gap: 4px; }
+    .chip { padding: 5px 11px; font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -1301,6 +1353,7 @@ var state = {
   active: null,         // {catKey, qIndex}
   revealed: false,
   answerHidden: false,
+  judgedThisClue: false, // stops a buzz being scored twice; reveal no longer blocks judging
   playing: false,
   videoStatus: null,     // null | "loading" | "playing" | "stalled"
   used: {},
@@ -1782,12 +1835,19 @@ function disarmBuzzers(keepWinner) {
 // Host judged the buzz wrong: reopen buzzing for everyone else.
 // One tap judging from the buzz banner. Right scores and reveals, Wrong
 // deducts and reopens buzzing for everyone still allowed to buzz.
+// Judging stays available after the answer is shown: hosts routinely reveal
+// first to check a close call, then tap Right/Wrong. Scoring is guarded by
+// judgedThisClue so a buzz can never be scored twice.
 function judgeBuzz(correct) {
   var i = state.buzzer.winnerIndex;
-  if (i == null || i === -1 || !state.players[i] || state.revealed) return;
+  if (i == null || i === -1 || !state.players[i] || state.judgedThisClue) return;
   scoreQuestion(i, correct);
-  if (correct) reveal();
-  else clearBuzz();
+  if (correct) {
+    state.judgedThisClue = true;              // clue is settled, ignore further taps
+    if (!state.revealed) reveal(); else renderOrUpdateClue();
+  } else {
+    clearBuzz();                              // wrong reopens buzzing for everyone else
+  }
 }
 function clearBuzz() {
   if (!state.buzzer.on) return;
@@ -2638,6 +2698,7 @@ function newPlayers() {
   state.active = null;
   state.revealed = false;
   state.answerHidden = false;
+  state.judgedThisClue = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -2993,6 +3054,7 @@ function openQuestion(catKey, qIndex) {
   state.active = { catKey: catKey, qIndex: qIndex };
   state.revealed = false;
   state.answerHidden = false;
+  state.judgedThisClue = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -3225,6 +3287,7 @@ function closeQuestion() {
   state.active = null;
   state.revealed = false;
   state.answerHidden = false;
+  state.judgedThisClue = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -3595,8 +3658,8 @@ function viewPlayers() {
           '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px">' +
             '<button data-action="toggleTimer" style="background:none;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;text-align:left;padding:0">Question Timer (' + state.timerDuration + 's)</button>' +
             '<div style="display:flex;align-items:center;gap:8px">' +
-              '<button data-action="decTimerDuration" aria-label="Decrease timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
-              '<button data-action="incTimerDuration" aria-label="Increase timer" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
+              '<button data-action="decTimerDuration" aria-label="Decrease timer" class="stepper-btn">&minus;</button>' +
+              '<button data-action="incTimerDuration" aria-label="Increase timer" class="stepper-btn">+</button>' +
               '<span style="font-weight:800;font-size:13px;color:' + (state.timerEnabled ? "#7ee2b0" : "#6a72a8") + '">' + (state.timerEnabled ? "ON" : "OFF") + '</span>' +
             '</div>' +
           '</div>' +
@@ -3623,7 +3686,7 @@ function viewPlayers() {
         '<button class="big-gold" style="flex:1;margin-top:0;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
       '</div>' +
       '<p class="muted" style="margin-top:14px">' +
-        'Host on the big screen, join from every phone &middot; <button data-action="openStats" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
+        'Host on the big screen, join from every phone &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
       '</p>' +
     '</div>' +
   '</div></div>';
@@ -4068,9 +4131,9 @@ function matchRulesRowsHtml() {
   return '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border-radius:10px;padding:10px 12px">' +
       '<span style="font-weight:700;font-size:14px;color:#fff">Daily Doubles <span style="color:#8b92c0;font-size:11px">per board</span></span>' +
       '<span style="display:flex;align-items:center;gap:8px">' +
-        '<button data-action="ddCountAdj" data-d="-1" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">&minus;</button>' +
+        '<button data-action="ddCountAdj" data-d="-1" class="stepper-btn">&minus;</button>' +
         '<span style="font-weight:900;color:#ffd166;min-width:14px;text-align:center">' + r.ddCount + '</span>' +
-        '<button data-action="ddCountAdj" data-d="1" style="width:26px;height:26px;border-radius:7px;border:none;background:#2a2f55;color:#fff;font-weight:900;cursor:pointer">+</button>' +
+        '<button data-action="ddCountAdj" data-d="1" class="stepper-btn">+</button>' +
       '</span>' +
     '</div>' +
     toggleRow("Streak Bonus", "toggleStreakBonus", r.streakBonus, "+100 every 3 straight") +
@@ -4311,14 +4374,15 @@ function viewClueFooter() {
   var buzzBlock = "";
   if (state.buzzer.on) {
     if (state.buzzer.winnerName) {
-      var canJudge = !state.revealed && state.buzzer.winnerIndex != null && state.buzzer.winnerIndex !== -1;
+      // Judging stays up after the reveal so the host can check the answer first.
+      var canJudge = !state.judgedThisClue && state.buzzer.winnerIndex != null && state.buzzer.winnerIndex !== -1;
       buzzBlock = '<div class="buzz-banner"><span>' + esc(state.buzzer.winnerName) + ' buzzed in!</span>' +
         (canJudge ?
           '<span style="display:flex;gap:8px">' +
             '<button class="buzz-judge buzz-judge-right" data-action="judgeBuzz" data-correct="1">Right</button>' +
             '<button class="buzz-judge buzz-judge-wrong" data-action="judgeBuzz" data-correct="0">Wrong</button>' +
           '</span>' :
-          (!state.revealed ? '<button class="buzz-clear" data-action="clearBuzz">Wrong &mdash; reopen buzzers</button>' : '')) +
+          (!state.judgedThisClue ? '<button class="buzz-clear" data-action="clearBuzz">Wrong &mdash; reopen buzzers</button>' : '<span class="buzz-judged">Scored</span>')) +
       '</div>';
     } else if (state.buzzer.armed && !state.revealed) {
       buzzBlock = '<div class="buzz-banner buzz-waiting">Buzzers armed &mdash; waiting for a buzz&hellip;</div>';
