@@ -50,7 +50,8 @@
     padding: 0 18px; border-radius: 10px; border: none; background: #ffd166;
     color: #0b0f24; font-weight: 800; font-size: 16px; cursor: pointer;
   }
-  .row-item { display: flex; align-items: center; gap: 10px; background: #0d1230; border-radius: 10px; padding: 10px 12px; }
+  .row-item { display: flex; align-items: center; gap: 10px; background: #0d1230; border-radius: 10px; padding: 10px 12px; min-width: 0; }
+  .row-item > span { min-width: 0; overflow-wrap: anywhere; }
   .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
   .big-gold {
     width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; border: none;
@@ -79,6 +80,10 @@
   .board-screen { min-height: 100vh; min-height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; }
   .board-screen-inner { max-width: 820px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
   /* leave room for the fixed hamburger so chips never sit under it */
+  /* No single unbreakable token (a pasted name, a long URL in a clue) may
+     force the page to scroll sideways. break-word only kicks in when the word
+     would otherwise overflow, so normal text is unaffected. */
+  body, .board-screen, .card, .win-wrap, .hc-wrap, .buzz-mirror { overflow-wrap: break-word; }
   .board-chiprow {
     display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
     margin-bottom: 12px; padding-right: 52px; padding-left: 4px;
@@ -1759,7 +1764,8 @@ function currentBoard() {
   return BOARDS.filter(function (b) { return b.id === state.boardId; })[0];
 }
 function getCategories() {
-  return currentBoard().textBoard;
+  var b = currentBoard();
+  return b ? b.textBoard : [];
 }
 // A column gets the "music" styling when any of its clues is a video clip.
 function categoryHasVideo(col) {
@@ -2230,7 +2236,7 @@ function handleBuzzerData(conn, d) {
     try { conn.send(withTimerElapsed(extendScreenPayload(buzzerSyncPayload()))); } catch (e) {}
     renderOrUpdateClue();
   } else if (d.type === "hello") {
-    conn.buzzName = String(d.name || "Player").slice(0, 14);
+    conn.buzzName = clampName(d.name) || "Player";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     var idx = playerIndexByName(conn.buzzName);
     if (idx === -1 && state.players.length < 6) {
@@ -3048,8 +3054,10 @@ function nextAvatarShape() {
   if (state.nextShape) return state.nextShape;
   return AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length];
 }
+var MAX_NAME = 14;
+function clampName(n) { return String(n == null ? "" : n).trim().slice(0, MAX_NAME); }
 function addPlayer() {
-  var name = state.nameInput.trim();
+  var name = clampName(state.nameInput);
   if (!name || state.players.length >= 6) return;
   var dupe = state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.nameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
@@ -3059,7 +3067,11 @@ function addPlayer() {
   state.nameError = "";
   render();
 }
-function removePlayer(i) { state.players.splice(i, 1); render(); }
+function removePlayer(i) {
+  if (!isFinite(i) || i < 0 || i >= state.players.length) return; // stale index from a re-render
+  state.players.splice(i, 1);
+  render();
+}
 function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
 function previewBoard(id) {
@@ -3099,7 +3111,7 @@ function cancelEditPlayerName() {
   render();
 }
 function savePlayerName(i) {
-  var name = state.editNameInput.trim();
+  var name = clampName(state.editNameInput);
   if (!name) { state.editNameError = "Name can't be empty."; render(); return; }
   var dupe = state.players.some(function (p, idx) { return idx !== i && p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.editNameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
@@ -3172,6 +3184,14 @@ function surpriseMe() {
   previewBoard(pool[Math.floor(Math.random() * pool.length)].id);
 }
 function selectBoard(id) {
+  // A recent-board chip or share link can point at a board that no longer
+  // exists (a deleted custom board, a fan board that stopped loading).
+  if (!BOARDS.some(function (b) { return b.id === id; })) {
+    state.previewBoardId = null;
+    state.phase = "boards";
+    render();
+    return;
+  }
   recordRecent(id);
   sndRoundStart();
   state.match = null;
@@ -3701,8 +3721,9 @@ function recordScoreSnapshot() {
   state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1];
 }
 function scoreQuestion(i, correct) {
-  var val = activeValue();
   var pl = state.players[i];
+  if (!pl) return;
+  var val = activeValue();
   var old = pl.score;
   var delta = correct ? val : -val;
   if (correct) {
@@ -3891,6 +3912,7 @@ function backUnrevealed() {
 }
 function closeQuestion() {
   disarmBuzzers(false);
+  if (!state.active) { state.phase = "board"; render(); return; }
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
   state.revealed = false;
@@ -5020,8 +5042,16 @@ function viewDailyDoubleWager() {
 function isActiveVideoPlaying() {
   return !!state.active && state.playing && !!questionItem().id;
 }
+// Returns a blank clue rather than throwing: the board can disappear from
+// under an open question (New Players, Switch Board, a stale restore), and a
+// render must never die halfway through and leave a blank screen.
+var EMPTY_CLUE = { value: 0, q: "", a: "" };
 function questionItem() {
-  return currentBoard().textBoard[state.active.catKey].questions[state.active.qIndex];
+  var b = currentBoard();
+  if (!b || !state.active) return EMPTY_CLUE;
+  var col = b.textBoard[state.active.catKey];
+  if (!col || !col.questions) return EMPTY_CLUE;
+  return col.questions[state.active.qIndex] || EMPTY_CLUE;
 }
 function alignmentAnswerWord(a) {
   if (/^Hero/i.test(a)) return "Hero";
@@ -5575,8 +5605,54 @@ function renderImportPrompt() {
 }
 
 // ---- render + events ----
+// Phases that need a live board cannot survive without one. Rather than
+// rendering into nothing, step back to a screen that makes sense.
+function ensureConsistentState() {
+  // Any hole or junk entry in the player list poisons every p.name/p.score
+  // read downstream, so scrub it once here rather than guarding 50 call sites.
+  if (Array.isArray(state.players)) {
+    var clean = state.players.filter(function (p) { return p && typeof p.name === "string"; });
+    if (clean.length !== state.players.length) state.players = clean;
+  } else {
+    state.players = [];
+  }
+  var needsBoard = state.phase === "board" || state.phase === "question" ||
+                   state.phase === "final" || state.phase === "interlude";
+  // Removing every player mid-game used to crash these screens, because they
+  // read state.players[state.turn] directly. Send the host back to set-up.
+  if (needsBoard && (!state.players || !state.players.length)) {
+    state.active = null;
+    state.wagering = false;
+    state.revealed = false;
+    state.phase = "players";
+    return;
+  }
+  // the turn pointer can also outlive the player it pointed at
+  if (state.players && state.players.length && state.turn >= state.players.length) {
+    state.turn = 0;
+  }
+  if (needsBoard && !currentBoard()) {
+    state.active = null;
+    state.wagering = false;
+    state.revealed = false;
+    state.wager = null;
+    state.phase = (state.players && state.players.length) ? "boards" : "players";
+    return;
+  }
+  // an out-of-range clue reference is the same problem one level down
+  if (state.phase === "question" && state.active) {
+    var b = currentBoard();
+    var col = b && b.textBoard[state.active.catKey];
+    if (!col || !col.questions || !col.questions[state.active.qIndex]) {
+      state.active = null;
+      state.wagering = false;
+      state.phase = "board";
+    }
+  }
+}
 function render() {
   var root = document.getElementById("root");
+  ensureConsistentState();
   flipCapture(); // measure the outgoing DOM before it is replaced
   var html;
   if (state.wheel) html = viewWheel();
