@@ -837,6 +837,129 @@
   }
   .sequence-arrow-btn:disabled { opacity: 0.3; cursor: default; }
 
+  /* ================= feel layer ================= */
+  /* Universal press physics: everything tappable gives under the finger. */
+  button, .board-card, .tile, .chip-pick, .shape-pick {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.13s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.13s ease, box-shadow 0.16s ease;
+  }
+  button:active, .board-card:active { transform: scale(0.955); }
+  .big-gold:active, .btn-gold:active { transform: scale(0.97); filter: brightness(1.06); }
+
+  /* Impact shake on the whole stage. */
+  @keyframes shake-kf {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    15% { transform: translate(calc(var(--shake-amp) * -1), 2px) rotate(-0.5deg); }
+    30% { transform: translate(var(--shake-amp), -2px) rotate(0.5deg); }
+    45% { transform: translate(calc(var(--shake-amp) * -0.6), 1px) rotate(-0.3deg); }
+    60% { transform: translate(calc(var(--shake-amp) * 0.5), -1px) rotate(0.2deg); }
+    80% { transform: translate(calc(var(--shake-amp) * -0.2), 0) rotate(0deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  .shake-now { animation: shake-kf 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+  /* Score counter swell + settle. */
+  .score-num { display: inline-block; will-change: transform; }
+  @keyframes score-settle-kf {
+    0% { transform: scale(1.14); } 55% { transform: scale(0.94); } 100% { transform: scale(1); }
+  }
+  .score-settle { animation: score-settle-kf 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+  /* Floating +500 / -500 that lifts off the score. */
+  .float-delta {
+    position: fixed; transform: translate(-50%, -50%); pointer-events: none; z-index: 60;
+    font-weight: 900; font-size: 20px; letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    animation: float-delta-kf 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .float-up { color: #7ee2b0; }
+  .float-down { color: #ff8aa0; }
+  @keyframes float-delta-kf {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    22% { opacity: 1; transform: translate(-50%, -120%) scale(1.22); }
+    100% { opacity: 0; transform: translate(-50%, -300%) scale(0.95); }
+  }
+
+  /* Full-screen announcement (Daily Double and friends). */
+  .takeover {
+    position: fixed; inset: 0; z-index: 70; display: flex; align-items: center;
+    justify-content: center; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(8, 11, 28, 0.82), rgba(8, 11, 28, 0.95));
+    animation: tk-in 0.28s ease both;
+  }
+  .takeover-out { animation: tk-out 0.4s ease both; }
+  @keyframes tk-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes tk-out { from { opacity: 1; } to { opacity: 0; } }
+  .takeover-inner { text-align: center; padding: 0 18px; }
+  .takeover-title {
+    font-size: clamp(34px, 12vw, 84px); font-weight: 900; letter-spacing: 3px;
+    color: var(--tk); text-shadow: 0 6px 30px color-mix(in srgb, var(--tk) 55%, transparent);
+    animation: tk-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .takeover-sub {
+    margin-top: 10px; font-size: 16px; font-weight: 800; letter-spacing: 2px; color: #fff;
+    animation: tk-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  }
+  @keyframes tk-pop {
+    0% { opacity: 0; transform: scale(0.55) rotate(-4deg); }
+    70% { opacity: 1; transform: scale(1.06) rotate(1deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
+  /* Whose turn it is, and a streak charging toward the bonus. */
+  .chip-turn { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 0 22px -4px var(--pc); animation: turn-ring 2.4s ease-in-out infinite; }
+  @keyframes turn-ring {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16), 0 0 18px -6px var(--pc); }
+    50% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.26), 0 0 30px -2px var(--pc); }
+  }
+  .chip-charge { position: relative; }
+  .chip-charge-1 { box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.45); }
+  .chip-charge-2 { box-shadow: inset 0 0 0 2px rgba(255, 209, 102, 0.85), 0 0 16px -4px #ffd166; animation: charge-pulse 1.3s ease-in-out infinite; }
+  @keyframes charge-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.14); } }
+
+  /* FLIP: rows that move slide instead of blinking; new rows ease in. */
+  .flip-moving { z-index: 2; position: relative; }
+  .flip-enter { animation: flip-enter-kf 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  @keyframes flip-enter-kf { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+  /* The board breathes so a static screen is never completely dead. */
+  @keyframes idle-drift {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.006); }
+  }
+  .idle-float { animation: idle-drift 7s ease-in-out infinite; }
+  /* Slow Ken Burns on the backdrop art so every game screen has some life. */
+  @keyframes backdrop-pan {
+    0%, 100% { transform: scale(1.06) translate(0, 0); }
+    50% { transform: scale(1.12) translate(-1.5%, -1%); }
+  }
+  .stage-backdrop img, .spectate-backdrop img { animation: backdrop-pan 26s ease-in-out infinite; }
+
+  /* Tiles cascade in diagonally when a board opens. */
+  @keyframes tile-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.9); }
+    to { opacity: 1; transform: none; }
+  }
+  .tile-cascade { animation: tile-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--d, 0s); }
+
+  /* The buzz banner slams in with the buzzing player's colour. */
+  @keyframes buzz-slam {
+    0% { opacity: 0; transform: scale(0.8) translateY(-10px); }
+    60% { opacity: 1; transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .buzz-banner { animation: buzz-slam 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    button, .board-card, .tile { transition: none; }
+    .shake-now, .score-settle, .float-delta, .takeover, .takeover-title, .takeover-sub,
+    .chip-turn, .chip-charge-2, .flip-enter, .idle-float, .tile-cascade, .buzz-banner,
+    .stage-backdrop img, .spectate-backdrop img {
+      animation: none !important;
+    }
+    button:active, .board-card:active, .big-gold:active, .btn-gold:active { transform: none; }
+  }
+
   /* ---- responsive: phones, narrow widths, and short/landscape screens ---- */
 
   /* Genre tabs used to run off the side of the screen (the 18+ tab was
@@ -1473,6 +1596,8 @@ var state = {
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
+  juice: true,            // motion effects: shakes, slides, takeovers
+  haptics: true,          // phone vibration feedback
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1635,6 +1760,115 @@ function flashScreen() {
   document.body.appendChild(f);
   setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 550);
 }
+// ---- motion / feel layer ----
+// Effects are opt-out (Settings > Feel) and always yield to reduced-motion.
+function reducedMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function juiceOn() { return state.juice !== false && !reducedMotion(); }
+
+// Short haptic taps on the phone. Patterns are deliberately tiny: a buzzer
+// game is tapped constantly and long buzzes get annoying fast.
+var HAPTICS = {
+  tap: 8, press: 12, buzz: [0, 28], correct: [0, 18, 50, 26],
+  wrong: [0, 45], big: [0, 30, 45, 30, 45, 55], tick: 5,
+};
+function hap(kind) {
+  if (!state.haptics || !navigator.vibrate) return;
+  try { navigator.vibrate(HAPTICS[kind] || HAPTICS.tap); } catch (e) {}
+}
+
+// Elements tagged data-key keep their identity across a full re-render: we
+// record where each one was, then play the difference back as a transform so
+// rows slide to new positions instead of blinking into them.
+var flipPrev = null;
+function flipCapture() {
+  if (!juiceOn()) { flipPrev = null; return; }
+  flipPrev = {};
+  var nodes = document.querySelectorAll("[data-key]");
+  for (var i = 0; i < nodes.length; i++) {
+    var r = nodes[i].getBoundingClientRect();
+    flipPrev[nodes[i].getAttribute("data-key")] = { x: r.left, y: r.top };
+  }
+}
+function flipPlay() {
+  if (!flipPrev || !juiceOn()) { flipPrev = null; return; }
+  var prev = flipPrev;
+  flipPrev = null;
+  var nodes = document.querySelectorAll("[data-key]");
+  for (var i = 0; i < nodes.length; i++) {
+    var el = nodes[i];
+    var was = prev[el.getAttribute("data-key")];
+    if (!was) {
+      // One-shot entry, then drop the class so any standing animation on the
+      // element (the turn ring, a streak pulse) resumes instead of being
+      // permanently overridden by the enter keyframes.
+      el.classList.add("flip-enter");
+      (function (node) {
+        setTimeout(function () { node.classList.remove("flip-enter"); }, 360);
+      })(el);
+      continue;
+    }
+    var r = el.getBoundingClientRect();
+    var dx = was.x - r.left, dy = was.y - r.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+    el.style.transition = "none";
+    el.style.transform = "translate(" + dx + "px," + dy + "px)";
+    el.classList.add("flip-moving");
+    (function (node) {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          node.style.transition = "transform 0.44s cubic-bezier(0.22, 1, 0.36, 1)";
+          node.style.transform = "";
+          setTimeout(function () {
+            node.style.transition = ""; node.classList.remove("flip-moving");
+          }, 460);
+        });
+      });
+    })(el);
+  }
+}
+
+// Impact: a short shake on the whole stage for the moments that should land.
+function shakeScreen(strength) {
+  if (!juiceOn()) return;
+  var root = document.getElementById("root");
+  if (!root) return;
+  root.style.setProperty("--shake-amp", (strength || 7) + "px");
+  root.classList.remove("shake-now");
+  void root.offsetWidth; // restart the animation
+  root.classList.add("shake-now");
+  setTimeout(function () { root.classList.remove("shake-now"); }, 460);
+}
+
+// A one-shot full-screen announcement (Daily Double, round starts).
+function announce(title, sub, accent) {
+  if (!juiceOn()) return;
+  var el = document.createElement("div");
+  el.className = "takeover";
+  el.innerHTML = '<div class="takeover-inner" style="--tk:' + (accent || "#ffd166") + '">' +
+    '<div class="takeover-title">' + esc(title) + '</div>' +
+    (sub ? '<div class="takeover-sub">' + esc(sub) + '</div>' : '') + '</div>';
+  document.body.appendChild(el);
+  setTimeout(function () { el.classList.add("takeover-out"); }, 1150);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1600);
+}
+
+// A "+500" that lifts off the score it belongs to and fades out.
+function floatDelta(playerIndex, delta) {
+  if (!juiceOn() || !delta) return;
+  var anchor = document.getElementById("score-disp-" + playerIndex);
+  if (!anchor) return;
+  var r = anchor.getBoundingClientRect();
+  var el = document.createElement("div");
+  el.className = "float-delta " + (delta > 0 ? "float-up" : "float-down");
+  el.textContent = (delta > 0 ? "+" : "") + delta;
+  el.style.left = (r.left + r.width / 2) + "px";
+  el.style.top = (r.top - 4) + "px";
+  document.body.appendChild(el);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1000);
+}
+
 function beep(freq, duration, type, volume) {
   if (state.muted || state.volume <= 0) return;
   try {
@@ -1717,24 +1951,60 @@ function sndWheelLand(outcome, wheelKey) {
 }
 
 // ---- score tick animation ----
+// The score climbs rather than snapping, swelling as it counts and settling
+// with a bounce. The element is re-fetched every frame so a re-render in the
+// middle of the count picks up the new node instead of animating a dead one.
 function tickScoreDisplay(elId, from, to) {
-  var el = document.getElementById(elId);
-  if (!el || from === to) return;
-  el.classList.add(to >= from ? "score-pulse-up" : "score-pulse-down");
+  if (from === to) return;
+  var up = to >= from;
+  var span = Math.abs(to - from);
+  var el0 = document.getElementById(elId);
+  if (!el0) return;
+  if (!juiceOn()) { el0.textContent = to; return; }
+  el0.classList.add(up ? "score-pulse-up" : "score-pulse-down");
+  // bigger swings take a little longer and swell a little harder
+  var duration = Math.min(1100, 420 + span * 0.35);
+  var peak = Math.min(1.5, 1.16 + span / 6000);
   var start = null;
-  var duration = 500;
   function step(ts) {
+    var el = document.getElementById(elId);
+    if (!el) return;
     if (!start) start = ts;
-    var progress = Math.min((ts - start) / duration, 1);
-    el.textContent = Math.round(from + (to - from) * progress);
-    if (progress < 1) {
-      requestAnimationFrame(step);
-    } else {
+    var p = Math.min((ts - start) / duration, 1);
+    var eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    // swell out and back so the number feels like it is being counted
+    var swell = 1 + (peak - 1) * Math.sin(p * Math.PI);
+    el.style.transform = "scale(" + swell.toFixed(3) + ")";
+    el.style.display = "inline-block";
+    if (p < 1) requestAnimationFrame(step);
+    else {
       el.textContent = to;
-      setTimeout(function () { el.classList.remove("score-pulse-up", "score-pulse-down"); }, 250);
+      el.classList.add("score-settle");
+      el.style.transform = "";
+      setTimeout(function () {
+        var e2 = document.getElementById(elId);
+        if (e2) e2.classList.remove("score-pulse-up", "score-pulse-down", "score-settle");
+      }, 320);
     }
   }
   requestAnimationFrame(step);
+}
+// Correct-answer chime rises with the value of the clue, so a 500 lands
+// harder than a 100. Wrong answers drop instead.
+function sndScore(correct, value) {
+  var steps = [0, 100, 200, 300, 400, 500].indexOf(Math.min(500, Math.round((value || 100) / 100) * 100));
+  var n = steps < 0 ? 1 : Math.max(1, steps);
+  if (correct) {
+    var root = 392 * Math.pow(1.0595, (n - 1) * 2); // climb ~a whole tone per rung
+    [0, 1, 2].forEach(function (i) {
+      setTimeout(function () { beep(root * Math.pow(1.26, i), 0.16, "triangle", 0.15); }, i * 70);
+    });
+  } else {
+    [0, 1].forEach(function (i) {
+      setTimeout(function () { beep(220 / (1 + i * 0.25), 0.22, "sawtooth", 0.13); }, i * 90);
+    });
+  }
 }
 
 // ---- phone buzzers (PeerJS over its free public broker; optional, fails soft) ----
@@ -1832,6 +2102,7 @@ function handleBuzzerData(conn, d) {
     if (!state.buzzer.armed || state.buzzer.winnerName != null) return;
     if (state.roomRules.oneBuzz && conn.playerIndex != null && state.buzzedThisClue[conn.playerIndex]) return;
     state.buzzer.winnerName = conn.buzzName || "Player";
+    hap("buzz"); shakeScreen(5);
     state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
     sndBuzz();
     flashScreen();
@@ -2294,6 +2565,7 @@ function resumeGame() {
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
   state.scoreHistory = [];
+  state.cascadeBoard = true; // stagger the tiles in on a fresh board
   state.phase = "board";
   render();
 }
@@ -2700,6 +2972,7 @@ function selectBoard(id) {
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
+  state.cascadeBoard = true;
   state.phase = "board";
   render();
 }
@@ -2818,6 +3091,7 @@ function jfSaveSettings() {
   jfWrite("jf.settings.v1", {
     volume: state.volume, clipVolume: state.clipVolume, muted: state.muted,
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
+    juice: state.juice, haptics: state.haptics,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
   });
 }
@@ -2830,6 +3104,8 @@ function loadSettings() {
   state.adultEnabled = !!s0.adultEnabled;
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
+  if (typeof s0.juice === "boolean") state.juice = s0.juice;
+  if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
   if (s0.roomRules) {
     state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
@@ -3162,7 +3438,10 @@ function openQuestion(catKey, qIndex) {
   }
   state.clueOpenedAt = Date.now();
   state.buzzedThisClue = {};
-  if (state.wagering) { sndDailyDouble(); fireConfetti(1600); }
+  if (state.wagering) {
+    sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
+    announce("DAILY DOUBLE", (state.players[state.turn] || {}).name || "", "#ffd166");
+  }
   if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
 }
@@ -3218,9 +3497,11 @@ function scoreQuestion(i, correct) {
   var next = old + delta;
   pl.score = next;
   recordScore(i, delta);
-  if (correct) sndCorrect(); else sndIncorrect();
+  if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
+  else { sndIncorrect(); sndScore(false, val); hap("wrong"); shakeScreen(8); }
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + i, old, next);
+  floatDelta(i, delta);
 }
 function undoLastScore() {
   var last = state.scoreHistory.pop();
@@ -3252,7 +3533,10 @@ function advanceTurn() {
   }
   state.turn = next;
 }
-function reveal() { sndReveal(); state.revealed = true; disarmBuzzers(true); renderOrUpdateClue(); }
+function reveal() {
+  sndReveal(); hap("press"); shakeScreen(4);
+  state.revealed = true; disarmBuzzers(true); renderOrUpdateClue();
+}
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
 var activeYtPlayer = null;
 var ytReadyQueue = [];
@@ -3341,6 +3625,8 @@ function toggleAdultMode() {
   jfSaveSettings();
   render();
 }
+function toggleJuice() { state.juice = !state.juice; jfSaveSettings(); render(); }
+function toggleHaptics() { state.haptics = !state.haptics; if (state.haptics) hap("correct"); jfSaveSettings(); render(); }
 function togglePhoneMirror() { state.phoneMirror = !state.phoneMirror; jfSaveSettings(); broadcastSync(); render(); }
 function dismissAdultGate() { state.adultGate = null; render(); }
 function renderAdultGate() {
@@ -3641,7 +3927,7 @@ function viewBoards() {
 
   return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
-      '<h1 class="boards-title">JEOPARDY</h1>' +
+      '<h1 class="boards-title idle-float">JEOPARDY</h1>' +
       '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
     '</div>' +
     (state.matchPending ?
@@ -3739,7 +4025,7 @@ function viewPlayers() {
     '</div>';
   }
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
-    '<h1 class="title">JEOPARDY</h1>' +
+    '<h1 class="title idle-float">JEOPARDY</h1>' +
     '<p class="sub">Add players, then pick a board to play.</p>' +
     resumeCard +
     '<div class="card">' +
@@ -4289,8 +4575,13 @@ function settingsPanelHtml() {
   var content = setToggleRow("toggleAdultMode", "After Dark 18+",
     state.adultEnabled ? "Unlocked &middot; mature boards are visible" : "Off &middot; hides the mature board section", state.adultEnabled, true);
 
+  var feel = setToggleRow("toggleJuice", "Motion &amp; Effects",
+      "Shakes, slides, pop-ins and takeovers", state.juice !== false) +
+    setToggleRow("toggleHaptics", "Vibration", "Haptic taps on this phone", !!state.haptics);
+
   return '<div class="settings-panel">' +
     setGroup("AUDIO", audio) +
+    setGroup("FEEL", feel) +
     setGroup("GAMEPLAY", gameplay) +
     setGroup("PHONE ROOM", room) +
     setGroup("CONTENT", content) +
@@ -4548,7 +4839,7 @@ function viewClueFooter() {
   var scoreBlock = "";
   if (state.revealed && !state.answerHidden) {
     var rows = state.players.map(function (p, i) {
-      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '">' +
+      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '" data-key="clue-score-' + esc(p.name) + '">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
         '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
         '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
@@ -4648,10 +4939,14 @@ function viewWin() {
 function viewBoard() {
   var board = currentBoard();
   var categories = getCategories();
+  var cascade = !!state.cascadeBoard && juiceOn();
+  state.cascadeBoard = false; // one shot, so re-renders do not replay it
 
   var chips = state.players.map(function (p, i) {
     var on = i === state.turn;
-    return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
+    var st = p.streak || 0;
+    var charge = state.roomRules.streakBonus && st > 0 && st < 3 ? ' chip-charge chip-charge-' + st : '';
+    return '<div class="chip' + (on ? ' chip-turn' : '') + charge + '" data-key="chip-' + esc(p.name) + '" style="--pc:' + p.color + ';background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
       '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
       (state.roomRules.streakBonus && (p.streak || 0) >= 3 ? '<span class="chip-fx chip-fx-good" title="On a streak">STREAK ' + p.streak + '</span>' : '') +
@@ -4674,7 +4969,9 @@ function viewBoard() {
       var val = col.questions[row].value * roundMultiplier();
       var bgc = isUsed ? "#10142e" : (isVideoTile ? "#3a1d3f" : "#1d2455");
       var fgc = isUsed ? "#2a2f55" : gold;
-      tiles += '<button class="tile" style="background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
+      // diagonal cascade: delay grows with row + column so tiles sweep in
+      var casc = cascade ? ' tile-cascade" style="--d:' + (0.028 * (row + ci)).toFixed(3) + 's;' : '" style="';
+      tiles += '<button class="tile' + casc + 'background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
         (isUsed ? "disabled" : 'data-action="open" data-cat="' + ci + '" data-row="' + row + '"') + '>' +
         (isUsed ? "" : val) + '</button>';
     }
@@ -4940,6 +5237,7 @@ function renderImportPrompt() {
 // ---- render + events ----
 function render() {
   var root = document.getElementById("root");
+  flipCapture(); // measure the outgoing DOM before it is replaced
   var html;
   if (state.wheel) html = viewWheel();
   else if (state.phase === "buzzer") html = viewBuzzer();
@@ -4958,6 +5256,7 @@ function render() {
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
   root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate();
+  flipPlay(); // slide anything that moved from where it used to be
   saveGameSnapshot();
   broadcastSync();
   syncThinkLoop();
@@ -5049,6 +5348,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   var t = e.target.closest("[data-action]");
   if (!t) return;
   var action = t.getAttribute("data-action");
+  hap(action === "open" || action === "selectBoard" ? "press" : "tap");
   if (action === "selectBoard") selectBoard(t.getAttribute("data-id"));
   else if (action === "continueToBoards") continueToBoards();
   else if (action === "editPlayers") editPlayers();
@@ -5148,6 +5448,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
+  else if (action === "toggleJuice") toggleJuice();
+  else if (action === "toggleHaptics") toggleHaptics();
   else if (action === "openWheel") openWheel();
   else if (action === "closeWheel") closeWheel();
   else if (action === "chooseWheelTarget") chooseWheelTarget(t.getAttribute("data-mode"));
