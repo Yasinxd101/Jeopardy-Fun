@@ -748,6 +748,9 @@
   }
   .set-row + .set-row, .set-group-title + .set-row ~ .set-row { border-top: 1px solid #1a2045; }
   .set-row-static { cursor: default; }
+  /* a control the device genuinely cannot support, shown but visibly inert */
+  .set-row-off { opacity: 0.55; }
+  .set-row-off .switch { filter: grayscale(1); }
   @media (hover: hover) { .set-row:not(.set-row-static):hover { background: #131a41; } }
   .set-row:not(.set-row-static):active { background: #161e4a; }
   .set-main { flex: 1; min-width: 0; }
@@ -907,7 +910,9 @@
   .takeover-inner { text-align: center; padding: 0 18px; }
   .takeover-title {
     font-size: clamp(34px, 12vw, 84px); font-weight: 900; letter-spacing: 3px;
-    color: var(--tk); text-shadow: 0 6px 30px color-mix(in srgb, var(--tk) 55%, transparent);
+    color: var(--tk);
+    text-shadow: 0 6px 30px rgba(255, 209, 102, 0.5);
+    text-shadow: 0 6px 30px color-mix(in srgb, var(--tk) 55%, transparent);
     animation: tk-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .takeover-sub {
@@ -1795,8 +1800,9 @@ var HAPTICS = {
   tap: 8, press: 12, buzz: [0, 28], correct: [0, 18, 50, 26],
   wrong: [0, 45], big: [0, 30, 45, 30, 45, 55], tick: 5,
 };
+var HAS_VIBRATE = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 function hap(kind) {
-  if (!state.haptics || !navigator.vibrate) return;
+  if (!state.haptics || !HAS_VIBRATE) return;
   try { navigator.vibrate(HAPTICS[kind] || HAPTICS.tap); } catch (e) {}
 }
 
@@ -4617,7 +4623,14 @@ function settingsPanelHtml() {
 
   var feel = setToggleRow("toggleJuice", "Motion &amp; Effects",
       "Shakes, slides, pop-ins and takeovers", state.juice !== false) +
-    setToggleRow("toggleHaptics", "Vibration", "Haptic taps on this phone", !!state.haptics);
+    (HAS_VIBRATE
+      ? setToggleRow("toggleHaptics", "Vibration", "Haptic taps on this phone", !!state.haptics)
+      : '<div class="set-row set-row-static set-row-off">' +
+          '<span class="set-main"><span class="set-name">Vibration</span>' +
+            '<span class="set-desc">Not supported by this browser &mdash; iPhones cannot vibrate from a web page</span>' +
+          '</span>' +
+          '<span class="switch"></span>' +
+        '</div>');
 
   return '<div class="settings-panel">' +
     setGroup("AUDIO", audio) +
