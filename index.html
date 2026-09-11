@@ -919,6 +919,41 @@
   .hc-score-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hc-score-val { font-weight: 900; color: #ffd166; min-width: 52px; text-align: right; }
   .hc-mini { min-width: 38px; padding: 9px 0; font-size: 15px; }
+  .wheel-escape {
+    display: block; margin: 22px auto 0; background: none; border: 1px solid #2a2f55;
+    border-radius: 999px; padding: 9px 18px; color: #6a72a8; font-weight: 800;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  @media (hover: hover) { .wheel-escape:hover { color: #ff8aa0; border-color: #ff8aa0; } }
+
+  /* room code and host PIN are covered until the host asks for them */
+  .host-code-hidden { letter-spacing: 10px; color: #3a4170; }
+  .code-toggle {
+    display: block; margin: 6px auto 0; background: none; border: 1px solid #2a2f55;
+    border-radius: 999px; padding: 7px 14px; color: #aab0d8; font-weight: 800;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .code-toggle-inline { display: inline-block; margin: 0 0 0 4px; padding: 4px 10px; font-size: 11px; }
+  @media (hover: hover) { .code-toggle:hover { border-color: #ffd166; color: #ffd166; } }
+
+  /* board card + read-only board map on Host Control */
+  .hc-board {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    background: #0d1230; border-left: 4px solid var(--pc); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 12px;
+  }
+  .hc-board-name { flex: 1; min-width: 0; font-weight: 900; font-size: 15px; color: #fff; }
+  .hc-board-round { font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #0b0f24; background: #ffd166; border-radius: 999px; padding: 3px 8px; }
+  .hc-board-left { font-size: 11.5px; font-weight: 700; color: #98a0cc; width: 100%; }
+  .hc-grid { display: grid; gap: 4px; margin: 12px 0 4px; }
+  .hc-cell {
+    background: #1d2455; color: #ffd166; border-radius: 6px; text-align: center;
+    font-weight: 800; font-size: 11px; padding: 8px 2px; min-height: 30px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hc-cell-head { background: #2a2f55; color: #fff; font-size: 9px; letter-spacing: 0.3px; line-height: 1.15; overflow-wrap: anywhere; }
+  .hc-cell-used { background: #10142e; }
+
   /* claiming host control from the join screen */
   .host-claim { margin-top: 14px; border-top: 1px dashed #2a2f55; padding-top: 12px; }
   .host-claim-lbl { margin: 0 0 8px; color: #aab0d8; font-weight: 800; font-size: 13px; }
@@ -1694,6 +1729,8 @@ var state = {
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
+  showRoomCode: false,    // room code and host PIN stay covered until asked for
+  showHostPin: false,
   juice: true,            // motion effects: shakes, slides, takeovers
   haptics: true,          // phone vibration feedback
 };
@@ -2193,6 +2230,9 @@ function applyHostCommand(d) {
     var i = +d.playerIndex;
     if (state.players[i] && state.active) scoreQuestion(i, !!d.correct);
   } else if (cmd === "close") {
+    // A Daily Double wager is mid-flight: closing here would strand the wager
+    // and consume the question, so ignore it.
+    if (state.wagering) return;
     if (state.phase === "question" && typeof closeQuestion === "function") closeQuestion();
   } else if (cmd === "toggleAnswerOnScreen") {
     if (state.revealed) toggleAnswer();
@@ -2381,6 +2421,18 @@ function buzzerSyncPayload() {
   p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
   var curB = state.boardId ? currentBoard() : null;
   if (curB && curB.art) p.art = curB.art;
+  // Which board is in play, so phones and the host know what was picked
+  // instead of just saying "waiting".
+  if (curB) {
+    p.board = {
+      name: curB.name,
+      icon: curB.icon || "",
+      accent: curB.accent || "#a786df",
+      tagline: curB.tagline || "",
+      round: state.match ? state.match.round : null,
+      cluesLeft: 25 - Object.keys(state.used || {}).length,
+    };
+  }
   if (state.wheel && (state.wheel.stage === "spinning" || state.wheel.stage === "result")) {
     var w = state.wheel;
     var seg = w.stage === "result" && w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
@@ -3318,12 +3370,12 @@ function newPlayers() {
   state.phase = "players";
   render();
 }
-function toggleTimer() { state.timerEnabled = !state.timerEnabled; broadcastSync(); render(); }
+function toggleTimer() { state.timerEnabled = !state.timerEnabled; settingsChanged(); }
 function adjustTimerDuration(delta) {
   state.timerDuration = Math.max(5, Math.min(120, state.timerDuration + delta));
-  render();
+  settingsChanged();
 }
-function toggleMute() { state.muted = !state.muted; jfSaveSettings(); render(); }
+function toggleMute() { state.muted = !state.muted; settingsChanged(); }
 function jfSaveSettings() {
   jfWrite("jf.settings.v1", {
     volume: state.volume, clipVolume: state.clipVolume, muted: state.muted,
@@ -3352,8 +3404,13 @@ function loadSettings() {
 function applyClipVolume() {
   if (activeYtPlayer && activeYtPlayer.setVolume) { try { activeYtPlayer.setVolume(state.clipVolume); } catch (e) {} }
 }
+// One place for "a setting changed": repaint only what needs it.
+function settingsChanged() {
+  if (state.phase === "players" && document.getElementById("settingsWrap")) updateSettingsPanel();
+  else { jfSaveSettings(); broadcastSync(); render(); }
+}
 function toggleSettings() { state.settingsOpen = !state.settingsOpen; render(); }
-function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; jfSaveSettings(); render(); }
+function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; settingsChanged(); }
 
 // ---- wheel of chaos ----
 function findSegment(wheelKey, id) {
@@ -3737,7 +3794,7 @@ function scoreQuestion(i, correct) {
   recordScore(i, delta);
   if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
   else { sndIncorrect(); sndScore(false, val); hap("wrong"); shakeScreen(8); }
-  renderOrUpdateClue();
+  if (!updateScoresInPlace()) renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + i, old, next);
   floatDelta(i, delta);
 }
@@ -3863,9 +3920,9 @@ function toggleAdultMode() {
   jfSaveSettings();
   render();
 }
-function toggleJuice() { state.juice = !state.juice; jfSaveSettings(); render(); }
-function toggleHaptics() { state.haptics = !state.haptics; if (state.haptics) hap("correct"); jfSaveSettings(); render(); }
-function togglePhoneMirror() { state.phoneMirror = !state.phoneMirror; jfSaveSettings(); broadcastSync(); render(); }
+function toggleJuice() { state.juice = !state.juice; settingsChanged(); }
+function toggleHaptics() { state.haptics = !state.haptics; if (state.haptics) hap("correct"); settingsChanged(); }
+function togglePhoneMirror() { state.phoneMirror = !state.phoneMirror; settingsChanged(); }
 function dismissAdultGate() { state.adultGate = null; render(); }
 function renderAdultGate() {
   var g = state.adultGate;
@@ -4284,7 +4341,7 @@ function viewPlayers() {
         '<span style="font-weight:700;font-size:14px">Settings</span>' +
         '<span style="font-weight:800;font-size:13px;color:#aab0d8">' + (state.settingsOpen ? "▲" : "▼") + '</span>' +
       '</button>' +
-      (state.settingsOpen ? settingsPanelHtml() : "") +
+      '<div id="settingsWrap">' + (state.settingsOpen ? settingsPanelHtml() : "") + '</div>' +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
       '<div style="display:flex;gap:10px;margin-top:10px">' +
         '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="openHostRoom">HOST A ROOM</button>' +
@@ -4590,8 +4647,10 @@ function buzzMirrorHtml(bc) {
     var myTurn = g.pick.turn && g.pick.turn.toLowerCase() === bc.name.toLowerCase();
     if (!myTurn) {
       return '<div class="buzz-mirror buzz-mirror-idle">' +
-        '<p class="buzz-mirror-cat">ON THE BOARD</p>' +
+        '<p class="buzz-mirror-cat">' + (g.board ? 'NOW PLAYING' : 'ON THE BOARD') + '</p>' +
+        (g.board ? '<p class="buzz-mirror-value">' + esc(g.board.name) + '</p>' : '') +
         '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">' + esc(g.pick.turn || "Someone") + ' is picking the next tile.</p>' +
+        (g.board ? '<p class="buzz-timer-note">' + g.board.cluesLeft + ' clues left' + (g.board.round ? ' &middot; Round ' + g.board.round : '') + '</p>' : '') +
       '</div>';
     }
     var usedSet = {};
@@ -4609,7 +4668,14 @@ function buzzMirrorHtml(bc) {
       '<div class="buzz-pick-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr))">' + grid + '</div>' +
     '</div>';
   }
+  var bInfo = g && g.board
+    ? '<p class="buzz-mirror-cat">NOW PLAYING</p>' +
+      '<p class="buzz-mirror-value">' + esc(g.board.name) + '</p>' +
+      (g.board.round ? '<p class="buzz-timer-note">Round ' + g.board.round + '</p>' : '') +
+      '<p class="buzz-timer-note">' + g.board.cluesLeft + ' clues left</p>'
+    : '';
   return '<div class="buzz-mirror buzz-mirror-idle">' +
+    bInfo +
     '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next clue shows up here too.</p>' +
   '</div>';
 }
@@ -4641,16 +4707,44 @@ function viewHostControl(bc) {
       '</div>';
   }).join('');
 
+  // Which board is in play, shown whenever the host is between clues.
+  var boardCard = g.board
+    ? '<div class="hc-board" style="--pc:' + esc(g.board.accent) + '">' +
+        '<span class="hc-board-name">' + esc(g.board.name) + '</span>' +
+        (g.board.round ? '<span class="hc-board-round">ROUND ' + g.board.round + '</span>' : '') +
+        '<span class="hc-board-left">' + g.board.cluesLeft + ' clues left</span>' +
+      '</div>'
+    : '';
+
   if (!c) {
     var waiting = g.final
       ? 'Final Jeopardy &middot; ' + esc((g.final.category || '').toUpperCase())
-      : (g.pick && g.pick.turn ? esc(g.pick.turn) + ' is picking a tile' : 'Waiting for the next clue');
+      : (g.pick && g.pick.turn ? esc(g.pick.turn) + ' is picking' : 'Waiting for the next clue');
     var finalPeek = (g.final && bc.peek && g.final.a)
       ? '<div class="hc-answer">' + esc(g.final.a) + '</div>'
       : '';
+    // A read-only map of the board so the host can see what is still live.
+    var gridHtml = '';
+    if (g.pick && g.pick.cats && g.pick.cats.length) {
+      var usedSet = {};
+      (g.pick.used || []).forEach(function (k) { usedSet[k] = true; });
+      var cells = g.pick.cats.map(function (cn) {
+        return '<div class="hc-cell hc-cell-head">' + esc(cn) + '</div>';
+      }).join('');
+      for (var r2 = 0; r2 < (g.pick.values || []).length; r2++) {
+        for (var c2 = 0; c2 < g.pick.cats.length; c2++) {
+          cells += usedSet[c2 + '-' + r2]
+            ? '<div class="hc-cell hc-cell-used"></div>'
+            : '<div class="hc-cell">' + g.pick.values[r2] + '</div>';
+        }
+      }
+      gridHtml = '<div class="hc-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr))">' + cells + '</div>';
+    }
     return head +
       '<div class="hc-wrap">' +
+        boardCard +
         '<p class="hc-waiting">' + waiting + '</p>' +
+        gridHtml +
         (g.final && g.final.a ? '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' + finalPeek : '') +
         '<div class="hc-scores">' + scores + '</div>' +
         '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' +
@@ -4684,7 +4778,10 @@ function viewHostControl(bc) {
         (c.hostRevealed
           ? '<button class="hc-btn hc-dim" data-action="hostToggleScreenAnswer">Toggle on big screen</button>'
           : '<button class="hc-btn hc-reveal" data-action="hostReveal">Show answer on big screen</button>') +
-        '<button class="hc-btn hc-next" data-action="hostClose">Next clue</button>' +
+        (c.wagering
+          ? '<button class="hc-btn hc-dim" disabled>Waiting on the wager</button>'
+          : '<button class="hc-btn hc-next" data-action="hostClose">' +
+              (c.hostRevealed || c.judged ? 'Next question' : 'Skip this question') + '</button>') +
       '</div>' +
       '<div class="hc-scores">' + scores + '</div>' +
       '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' +
@@ -4944,11 +5041,10 @@ function settingsPanelHtml() {
 }
 function ddCountAdj(d) {
   state.roomRules.ddCount = Math.max(0, Math.min(3, state.roomRules.ddCount + d));
-  jfSaveSettings();
-  render();
+  settingsChanged();
 }
-function toggleStreakBonus() { state.roomRules.streakBonus = !state.roomRules.streakBonus; jfSaveSettings(); render(); }
-function toggleOneBuzz() { state.roomRules.oneBuzz = !state.roomRules.oneBuzz; jfSaveSettings(); render(); }
+function toggleStreakBonus() { state.roomRules.streakBonus = !state.roomRules.streakBonus; settingsChanged(); }
+function toggleOneBuzz() { state.roomRules.oneBuzz = !state.roomRules.oneBuzz; settingsChanged(); }
 function viewHostRoom() {
   var b = state.buzzer;
   var joinUrl = (location.host || "this site") + location.pathname.replace(/index\.html$/, "");
@@ -4963,7 +5059,10 @@ function viewHostRoom() {
     statusLine = '<p class="host-join-line">Scan the code, or open <strong>' + esc(joinUrl) + '</strong> and tap <strong>JOIN A ROOM</strong>.</p>' +
       (b.hostPin ?
         '<p class="host-join-line" style="margin-top:6px">Hosting from your own phone? Join, then enter host PIN ' +
-          '<span class="host-pin-chip">' + esc(b.hostPin) + '</span>' +
+          (state.showHostPin
+            ? '<span class="host-pin-chip">' + esc(b.hostPin) + '</span>'
+            : '<span class="host-pin-chip">&bull;&bull;&bull;&bull;</span>') +
+          ' <button class="code-toggle code-toggle-inline" data-action="toggleHostPin">' + (state.showHostPin ? 'Hide' : 'Show') + '</button>' +
           (b.hostClaimed ? ' &middot; <span style="color:#7ee2b0;font-weight:800">host phone connected</span>' : '') +
         '</p>' +
         '<p class="buzz-timer-note" style="text-align:center">Keep this PIN to yourself &mdash; it shows the answers.</p>'
@@ -4992,7 +5091,11 @@ function viewHostRoom() {
     '<p class="sub">Everyone who joins becomes a player with a buzzer in their pocket.</p>' +
     '<div class="card">' +
       '<p class="lbl" style="display:block">ROOM CODE</p>' +
-      '<div class="host-code">' + esc(b.code || "----") + '</div>' +
+      (state.showRoomCode
+        ? '<div class="host-code">' + esc(b.code || "----") + '</div>' +
+          '<button class="code-toggle" data-action="toggleRoomCode">Hide code</button>'
+        : '<div class="host-code host-code-hidden">' + (b.code ? '&bull;&bull;&bull;&bull;' : '----') + '</div>' +
+          '<button class="code-toggle" data-action="toggleRoomCode">Show code</button>') +
       statusLine +
       qrBlock +
       '<div class="host-join-list">' +
@@ -5268,6 +5371,23 @@ function syncVideoStatus() {
   if (hint) hint.outerHTML = videoBlurHintHtml();
   var link = document.querySelector(".video-fallback-link");
   if (link) link.outerHTML = videoFallbackLinkHtml(questionItem());
+}
+// Repaint just the settings panel. Toggling a switch used to rebuild the whole
+// player screen, which read as a flicker on every tap.
+function updateSettingsPanel() {
+  var wrap = document.getElementById("settingsWrap");
+  if (!wrap || state.phase !== "players") { render(); return; }
+  wrap.innerHTML = state.settingsOpen ? settingsPanelHtml() : "";
+  jfSaveSettings();
+  broadcastSync();
+}
+// Awarding points only changes the footer (scores and buttons), so leave the
+// clue itself on screen instead of re-rendering it.
+function updateScoresInPlace() {
+  if (state.phase !== "question") return false;
+  if (!document.getElementById("clueFooter")) return false;
+  updateClueFooter();
+  return true;
 }
 function updateClueFooter() {
   var footerEl = document.getElementById("clueFooter");
@@ -5558,7 +5678,10 @@ function viewWheel() {
           '<div class="reel-pointer">&#9654;</div>' +
           '<div class="reel-window"><div class="reel-strip" id="reelStrip">' + cells + '</div></div>' +
         '</div>' +
-        '<p class="muted" style="margin-top:16px;font-size:16px">Spinning&hellip;</p>';
+        '<p class="muted" style="margin-top:16px;font-size:16px">Spinning&hellip;</p>' +
+        // A phone that backgrounds the tab can lose the timer that ends the
+        // spin, which used to leave the host with no way out but a refresh.
+        '<button class="wheel-escape" data-action="closeWheel">Cancel the spin</button>';
     } else {
       var outcome = w.segmentId ? findSegment(w.activeWheel, w.segmentId) : null;
       if (outcome && w.activeWheel === "chaos" && outcome.type === "challenge" && !w.judged) {
@@ -5878,6 +6001,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
   else if (action === "toggleJuice") toggleJuice();
+  else if (action === "toggleRoomCode") { state.showRoomCode = !state.showRoomCode; render(); }
+  else if (action === "toggleHostPin") { state.showHostPin = !state.showHostPin; render(); }
   else if (action === "toggleHaptics") toggleHaptics();
   else if (action === "openWheel") openWheel();
   else if (action === "closeWheel") closeWheel();
