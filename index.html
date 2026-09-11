@@ -1494,6 +1494,9 @@ function normalizeBoard(raw) {
   var b;
   try { b = JSON.parse(JSON.stringify(raw)); } catch (e) { return raw; }
   if (!b.name && b.title) b.name = b.title;
+  // Every board needs an accent; hand-written and AI-written ones rarely have one.
+  if (typeof b.accent !== "string" || !/^#?[0-9a-fA-F]{3,6}$/.test(b.accent.trim())) b.accent = DEFAULT_ACCENT;
+  else if (b.accent.charAt(0) !== "#") b.accent = "#" + b.accent.trim();
   if (!Array.isArray(b.textBoard)) {
     if (Array.isArray(b.categories)) b.textBoard = b.categories;
     else if (Array.isArray(b.board)) b.textBoard = b.board;
@@ -1690,8 +1693,13 @@ function categoryHasVideo(col) {
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+// Imported boards often arrive without an accent colour, so fall back to the
+// house purple rather than throwing halfway through a render.
+var DEFAULT_ACCENT = "#a786df";
 function hexToRgba(hex, alpha) {
-  var h = hex.replace("#", "");
+  var h = String(hex == null ? "" : hex).replace("#", "").trim();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) h = DEFAULT_ACCENT.slice(1);
   var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
 }
@@ -4078,15 +4086,23 @@ function viewPlayers() {
 // All-time stats and recent matches, aggregated from local history.
 function viewStats() {
   var hist = jfRead(JF_HISTORY_KEY, []);
+  if (!Array.isArray(hist)) hist = [];
   var agg = {};
+  // History is read straight off the device and can hold records from older
+  // versions or a game that was interrupted mid-write, so every field here is
+  // treated as optional: one bad row must not take the whole screen down.
   hist.forEach(function (m) {
+    if (!m || !Array.isArray(m.players)) return;
+    var winners = Array.isArray(m.winners) ? m.winners : [];
     m.players.forEach(function (p) {
+      if (!p || typeof p.name !== "string" || !p.name) return;
+      var score = typeof p.score === "number" && isFinite(p.score) ? p.score : 0;
       var k = p.name.toLowerCase();
       if (!agg[k]) agg[k] = { name: p.name, games: 0, wins: 0, points: 0, best: -Infinity };
       agg[k].games++;
-      agg[k].points += p.score;
-      if (p.score > agg[k].best) agg[k].best = p.score;
-      if (m.winners.some(function (w) { return w.toLowerCase() === k; })) agg[k].wins++;
+      agg[k].points += score;
+      if (score > agg[k].best) agg[k].best = score;
+      if (winners.some(function (w) { return typeof w === "string" && w.toLowerCase() === k; })) agg[k].wins++;
     });
   });
   var players = Object.keys(agg).map(function (k) { return agg[k]; })
@@ -4103,12 +4119,17 @@ function viewStats() {
   if (!players.length) playerRows = '<p class="muted">No finished games yet. Stats appear after your first Final Jeopardy.</p>';
 
   var matchRows = hist.slice(0, 12).map(function (m) {
+    if (!m || !Array.isArray(m.players)) return "";
     var d = new Date(m.at);
-    var when = (d.getMonth() + 1) + "/" + d.getDate();
+    var when = isFinite(d.getTime()) ? (d.getMonth() + 1) + "/" + d.getDate() : "";
+    var boards = Array.isArray(m.boards) ? m.boards.filter(Boolean) : [];
+    var winners = Array.isArray(m.winners) ? m.winners.filter(Boolean) : [];
+    var line = m.players.filter(function (p) { return p && p.name; })
+      .map(function (p) { return esc(p.name) + ' ' + (typeof p.score === "number" ? p.score : 0); }).join(' &middot; ');
     return '<div class="search-hit" style="cursor:default;border-left-color:#ffd166">' +
-      '<div class="search-hit-meta">' + when + ' &middot; ' + esc(m.boards.join(" + ")) + '</div>' +
-      '<div class="search-hit-q">' + m.players.map(function (p) { return esc(p.name) + ' ' + p.score; }).join(' &middot; ') + '</div>' +
-      '<div class="search-hit-a">Winner: ' + esc(m.winners.join(" & ")) + '</div>' +
+      '<div class="search-hit-meta">' + when + (boards.length ? ' &middot; ' + esc(boards.join(" + ")) : '') + '</div>' +
+      '<div class="search-hit-q">' + line + '</div>' +
+      (winners.length ? '<div class="search-hit-a">Winner: ' + esc(winners.join(" & ")) + '</div>' : '') +
     '</div>';
   }).join("");
   if (!matchRows) matchRows = '<p class="muted">Match history shows up here.</p>';
