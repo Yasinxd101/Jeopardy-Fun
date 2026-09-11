@@ -429,6 +429,13 @@
     animation: mirror-fade 0.3s ease both;
   }
   .buzz-mirror-note { margin: 8px 0 0; color: #8b92c0; font-size: 12px; line-height: 1.4; text-align: center; }
+  /* an image that fails to load says so instead of quietly disappearing */
+  .img-broken { min-height: 84px; background: #10142e; border: 1px dashed #2a2f55; position: relative; }
+  .img-broken::after {
+    content: "Image could not load"; position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center; color: #6a72a8;
+    font-size: 12px; font-weight: 700;
+  }
   @keyframes mirror-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .buzz-mirror-img, .buzz-answer-box { animation: none; } }
   .buzz-timer-note { margin: 4px 0 0; text-align: center; color: #8b92c0; font-size: 12px; font-weight: 700; }
@@ -859,6 +866,20 @@
   }
   .sequence-arrow-btn:disabled { opacity: 0.3; cursor: default; }
 
+  /* host clip controls: length, play and stop for a music clue */
+  .clip-ctl-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: #10142e; border-radius: 12px; padding: 10px 12px; margin-top: 12px;
+  }
+  .clip-ctl-lbl { font-size: 10.5px; font-weight: 900; letter-spacing: 1.5px; color: #98a0cc; }
+  .clip-ctl-val { font-weight: 900; color: #ffd166; min-width: 42px; text-align: center; }
+  .clip-play, .clip-stop {
+    margin-left: auto; border: none; border-radius: 10px; padding: 10px 18px;
+    font-weight: 900; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .clip-play { background: #2cb67d; color: #04210f; }
+  .clip-stop { background: #ff5470; color: #2a0410; }
+
   /* audio-only veil: the clip plays but the picture cannot give the answer away */
   .buzz-clip-frame { position: relative; }
   .buzz-clip-hidden iframe { filter: blur(26px) saturate(0.6); transform: scale(1.08); }
@@ -869,6 +890,17 @@
     color: #ffd166; font-size: 30px;
   }
   .buzz-clip-veil-text { font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+  /* the veil is opaque, so the clip is genuinely audio only on a phone */
+  .buzz-clip-hidden .buzz-clip-veil { background: #080b1c; }
+  .buzz-clip-hidden iframe { filter: blur(40px) saturate(0); transform: scale(1.3); }
+  .buzz-eq { display: flex; align-items: flex-end; gap: 4px; height: 26px; }
+  .buzz-eq i { width: 5px; background: #ffd166; border-radius: 2px; animation: eq 0.9s ease-in-out infinite; }
+  .buzz-eq i:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .buzz-eq i:nth-child(2) { height: 85%; animation-delay: 0.15s; }
+  .buzz-eq i:nth-child(3) { height: 60%; animation-delay: 0.3s; }
+  .buzz-eq i:nth-child(4) { height: 100%; animation-delay: 0.45s; }
+  @keyframes eq { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+  @media (prefers-reduced-motion: reduce) { .buzz-eq i { animation: none; } }
 
   /* ---- Host Control (the host's own phone) ---- */
   .hc-bar {
@@ -1729,6 +1761,8 @@ var state = {
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
+  clipLimit: 20,          // seconds of a music clue to play, 0 = the whole thing
+  clipStartedAt: 0,       // when the host hit play, so phones can join in sync
   showRoomCode: false,    // room code and host PIN stay covered until asked for
   showHostPin: false,
   juice: true,            // motion effects: shakes, slides, takeovers
@@ -2236,6 +2270,12 @@ function applyHostCommand(d) {
     if (state.phase === "question" && typeof closeQuestion === "function") closeQuestion();
   } else if (cmd === "toggleAnswerOnScreen") {
     if (state.revealed) toggleAnswer();
+  } else if (cmd === "playClip") {
+    if (!state.playing) playVideo();
+  } else if (cmd === "stopClip") {
+    stopClip();
+  } else if (cmd === "clipLen") {
+    adjustClipLimit(+d.delta || 0);
   } else if (cmd === "undo") {
     undoLastScore();
   }
@@ -2453,6 +2493,9 @@ function buzzerSyncPayload() {
       isVideo: !!item.id,
       videoId: state.wagering ? null : (item.id || null),
       playing: !!state.playing,
+      clipLimit: state.clipLimit,
+      clipElapsed: state.playing && state.clipStartedAt
+        ? Math.max(0, Math.round((Date.now() - state.clipStartedAt) / 1000)) : 0,
       revealed: !!state.revealed,
       // Clue art rides along to phones so players who cannot see the host
       // screen still get the picture. Answers only follow after the reveal.
@@ -2683,6 +2726,16 @@ function toggleHostPeek() {
   hap("press");
   render();
 }
+// Mobile browsers refuse to start audio without a user gesture, so the player
+// arms their phone once and every later clip starts on its own.
+function enablePhoneAudio() {
+  var bc = state.buzzClient;
+  if (!bc) return;
+  bc.audioReady = true;
+  bc.playingClip = !!(bc.game && bc.game.clue && bc.game.clue.playing);
+  hap("press");
+  render();
+}
 function handleClientData(d) {
   var bc = state.buzzClient;
   if (!bc || !d) return;
@@ -2713,6 +2766,8 @@ function handleClientData(d) {
     }
     if (!d.clue && bc.buzzState === "spent") bc.buzzState = "idle";
     if (d.clue && !d.clue.playing) bc.playingClip = false;
+    // once armed, the phone joins and leaves the clip with the host
+    if (bc.audioReady && d.clue && d.clue.playing) bc.playingClip = true;
     var wagerOpen = (d.clue && d.clue.wagering) || (d.final && d.final.stage === "wager");
     if (!wagerOpen) bc.wagerSent = false;
     if (!(d.final && d.final.stage === "clue")) { bc.answerSent = false; bc.answerInput = ""; }
@@ -3380,7 +3435,7 @@ function jfSaveSettings() {
   jfWrite("jf.settings.v1", {
     volume: state.volume, clipVolume: state.clipVolume, muted: state.muted,
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
-    juice: state.juice, haptics: state.haptics,
+    juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
   });
 }
@@ -3393,6 +3448,7 @@ function loadSettings() {
   state.adultEnabled = !!s0.adultEnabled;
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
+  if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
   if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
   if (s0.roomRules) {
@@ -3873,10 +3929,37 @@ var videoLoadTimer = null;
 function clearVideoLoadTimer() {
   if (videoLoadTimer) { clearTimeout(videoLoadTimer); videoLoadTimer = null; }
 }
+var clipStopTimer = null;
+function clearClipStopTimer() {
+  if (clipStopTimer) { clearTimeout(clipStopTimer); clipStopTimer = null; }
+}
+// Stop the clue audio everywhere at once: the host screen and every phone.
+function stopClip() {
+  clearClipStopTimer();
+  if (!state.playing) return;
+  state.playing = false;
+  state.videoStatus = null;
+  if (activeYtPlayer && activeYtPlayer.stopVideo) { try { activeYtPlayer.stopVideo(); } catch (e) {} }
+  render();
+}
+function adjustClipLimit(delta) {
+  // 0 means play the whole track; otherwise 5..120 seconds
+  var next = state.clipLimit + delta;
+  if (next < 5) next = 0;
+  if (next > 120) next = 120;
+  if (state.clipLimit === 0 && delta > 0) next = 5;
+  state.clipLimit = next;
+  settingsChanged();
+}
 function playVideo() {
   if (state.playing) return;
   state.playing = true;
+  state.clipStartedAt = Date.now();
   state.videoStatus = "loading";
+  clearClipStopTimer();
+  if (state.clipLimit > 0) {
+    clipStopTimer = setTimeout(function () { stopClip(); }, state.clipLimit * 1000);
+  }
   render();
   attachYoutubeVolumeControl();
   clearVideoLoadTimer();
@@ -3968,6 +4051,7 @@ function backUnrevealed() {
   render();
 }
 function closeQuestion() {
+  clearClipStopTimer();
   disarmBuzzers(false);
   if (!state.active) { state.phase = "board"; render(); return; }
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
@@ -4607,22 +4691,34 @@ function buzzMirrorHtml(bc) {
       if (!c.playing) {
         clipHtml = '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">The host has not started the clip yet.</p>';
       } else if (bc.playingClip && c.videoId) {
-        // The picture is the answer on a "name this opening" clue, so the frame
-        // stays blurred on the phone until the host reveals, exactly as it does
-        // on the big screen. Audio is unaffected.
+        // Join wherever the host already is, so every phone hears the same
+        // moment. The picture is the answer on a "name this opening" clue, so
+        // the frame stays fully covered until the host reveals it.
+        var startAt = Math.max(0, c.clipElapsed || 0);
+        var src = 'https://www.youtube.com/embed/' + esc(c.videoId) +
+          '?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&start=' + startAt;
         clipHtml = '<div class="buzz-clip-frame' + (c.revealed ? '' : ' buzz-clip-hidden') + '">' +
-            '<iframe src="https://www.youtube.com/embed/' + esc(c.videoId) + '?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe>' +
-            (c.revealed ? '' : '<div class="buzz-clip-veil"><span>&#9834;</span><span class="buzz-clip-veil-text">AUDIO ONLY</span></div>') +
+            '<iframe src="' + src + '" allow="autoplay; encrypted-media"></iframe>' +
+            (c.revealed ? '' : '<div class="buzz-clip-veil">' +
+                '<span class="buzz-eq"><i></i><i></i><i></i><i></i></span>' +
+                '<span class="buzz-clip-veil-text">AUDIO ONLY</span>' +
+              '</div>') +
           '</div>' +
-          (c.revealed ? '' : '<p class="buzz-timer-note">Video hidden until the host reveals the answer.</p>');
+          (c.revealed ? '' : '<p class="buzz-timer-note">' +
+             (c.clipLimit ? 'Playing ' + c.clipLimit + 's chosen by the host' : 'Playing') +
+             ' &middot; video stays hidden until the answer</p>');
+      } else if (!bc.audioReady) {
+        // First clip of the room: one tap to satisfy the browser's autoplay rule.
+        clipHtml = '<button class="big-gold" style="margin-top:10px;padding:14px" data-action="enablePhoneAudio">&#9834;&nbsp; Turn on sound for this phone</button>' +
+          '<p class="buzz-timer-note">Tap once and every clip after this starts by itself when the host plays it. Headphones work best.</p>';
       } else {
-        clipHtml = '<button class="big-gold" style="margin-top:10px;padding:14px" data-action="phonePlayClip">&#9654;&nbsp; Play the audio on this phone</button>' +
-          '<p class="buzz-timer-note">Playing on the host screen now &mdash; tap to hear it here (headphones work best).</p>';
+        clipHtml = '<button class="big-gold" style="margin-top:10px;padding:14px" data-action="phonePlayClip">&#9654;&nbsp; Play the audio</button>' +
+          '<p class="buzz-timer-note">Playing on the host screen now &mdash; tap if it did not start here.</p>';
       }
     }
     // Clue art on the phone, for players too far away to read the host screen.
     var imgHtml = c.img
-      ? '<img class="buzz-mirror-img" src="' + esc(c.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">'
+      ? '<img class="buzz-mirror-img" src="' + esc(c.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.classList.add(&quot;img-broken&quot;)">'
       : "";
     // Once the host reveals, the answer is already public, so mirror it too.
     var answerHtml = "";
@@ -4769,7 +4865,17 @@ function viewHostControl(bc) {
     '<div class="hc-wrap">' +
       '<p class="hc-cat">' + esc((c.cat || '').toUpperCase()) + ' &middot; ' + (c.value || 0) + '</p>' +
       '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio / video clue' : '')) + '</p>' +
-      (c.isVideo ? '<p class="hc-meta">' + (c.playing ? 'Clip is playing on the big screen' : 'Clip not started yet') + '</p>' : '') +
+      (c.isVideo
+        ? '<div class="clip-ctl-row">' +
+            '<span class="clip-ctl-lbl">CLIP</span>' +
+            '<button data-action="hostClipDown" aria-label="Shorter clip" class="stepper-btn">&minus;</button>' +
+            '<span class="clip-ctl-val">' + (c.clipLimit ? c.clipLimit + 's' : 'Full') + '</span>' +
+            '<button data-action="hostClipUp" aria-label="Longer clip" class="stepper-btn">+</button>' +
+            (c.playing
+              ? '<button class="clip-stop" data-action="hostStopClip">Stop</button>'
+              : '<button class="clip-play" data-action="hostPlayClip">Play</button>') +
+          '</div>'
+        : '') +
       '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
       peekBlock +
       buzzLine +
@@ -5282,12 +5388,25 @@ function viewClueFooter() {
   }
 
   var clipVolRow = "";
-  if (isVideo && state.playing) {
-    clipVolRow = '<div class="clip-vol-row">' +
-      '<span>CLIP VOLUME</span>' +
-      '<input type="range" id="clipVolumeSlider" min="0" max="100" value="' + state.clipVolume + '" />' +
-      '<span id="clipVolumePct">' + state.clipVolume + '%</span>' +
-    '</div>';
+  if (isVideo) {
+    var lenLabel = state.clipLimit === 0 ? "Full" : state.clipLimit + "s";
+    clipVolRow =
+      '<div class="clip-ctl-row">' +
+        '<span class="clip-ctl-lbl">CLIP LENGTH</span>' +
+        '<button data-action="clipLenDown" aria-label="Shorter clip" class="stepper-btn">&minus;</button>' +
+        '<span class="clip-ctl-val">' + lenLabel + '</span>' +
+        '<button data-action="clipLenUp" aria-label="Longer clip" class="stepper-btn">+</button>' +
+        (state.playing
+          ? '<button class="clip-stop" data-action="stopClip">Stop</button>'
+          : '<button class="clip-play" data-action="play">Play</button>') +
+      '</div>' +
+      (state.playing
+        ? '<div class="clip-vol-row">' +
+            '<span>CLIP VOLUME</span>' +
+            '<input type="range" id="clipVolumeSlider" min="0" max="100" value="' + state.clipVolume + '" />' +
+            '<span id="clipVolumePct">' + state.clipVolume + '%</span>' +
+          '</div>'
+        : '');
   }
 
   // phone buzzer banner: who buzzed in, or "armed" while waiting
@@ -5905,6 +6024,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "reveal") reveal();
   else if (action === "toggleAnswer") toggleAnswer();
   else if (action === "play") playVideo();
+  else if (action === "stopClip") stopClip();
+  else if (action === "clipLenUp") adjustClipLimit(5);
+  else if (action === "clipLenDown") adjustClipLimit(-5);
+  else if (action === "enablePhoneAudio") enablePhoneAudio();
   else if (action === "plus") scoreQuestion(+t.getAttribute("data-i"), true);
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
   else if (action === "close") closeQuestion();
@@ -5947,6 +6070,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "hostToggleScreenAnswer") sendHostCmd("toggleAnswerOnScreen");
   else if (action === "hostClose") sendHostCmd("close");
   else if (action === "hostUndo") sendHostCmd("undo");
+  else if (action === "hostPlayClip") sendHostCmd("playClip");
+  else if (action === "hostStopClip") sendHostCmd("stopClip");
+  else if (action === "hostClipUp") sendHostCmd("clipLen", { delta: 5 });
+  else if (action === "hostClipDown") sendHostCmd("clipLen", { delta: -5 });
   else if (action === "hostJudge") sendHostCmd("judge", { correct: t.getAttribute("data-correct") === "1" });
   else if (action === "hostScore") sendHostCmd("score", { playerIndex: +t.getAttribute("data-i"), correct: t.getAttribute("data-correct") === "1" });
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
