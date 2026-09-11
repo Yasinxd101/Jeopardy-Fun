@@ -608,7 +608,7 @@
   .recent-label { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
   .recent-chip {
     background: #161b3d; border: 1px solid #2a2f55; border-radius: 999px;
-    padding: 6px 12px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
+    padding: 9px 14px; min-height: 34px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
     max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .recent-surprise { color: #ffd166; border-color: rgba(255, 209, 102, 0.6); }
@@ -1851,8 +1851,12 @@ function shakeScreen(strength) {
   root.style.setProperty("--shake-amp", (strength || 7) + "px");
   root.classList.remove("shake-now");
   void root.offsetWidth; // restart the animation
+  root.style.willChange = "transform";
   root.classList.add("shake-now");
-  setTimeout(function () { root.classList.remove("shake-now"); }, 460);
+  setTimeout(function () {
+    root.classList.remove("shake-now");
+    root.style.willChange = "";
+  }, 460);
 }
 
 // A one-shot full-screen announcement (Daily Double, round starts).
@@ -1990,7 +1994,6 @@ function tickScoreDisplay(elId, from, to) {
     // swell out and back so the number feels like it is being counted
     var swell = 1 + (peak - 1) * Math.sin(p * Math.PI);
     el.style.transform = "scale(" + swell.toFixed(3) + ")";
-    el.style.display = "inline-block";
     if (p < 1) requestAnimationFrame(step);
     else {
       el.textContent = to;
@@ -4211,7 +4214,9 @@ function viewInterlude() {
       '<span class="win-score">' + p.score + '</span>' +
     '</div>';
   }).join("");
-  var r2 = BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0];
+  // state.match is null in a classic single-board game, and a restored
+  // snapshot can land here without one, so never assume it exists.
+  var r2 = state.match ? BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0] : null;
   return '<div class="win-bg"><div class="win-wrap">' +
     '<h1 class="win-title">ROUND 1 COMPLETE</h1>' +
     '<p class="win-champ-line">Next up: ' + esc(r2 ? r2.name : "Round 2") + ' &mdash; every clue worth double, with two Daily Doubles hiding on the board.</p>' +
