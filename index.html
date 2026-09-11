@@ -50,7 +50,8 @@
     padding: 0 18px; border-radius: 10px; border: none; background: #ffd166;
     color: #0b0f24; font-weight: 800; font-size: 16px; cursor: pointer;
   }
-  .row-item { display: flex; align-items: center; gap: 10px; background: #0d1230; border-radius: 10px; padding: 10px 12px; }
+  .row-item { display: flex; align-items: center; gap: 10px; background: #0d1230; border-radius: 10px; padding: 10px 12px; min-width: 0; }
+  .row-item > span { min-width: 0; overflow-wrap: anywhere; }
   .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
   .big-gold {
     width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; border: none;
@@ -74,7 +75,25 @@
   .minus-btn { background: #ff5470; border: none; color: #2a0410; font-weight: 900; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
   .chip { display: flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 14px; max-width: 100%; min-width: 0; }
   .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32vw; }
+  /* The board claims the whole screen instead of stranding dead space under
+     the bottom row on tall phones. */
+  .board-screen { min-height: 100vh; min-height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; }
+  .board-screen-inner { max-width: 820px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
+  /* leave room for the fixed hamburger so chips never sit under it */
+  /* No single unbreakable token (a pasted name, a long URL in a clue) may
+     force the page to scroll sideways. break-word only kicks in when the word
+     would otherwise overflow, so normal text is unaffected. */
+  body, .board-screen, .card, .win-wrap, .hc-wrap, .buzz-mirror { overflow-wrap: break-word; }
+  .board-chiprow {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 12px; padding-right: 52px; padding-left: 4px;
+  }
   .board-grid { display: grid; gap: 6px; width: 100%; }
+  .board-screen .board-grid {
+    flex: 1; min-height: 0;
+    grid-template-rows: auto repeat(5, minmax(44px, 1fr));
+  }
+  .board-screen .tile, .board-screen .cat-head { height: 100%; }
   .cat-head {
     border-radius: 8px; padding: 8px 3px; text-align: center; font-weight: 800;
     font-size: clamp(9px, 2.6vw, 11px); line-height: 1.2; min-height: 52px;
@@ -594,7 +613,7 @@
   .recent-label { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #8b92c0; }
   .recent-chip {
     background: #161b3d; border: 1px solid #2a2f55; border-radius: 999px;
-    padding: 6px 12px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
+    padding: 9px 14px; min-height: 34px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
     max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .recent-surprise { color: #ffd166; border-color: rgba(255, 209, 102, 0.6); }
@@ -724,7 +743,7 @@
   .set-group { background: #0d1230; border: 1px solid #232a55; border-radius: 14px; overflow: hidden; }
   .set-group-title {
     display: block; font-size: 10.5px; letter-spacing: 1.5px; font-weight: 900;
-    color: #6a72a8; padding: 12px 14px 7px;
+    color: #98a0cc; padding: 12px 14px 7px;
   }
   .set-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -734,11 +753,14 @@
   }
   .set-row + .set-row, .set-group-title + .set-row ~ .set-row { border-top: 1px solid #1a2045; }
   .set-row-static { cursor: default; }
+  /* a control the device genuinely cannot support, shown but visibly inert */
+  .set-row-off { opacity: 0.55; }
+  .set-row-off .switch { filter: grayscale(1); }
   @media (hover: hover) { .set-row:not(.set-row-static):hover { background: #131a41; } }
   .set-row:not(.set-row-static):active { background: #161e4a; }
   .set-main { flex: 1; min-width: 0; }
   .set-name { display: block; font-weight: 700; font-size: 14px; color: #fff; }
-  .set-desc { display: block; font-weight: 600; font-size: 11.5px; color: #7d84b4; margin-top: 3px; line-height: 1.35; }
+  .set-desc { display: block; font-weight: 600; font-size: 11.5px; color: #949bc8; margin-top: 3px; line-height: 1.35; }
   .set-side { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .set-val { font-weight: 900; font-size: 13px; color: #ffd166; min-width: 16px; text-align: center; }
   .switch {
@@ -836,6 +858,200 @@
     padding: 4px 10px; font-size: 12px; cursor: pointer;
   }
   .sequence-arrow-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* audio-only veil: the clip plays but the picture cannot give the answer away */
+  .buzz-clip-frame { position: relative; }
+  .buzz-clip-hidden iframe { filter: blur(26px) saturate(0.6); transform: scale(1.08); }
+  .buzz-clip-veil {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; pointer-events: none;
+    background: rgba(8, 11, 28, 0.55); border-radius: inherit;
+    color: #ffd166; font-size: 30px;
+  }
+  .buzz-clip-veil-text { font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+
+  /* ---- Host Control (the host's own phone) ---- */
+  .hc-bar {
+    position: sticky; top: 0; z-index: 5; display: flex; align-items: center;
+    justify-content: space-between; gap: 10px; padding: 10px 14px;
+    background: #10142e; border-bottom: 1px solid #2a2f55;
+  }
+  .hc-tag { font-weight: 900; font-size: 11px; letter-spacing: 2px; color: #ffd166; }
+  .hc-leave { background: none; border: none; color: #ff8aa0; font-weight: 800; font-size: 13px; cursor: pointer; padding: 8px; }
+  .hc-wrap { padding: 14px 12px 28px; max-width: 620px; margin: 0 auto; }
+  .hc-cat { margin: 0; color: #8b92c0; font-weight: 900; font-size: 11px; letter-spacing: 2px; text-align: center; }
+  .hc-q { margin: 8px 0 0; color: #fff; font-size: 16px; line-height: 1.45; }
+  .hc-meta, .hc-waiting { margin: 8px 0 0; color: #8b92c0; font-size: 13px; text-align: center; }
+  .hc-waiting { margin: 18px 0; font-weight: 700; }
+  .hc-peek {
+    display: block; width: 100%; margin-top: 14px; padding: 14px; border: none;
+    border-radius: 12px; background: #2a2f55; color: #ffd166;
+    font-weight: 900; font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+  .hc-answer {
+    margin-top: 10px; background: #13351f; border: 2px solid #2cb67d; border-radius: 12px;
+    padding: 14px; text-align: center; font-size: 17px; font-weight: 800; color: #7ee2b0;
+    animation: mirror-fade 0.25s ease both;
+  }
+  .hc-note { margin: 8px 0 0; color: #8b92c0; font-size: 12px; line-height: 1.4; text-align: center; }
+  .hc-hidden { margin: 10px 0 0; text-align: center; color: #6a72a8; font-size: 12px; font-weight: 700; }
+  .hc-buzz {
+    margin-top: 14px; padding: 10px; border-radius: 10px; text-align: center;
+    background: rgba(255, 209, 102, 0.14); color: #ffd166; font-weight: 900; font-size: 14px;
+  }
+  .hc-judge { display: flex; gap: 10px; margin-top: 10px; }
+  .hc-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .hc-btn {
+    flex: 1; padding: 14px 10px; border: none; border-radius: 12px;
+    font-weight: 900; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .hc-right { background: #2cb67d; color: #04210f; }
+  .hc-wrong { background: #ff5470; color: #2a0410; }
+  .hc-reveal { background: #ffd166; color: #0b0f24; }
+  .hc-dim { background: #2a2f55; color: #aab0d8; }
+  .hc-next { background: #3da9fc; color: #04203a; }
+  .hc-undo { width: 100%; margin-top: 12px; background: #161b3d; color: #8b92c0; }
+  .hc-scores { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .hc-score {
+    display: flex; align-items: center; gap: 8px; background: #0d1230;
+    border-radius: 10px; padding: 10px;
+  }
+  .hc-score-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hc-score-val { font-weight: 900; color: #ffd166; min-width: 52px; text-align: right; }
+  .hc-mini { min-width: 38px; padding: 9px 0; font-size: 15px; }
+  /* claiming host control from the join screen */
+  .host-claim { margin-top: 14px; border-top: 1px dashed #2a2f55; padding-top: 12px; }
+  .host-claim-lbl { margin: 0 0 8px; color: #aab0d8; font-weight: 800; font-size: 13px; }
+  .host-claim-row { display: flex; gap: 8px; align-items: stretch; }
+  .host-claim-row .input { flex: 0 0 96px; text-align: center; letter-spacing: 4px; font-weight: 900; }
+  .host-claim-row .btn-gold { flex: 1; white-space: nowrap; }
+  .host-claim-hint { margin: 8px 0 0; color: #6a72a8; font-size: 11.5px; line-height: 1.4; }
+  .host-pin-chip { color: #ffd166; font-weight: 900; letter-spacing: 3px; }
+
+  /* ================= feel layer ================= */
+  /* Universal press physics: everything tappable gives under the finger. */
+  button, .board-card, .tile, .chip-pick, .shape-pick {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.13s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.13s ease, box-shadow 0.16s ease;
+  }
+  button:active, .board-card:active { transform: scale(0.955); }
+  .big-gold:active, .btn-gold:active { transform: scale(0.97); filter: brightness(1.06); }
+
+  /* Impact shake on the whole stage. */
+  @keyframes shake-kf {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    15% { transform: translate(calc(var(--shake-amp) * -1), 2px) rotate(-0.5deg); }
+    30% { transform: translate(var(--shake-amp), -2px) rotate(0.5deg); }
+    45% { transform: translate(calc(var(--shake-amp) * -0.6), 1px) rotate(-0.3deg); }
+    60% { transform: translate(calc(var(--shake-amp) * 0.5), -1px) rotate(0.2deg); }
+    80% { transform: translate(calc(var(--shake-amp) * -0.2), 0) rotate(0deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  .shake-now { animation: shake-kf 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+  /* Score counter swell + settle. */
+  .score-num { display: inline-block; will-change: transform; }
+  @keyframes score-settle-kf {
+    0% { transform: scale(1.14); } 55% { transform: scale(0.94); } 100% { transform: scale(1); }
+  }
+  .score-settle { animation: score-settle-kf 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+  /* Floating +500 / -500 that lifts off the score. */
+  .float-delta {
+    position: fixed; transform: translate(-50%, -50%); pointer-events: none; z-index: 60;
+    font-weight: 900; font-size: 20px; letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    animation: float-delta-kf 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .float-up { color: #7ee2b0; }
+  .float-down { color: #ff8aa0; }
+  @keyframes float-delta-kf {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    22% { opacity: 1; transform: translate(-50%, -120%) scale(1.22); }
+    100% { opacity: 0; transform: translate(-50%, -300%) scale(0.95); }
+  }
+
+  /* Full-screen announcement (Daily Double and friends). */
+  .takeover {
+    position: fixed; inset: 0; z-index: 70; display: flex; align-items: center;
+    justify-content: center; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(8, 11, 28, 0.82), rgba(8, 11, 28, 0.95));
+    animation: tk-in 0.28s ease both;
+  }
+  .takeover-out { animation: tk-out 0.4s ease both; }
+  @keyframes tk-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes tk-out { from { opacity: 1; } to { opacity: 0; } }
+  .takeover-inner { text-align: center; padding: 0 18px; }
+  .takeover-title {
+    font-size: clamp(34px, 12vw, 84px); font-weight: 900; letter-spacing: 3px;
+    color: var(--tk);
+    text-shadow: 0 6px 30px rgba(255, 209, 102, 0.5);
+    text-shadow: 0 6px 30px color-mix(in srgb, var(--tk) 55%, transparent);
+    animation: tk-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .takeover-sub {
+    margin-top: 10px; font-size: 16px; font-weight: 800; letter-spacing: 2px; color: #fff;
+    animation: tk-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  }
+  @keyframes tk-pop {
+    0% { opacity: 0; transform: scale(0.55) rotate(-4deg); }
+    70% { opacity: 1; transform: scale(1.06) rotate(1deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
+  /* Whose turn it is, and a streak charging toward the bonus. */
+  .chip-turn { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 0 22px -4px var(--pc); animation: turn-ring 2.4s ease-in-out infinite; }
+  @keyframes turn-ring {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16), 0 0 18px -6px var(--pc); }
+    50% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.26), 0 0 30px -2px var(--pc); }
+  }
+  .chip-charge { position: relative; }
+  .chip-charge-1 { box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.45); }
+  .chip-charge-2 { box-shadow: inset 0 0 0 2px rgba(255, 209, 102, 0.85), 0 0 16px -4px #ffd166; animation: charge-pulse 1.3s ease-in-out infinite; }
+  @keyframes charge-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.14); } }
+
+  /* FLIP: rows that move slide instead of blinking; new rows ease in. */
+  .flip-moving { z-index: 2; position: relative; }
+  .flip-enter { animation: flip-enter-kf 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  @keyframes flip-enter-kf { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+  /* The board breathes so a static screen is never completely dead. */
+  @keyframes idle-drift {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.006); }
+  }
+  .idle-float { animation: idle-drift 7s ease-in-out infinite; }
+  /* Slow Ken Burns on the backdrop art so every game screen has some life. */
+  @keyframes backdrop-pan {
+    0%, 100% { transform: scale(1.06) translate(0, 0); }
+    50% { transform: scale(1.12) translate(-1.5%, -1%); }
+  }
+  .stage-backdrop img, .spectate-backdrop img { animation: backdrop-pan 26s ease-in-out infinite; }
+
+  /* Tiles cascade in diagonally when a board opens. */
+  @keyframes tile-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.9); }
+    to { opacity: 1; transform: none; }
+  }
+  .tile-cascade { animation: tile-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--d, 0s); }
+
+  /* The buzz banner slams in with the buzzing player's colour. */
+  @keyframes buzz-slam {
+    0% { opacity: 0; transform: scale(0.8) translateY(-10px); }
+    60% { opacity: 1; transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .buzz-banner { animation: buzz-slam 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    button, .board-card, .tile { transition: none; }
+    .shake-now, .score-settle, .float-delta, .takeover, .takeover-title, .takeover-sub,
+    .chip-turn, .chip-charge-2, .flip-enter, .idle-float, .tile-cascade, .buzz-banner,
+    .stage-backdrop img, .spectate-backdrop img {
+      animation: none !important;
+    }
+    button:active, .board-card:active, .big-gold:active, .btn-gold:active { transform: none; }
+  }
 
   /* ---- responsive: phones, narrow widths, and short/landscape screens ---- */
 
@@ -1357,6 +1573,9 @@ function normalizeBoard(raw) {
   var b;
   try { b = JSON.parse(JSON.stringify(raw)); } catch (e) { return raw; }
   if (!b.name && b.title) b.name = b.title;
+  // Every board needs an accent; hand-written and AI-written ones rarely have one.
+  if (typeof b.accent !== "string" || !/^#?[0-9a-fA-F]{3,6}$/.test(b.accent.trim())) b.accent = DEFAULT_ACCENT;
+  else if (b.accent.charAt(0) !== "#") b.accent = "#" + b.accent.trim();
   if (!Array.isArray(b.textBoard)) {
     if (Array.isArray(b.categories)) b.textBoard = b.categories;
     else if (Array.isArray(b.board)) b.textBoard = b.board;
@@ -1460,7 +1679,9 @@ var state = {
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
   searchQuery: "",        // host search on the board-select screen
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
-  buzzer: { on: false, code: null, status: "off", clients: [], armed: false, winnerName: null, winnerIndex: null },
+  // hostPin gates the Host Control role: the room code alone must never hand
+  // out answers, since anyone who can see the big screen can read that code.
+  buzzer: { on: false, code: null, status: "off", clients: [], armed: false, winnerName: null, winnerIndex: null, hostPin: null, hostClaimed: false },
   buzzClient: null,       // phone side: {stage, code, name, buzzState, lockWinner, msg, game}
   hostRoomReturn: null,   // phase to go back to when leaving the host room screen
   clueOpenedAt: 0,        // when the live clue (or its post-wager reveal) started, for phone timers
@@ -1473,6 +1694,8 @@ var state = {
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
+  juice: true,            // motion effects: shakes, slides, takeovers
+  haptics: true,          // phone vibration feedback
 };
 
 // ---- wheel of chaos: editable outcome lists ----
@@ -1541,7 +1764,8 @@ function currentBoard() {
   return BOARDS.filter(function (b) { return b.id === state.boardId; })[0];
 }
 function getCategories() {
-  return currentBoard().textBoard;
+  var b = currentBoard();
+  return b ? b.textBoard : [];
 }
 // A column gets the "music" styling when any of its clues is a video clip.
 function categoryHasVideo(col) {
@@ -1551,8 +1775,13 @@ function categoryHasVideo(col) {
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+// Imported boards often arrive without an accent colour, so fall back to the
+// house purple rather than throwing halfway through a render.
+var DEFAULT_ACCENT = "#a786df";
 function hexToRgba(hex, alpha) {
-  var h = hex.replace("#", "");
+  var h = String(hex == null ? "" : hex).replace("#", "").trim();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) h = DEFAULT_ACCENT.slice(1);
   var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
 }
@@ -1635,6 +1864,120 @@ function flashScreen() {
   document.body.appendChild(f);
   setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 550);
 }
+// ---- motion / feel layer ----
+// Effects are opt-out (Settings > Feel) and always yield to reduced-motion.
+function reducedMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function juiceOn() { return state.juice !== false && !reducedMotion(); }
+
+// Short haptic taps on the phone. Patterns are deliberately tiny: a buzzer
+// game is tapped constantly and long buzzes get annoying fast.
+var HAPTICS = {
+  tap: 8, press: 12, buzz: [0, 28], correct: [0, 18, 50, 26],
+  wrong: [0, 45], big: [0, 30, 45, 30, 45, 55], tick: 5,
+};
+var HAS_VIBRATE = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
+function hap(kind) {
+  if (!state.haptics || !HAS_VIBRATE) return;
+  try { navigator.vibrate(HAPTICS[kind] || HAPTICS.tap); } catch (e) {}
+}
+
+// Elements tagged data-key keep their identity across a full re-render: we
+// record where each one was, then play the difference back as a transform so
+// rows slide to new positions instead of blinking into them.
+var flipPrev = null;
+function flipCapture() {
+  if (!juiceOn()) { flipPrev = null; return; }
+  flipPrev = {};
+  var nodes = document.querySelectorAll("[data-key]");
+  for (var i = 0; i < nodes.length; i++) {
+    var r = nodes[i].getBoundingClientRect();
+    flipPrev[nodes[i].getAttribute("data-key")] = { x: r.left, y: r.top };
+  }
+}
+function flipPlay() {
+  if (!flipPrev || !juiceOn()) { flipPrev = null; return; }
+  var prev = flipPrev;
+  flipPrev = null;
+  var nodes = document.querySelectorAll("[data-key]");
+  for (var i = 0; i < nodes.length; i++) {
+    var el = nodes[i];
+    var was = prev[el.getAttribute("data-key")];
+    if (!was) {
+      // One-shot entry, then drop the class so any standing animation on the
+      // element (the turn ring, a streak pulse) resumes instead of being
+      // permanently overridden by the enter keyframes.
+      el.classList.add("flip-enter");
+      (function (node) {
+        setTimeout(function () { node.classList.remove("flip-enter"); }, 360);
+      })(el);
+      continue;
+    }
+    var r = el.getBoundingClientRect();
+    var dx = was.x - r.left, dy = was.y - r.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+    el.style.transition = "none";
+    el.style.transform = "translate(" + dx + "px," + dy + "px)";
+    el.classList.add("flip-moving");
+    (function (node) {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          node.style.transition = "transform 0.44s cubic-bezier(0.22, 1, 0.36, 1)";
+          node.style.transform = "";
+          setTimeout(function () {
+            node.style.transition = ""; node.classList.remove("flip-moving");
+          }, 460);
+        });
+      });
+    })(el);
+  }
+}
+
+// Impact: a short shake on the whole stage for the moments that should land.
+function shakeScreen(strength) {
+  if (!juiceOn()) return;
+  var root = document.getElementById("root");
+  if (!root) return;
+  root.style.setProperty("--shake-amp", (strength || 7) + "px");
+  root.classList.remove("shake-now");
+  void root.offsetWidth; // restart the animation
+  root.style.willChange = "transform";
+  root.classList.add("shake-now");
+  setTimeout(function () {
+    root.classList.remove("shake-now");
+    root.style.willChange = "";
+  }, 460);
+}
+
+// A one-shot full-screen announcement (Daily Double, round starts).
+function announce(title, sub, accent) {
+  if (!juiceOn()) return;
+  var el = document.createElement("div");
+  el.className = "takeover";
+  el.innerHTML = '<div class="takeover-inner" style="--tk:' + (accent || "#ffd166") + '">' +
+    '<div class="takeover-title">' + esc(title) + '</div>' +
+    (sub ? '<div class="takeover-sub">' + esc(sub) + '</div>' : '') + '</div>';
+  document.body.appendChild(el);
+  setTimeout(function () { el.classList.add("takeover-out"); }, 1150);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1600);
+}
+
+// A "+500" that lifts off the score it belongs to and fades out.
+function floatDelta(playerIndex, delta) {
+  if (!juiceOn() || !delta) return;
+  var anchor = document.getElementById("score-disp-" + playerIndex);
+  if (!anchor) return;
+  var r = anchor.getBoundingClientRect();
+  var el = document.createElement("div");
+  el.className = "float-delta " + (delta > 0 ? "float-up" : "float-down");
+  el.textContent = (delta > 0 ? "+" : "") + delta;
+  el.style.left = (r.left + r.width / 2) + "px";
+  el.style.top = (r.top - 4) + "px";
+  document.body.appendChild(el);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1000);
+}
+
 function beep(freq, duration, type, volume) {
   if (state.muted || state.volume <= 0) return;
   try {
@@ -1717,24 +2060,59 @@ function sndWheelLand(outcome, wheelKey) {
 }
 
 // ---- score tick animation ----
+// The score climbs rather than snapping, swelling as it counts and settling
+// with a bounce. The element is re-fetched every frame so a re-render in the
+// middle of the count picks up the new node instead of animating a dead one.
 function tickScoreDisplay(elId, from, to) {
-  var el = document.getElementById(elId);
-  if (!el || from === to) return;
-  el.classList.add(to >= from ? "score-pulse-up" : "score-pulse-down");
+  if (from === to) return;
+  var up = to >= from;
+  var span = Math.abs(to - from);
+  var el0 = document.getElementById(elId);
+  if (!el0) return;
+  if (!juiceOn()) { el0.textContent = to; return; }
+  el0.classList.add(up ? "score-pulse-up" : "score-pulse-down");
+  // bigger swings take a little longer and swell a little harder
+  var duration = Math.min(1100, 420 + span * 0.35);
+  var peak = Math.min(1.5, 1.16 + span / 6000);
   var start = null;
-  var duration = 500;
   function step(ts) {
+    var el = document.getElementById(elId);
+    if (!el) return;
     if (!start) start = ts;
-    var progress = Math.min((ts - start) / duration, 1);
-    el.textContent = Math.round(from + (to - from) * progress);
-    if (progress < 1) {
-      requestAnimationFrame(step);
-    } else {
+    var p = Math.min((ts - start) / duration, 1);
+    var eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    // swell out and back so the number feels like it is being counted
+    var swell = 1 + (peak - 1) * Math.sin(p * Math.PI);
+    el.style.transform = "scale(" + swell.toFixed(3) + ")";
+    if (p < 1) requestAnimationFrame(step);
+    else {
       el.textContent = to;
-      setTimeout(function () { el.classList.remove("score-pulse-up", "score-pulse-down"); }, 250);
+      el.classList.add("score-settle");
+      el.style.transform = "";
+      setTimeout(function () {
+        var e2 = document.getElementById(elId);
+        if (e2) e2.classList.remove("score-pulse-up", "score-pulse-down", "score-settle");
+      }, 320);
     }
   }
   requestAnimationFrame(step);
+}
+// Correct-answer chime rises with the value of the clue, so a 500 lands
+// harder than a 100. Wrong answers drop instead.
+function sndScore(correct, value) {
+  var steps = [0, 100, 200, 300, 400, 500].indexOf(Math.min(500, Math.round((value || 100) / 100) * 100));
+  var n = steps < 0 ? 1 : Math.max(1, steps);
+  if (correct) {
+    var root = 392 * Math.pow(1.0595, (n - 1) * 2); // climb ~a whole tone per rung
+    [0, 1, 2].forEach(function (i) {
+      setTimeout(function () { beep(root * Math.pow(1.26, i), 0.16, "triangle", 0.15); }, i * 70);
+    });
+  } else {
+    [0, 1].forEach(function (i) {
+      setTimeout(function () { beep(220 / (1 + i * 0.25), 0.22, "sawtooth", 0.13); }, i * 90);
+    });
+  }
 }
 
 // ---- phone buzzers (PeerJS over its free public broker; optional, fails soft) ----
@@ -1764,6 +2142,8 @@ function startBuzzerRoom() {
   lastSyncBase = "";
   state.buzzer.on = true;
   state.buzzer.code = code;
+  state.buzzer.hostPin = String(Math.floor(1000 + Math.random() * 9000));
+  state.buzzer.hostClaimed = false;
   state.buzzer.status = "starting";
   state.buzzer.clients = [];
   state.buzzer.armed = false;
@@ -1801,12 +2181,54 @@ function stopBuzzerRoom(reason) {
   if (hostPeer) { try { hostPeer.destroy(); } catch (e) {} hostPeer = null; }
   render();
 }
+// Remote control from the host's own phone. Every branch routes through the
+// same functions the on-screen buttons use, so the rules stay identical.
+function applyHostCommand(d) {
+  var cmd = String(d.cmd || "");
+  if (cmd === "reveal") {
+    if (!state.revealed) reveal();
+  } else if (cmd === "judge") {
+    judgeBuzz(!!d.correct);
+  } else if (cmd === "score") {
+    var i = +d.playerIndex;
+    if (state.players[i] && state.active) scoreQuestion(i, !!d.correct);
+  } else if (cmd === "close") {
+    if (state.phase === "question" && typeof closeQuestion === "function") closeQuestion();
+  } else if (cmd === "toggleAnswerOnScreen") {
+    if (state.revealed) toggleAnswer();
+  } else if (cmd === "undo") {
+    undoLastScore();
+  }
+  renderOrUpdateClue();
+}
 function broadcastBuzzer(msg) {
   hostConns.forEach(function (c) { try { c.send(msg); } catch (e) {} });
 }
 function handleBuzzerData(conn, d) {
   if (!d || !state.buzzer.on) return;
-  if (d.type === "hello" && d.role === "screen") {
+  if (d.type === "hello" && d.role === "host") {
+    // Answers ride on this connection, so it must prove it knows the PIN that
+    // only ever appears on the host's own screen.
+    if (!state.buzzer.hostPin || String(d.pin || "") !== state.buzzer.hostPin) {
+      try { conn.send({ type: "hostDenied", reason: "That host PIN is not right." }); } catch (e) {}
+      return;
+    }
+    if (state.buzzer.hostClaimed && conn.role !== "host") {
+      try { conn.send({ type: "hostDenied", reason: "Another device is already the host control." }); } catch (e) {}
+      return;
+    }
+    conn.role = "host";
+    conn.buzzName = "Host";
+    state.buzzer.hostClaimed = true;
+    if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
+    try { conn.send({ type: "joined", room: state.buzzer.code, armed: false, hostControl: true }); } catch (e) {}
+    try { conn.send(withTimerElapsed(extendHostPayload(buzzerSyncPayload()))); } catch (e) {}
+    renderOrUpdateClue();
+  } else if (d.type === "hostCmd") {
+    // Only an authenticated host connection may drive the game remotely.
+    if (conn.role !== "host") return;
+    applyHostCommand(d);
+  } else if (d.type === "hello" && d.role === "screen") {
     conn.role = "screen";
     conn.buzzName = "TV";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
@@ -1814,7 +2236,7 @@ function handleBuzzerData(conn, d) {
     try { conn.send(withTimerElapsed(extendScreenPayload(buzzerSyncPayload()))); } catch (e) {}
     renderOrUpdateClue();
   } else if (d.type === "hello") {
-    conn.buzzName = String(d.name || "Player").slice(0, 14);
+    conn.buzzName = clampName(d.name) || "Player";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     var idx = playerIndexByName(conn.buzzName);
     if (idx === -1 && state.players.length < 6) {
@@ -1832,6 +2254,7 @@ function handleBuzzerData(conn, d) {
     if (!state.buzzer.armed || state.buzzer.winnerName != null) return;
     if (state.roomRules.oneBuzz && conn.playerIndex != null && state.buzzedThisClue[conn.playerIndex]) return;
     state.buzzer.winnerName = conn.buzzName || "Player";
+    hap("buzz"); shakeScreen(5);
     state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
     sndBuzz();
     flashScreen();
@@ -1880,6 +2303,8 @@ function kickBuzzer(name) {
 function dropBuzzerConn(conn) {
   var i = hostConns.indexOf(conn);
   if (i !== -1) hostConns.splice(i, 1);
+  // free the host slot so the host can reconnect after a dropped signal
+  if (conn.role === "host") state.buzzer.hostClaimed = false;
   if (conn.buzzName) {
     var j = state.buzzer.clients.indexOf(conn.buzzName);
     if (j !== -1) state.buzzer.clients.splice(j, 1);
@@ -2047,6 +2472,30 @@ function extendScreenPayload(p) {
   }
   return p;
 }
+// The host's own device is trusted with the answer before the reveal — that is
+// the entire point of it. It also carries what the host needs to judge.
+function extendHostPayload(p) {
+  if (state.phase === "question" && state.active && p.clue) {
+    var hitem = questionItem();
+    p.clue.img = state.wagering ? null : (hitem.img || null);
+    p.clue.a = hitem.a;
+    p.clue.note = hitem.note || null;
+    p.clue.aimg = hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null);
+    p.clue.hostRevealed = !!state.revealed;   // what the big screen is showing
+    p.clue.judged = !!state.judgedThisClue;
+    p.clue.value = activeValue();
+  }
+  if (state.phase === "final" && p.final) {
+    p.final.q = currentBoard().final.q;
+    p.final.a = currentBoard().final.a;
+  }
+  p.hostControl = true;
+  p.scores = state.players.map(function (pl) {
+    return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape };
+  });
+  p.turn = state.turn;
+  return p;
+}
 function broadcastSync() {
   if (!state.buzzer.on || !hostConns.length) return;
   remapBuzzerConns();
@@ -2056,8 +2505,15 @@ function broadcastSync() {
   lastSyncBase = base;
   var playerMsg = withTimerElapsed(p);
   var screenMsg = withTimerElapsed(extendScreenPayload(JSON.parse(base)));
+  var hostMsg = null; // built lazily, only when a host device is attached
   hostConns.forEach(function (c) {
-    try { c.send(c.role === "screen" ? screenMsg : playerMsg); } catch (e) {}
+    var msg = playerMsg;
+    if (c.role === "screen") msg = screenMsg;
+    else if (c.role === "host") {
+      if (!hostMsg) hostMsg = withTimerElapsed(extendHostPayload(JSON.parse(base)));
+      msg = hostMsg;
+    }
+    try { c.send(msg); } catch (e) {}
   });
 }
 // Elapsed seconds ride along outside the dedup compare, so the ticking
@@ -2081,6 +2537,16 @@ function leaveBuzzer() {
   state.buzzClient = null;
   state.phase = "players";
   render();
+}
+// Claim the Host Control role: the host's own phone, holding the answers.
+function controlAsHost() {
+  var bc = state.buzzClient;
+  if (!bc || bc.stage === "connecting") return;
+  bc.hostPin = (bc.hostPin || "").trim();
+  if (!/^\d{4}$/.test(bc.hostPin)) { bc.msg = "Enter the 4-digit host PIN from the host screen."; render(); return; }
+  bc.role = "host";
+  if (!bc.name) bc.name = "Host";
+  submitBuzzerJoin();
 }
 function watchAsTv() {
   var bc = state.buzzClient;
@@ -2108,7 +2574,7 @@ function connectBuzzer(bc) {
   catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
   clientPeer.on("open", function () {
     clientConn = clientPeer.connect(BUZZ_PREFIX + bc.code);
-    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle", role: bc.role || "player" }); });
+    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle", role: bc.role || "player", pin: bc.hostPin || "" }); });
     clientConn.on("data", function (d) { handleClientData(d); });
     clientConn.on("close", function () {
       var cur = state.buzzClient;
@@ -2146,10 +2612,38 @@ function rejoinBuzzer() {
   bc.disconnected = false;
   render();
 }
+// Host Control -> host app. Fails soft: if the link is down the button just
+// does nothing rather than throwing on the host's phone mid-game.
+function sendHostCmd(cmd, extra) {
+  var bc = state.buzzClient;
+  if (!bc || bc.role !== "host" || !clientConn) return;
+  var msg = { type: "hostCmd", cmd: cmd };
+  if (extra) for (var k in extra) { if (Object.prototype.hasOwnProperty.call(extra, k)) msg[k] = extra[k]; }
+  try { clientConn.send(msg); } catch (e) {}
+  hap("tap");
+}
+// The private peek is deliberately local-only: no message leaves this phone,
+// so the big screen never learns the host looked.
+function toggleHostPeek() {
+  var bc = state.buzzClient;
+  if (!bc) return;
+  bc.peek = !bc.peek;
+  hap("press");
+  render();
+}
 function handleClientData(d) {
   var bc = state.buzzClient;
   if (!bc || !d) return;
-  if (d.type === "joined") { bc.stage = "ready"; bc.buzzState = d.armed ? "armed" : "idle"; }
+  if (d.type === "joined") {
+    bc.stage = "ready";
+    bc.buzzState = d.armed ? "armed" : "idle";
+    if (d.hostControl) bc.hostControl = true;
+  }
+  else if (d.type === "hostDenied") {
+    bc.stage = "join"; bc.role = "player"; bc.hostControl = false;
+    bc.msg = String(d.reason || "Host control was refused.");
+    try { if (clientConn) clientConn.close(); } catch (e) {}
+  }
   else if (d.type === "arm") { if (bc.buzzState !== "spent") { bc.buzzState = "armed"; bc.lockWinner = ""; } }
   else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
   else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
@@ -2294,6 +2788,7 @@ function resumeGame() {
   state.endSoundPlayed = false;
   state.lastScoreChange = null;
   state.scoreHistory = [];
+  state.cascadeBoard = true; // stagger the tiles in on a fresh board
   state.phase = "board";
   render();
 }
@@ -2559,8 +3054,10 @@ function nextAvatarShape() {
   if (state.nextShape) return state.nextShape;
   return AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length];
 }
+var MAX_NAME = 14;
+function clampName(n) { return String(n == null ? "" : n).trim().slice(0, MAX_NAME); }
 function addPlayer() {
-  var name = state.nameInput.trim();
+  var name = clampName(state.nameInput);
   if (!name || state.players.length >= 6) return;
   var dupe = state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.nameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
@@ -2570,7 +3067,11 @@ function addPlayer() {
   state.nameError = "";
   render();
 }
-function removePlayer(i) { state.players.splice(i, 1); render(); }
+function removePlayer(i) {
+  if (!isFinite(i) || i < 0 || i >= state.players.length) return; // stale index from a re-render
+  state.players.splice(i, 1);
+  render();
+}
 function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
 function previewBoard(id) {
@@ -2610,7 +3111,7 @@ function cancelEditPlayerName() {
   render();
 }
 function savePlayerName(i) {
-  var name = state.editNameInput.trim();
+  var name = clampName(state.editNameInput);
   if (!name) { state.editNameError = "Name can't be empty."; render(); return; }
   var dupe = state.players.some(function (p, idx) { return idx !== i && p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.editNameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
@@ -2683,6 +3184,14 @@ function surpriseMe() {
   previewBoard(pool[Math.floor(Math.random() * pool.length)].id);
 }
 function selectBoard(id) {
+  // A recent-board chip or share link can point at a board that no longer
+  // exists (a deleted custom board, a fan board that stopped loading).
+  if (!BOARDS.some(function (b) { return b.id === id; })) {
+    state.previewBoardId = null;
+    state.phase = "boards";
+    render();
+    return;
+  }
   recordRecent(id);
   sndRoundStart();
   state.match = null;
@@ -2700,6 +3209,7 @@ function selectBoard(id) {
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
+  state.cascadeBoard = true;
   state.phase = "board";
   render();
 }
@@ -2818,6 +3328,7 @@ function jfSaveSettings() {
   jfWrite("jf.settings.v1", {
     volume: state.volume, clipVolume: state.clipVolume, muted: state.muted,
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
+    juice: state.juice, haptics: state.haptics,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
   });
 }
@@ -2830,6 +3341,8 @@ function loadSettings() {
   state.adultEnabled = !!s0.adultEnabled;
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
+  if (typeof s0.juice === "boolean") state.juice = s0.juice;
+  if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
   if (s0.roomRules) {
     state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
@@ -3162,7 +3675,10 @@ function openQuestion(catKey, qIndex) {
   }
   state.clueOpenedAt = Date.now();
   state.buzzedThisClue = {};
-  if (state.wagering) { sndDailyDouble(); fireConfetti(1600); }
+  if (state.wagering) {
+    sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
+    announce("DAILY DOUBLE", (state.players[state.turn] || {}).name || "", "#ffd166");
+  }
   if (state.wagering) disarmBuzzers(false); else armBuzzers();
   render();
 }
@@ -3205,8 +3721,9 @@ function recordScoreSnapshot() {
   state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1];
 }
 function scoreQuestion(i, correct) {
-  var val = activeValue();
   var pl = state.players[i];
+  if (!pl) return;
+  var val = activeValue();
   var old = pl.score;
   var delta = correct ? val : -val;
   if (correct) {
@@ -3218,9 +3735,11 @@ function scoreQuestion(i, correct) {
   var next = old + delta;
   pl.score = next;
   recordScore(i, delta);
-  if (correct) sndCorrect(); else sndIncorrect();
+  if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
+  else { sndIncorrect(); sndScore(false, val); hap("wrong"); shakeScreen(8); }
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + i, old, next);
+  floatDelta(i, delta);
 }
 function undoLastScore() {
   var last = state.scoreHistory.pop();
@@ -3252,7 +3771,10 @@ function advanceTurn() {
   }
   state.turn = next;
 }
-function reveal() { sndReveal(); state.revealed = true; disarmBuzzers(true); renderOrUpdateClue(); }
+function reveal() {
+  sndReveal(); hap("press"); shakeScreen(4);
+  state.revealed = true; disarmBuzzers(true); renderOrUpdateClue();
+}
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
 var activeYtPlayer = null;
 var ytReadyQueue = [];
@@ -3341,6 +3863,8 @@ function toggleAdultMode() {
   jfSaveSettings();
   render();
 }
+function toggleJuice() { state.juice = !state.juice; jfSaveSettings(); render(); }
+function toggleHaptics() { state.haptics = !state.haptics; if (state.haptics) hap("correct"); jfSaveSettings(); render(); }
 function togglePhoneMirror() { state.phoneMirror = !state.phoneMirror; jfSaveSettings(); broadcastSync(); render(); }
 function dismissAdultGate() { state.adultGate = null; render(); }
 function renderAdultGate() {
@@ -3388,6 +3912,7 @@ function backUnrevealed() {
 }
 function closeQuestion() {
   disarmBuzzers(false);
+  if (!state.active) { state.phase = "board"; render(); return; }
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
   state.revealed = false;
@@ -3641,7 +4166,7 @@ function viewBoards() {
 
   return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
-      '<h1 class="boards-title">JEOPARDY</h1>' +
+      '<h1 class="boards-title idle-float">JEOPARDY</h1>' +
       '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
     '</div>' +
     (state.matchPending ?
@@ -3739,7 +4264,7 @@ function viewPlayers() {
     '</div>';
   }
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
-    '<h1 class="title">JEOPARDY</h1>' +
+    '<h1 class="title idle-float">JEOPARDY</h1>' +
     '<p class="sub">Add players, then pick a board to play.</p>' +
     resumeCard +
     '<div class="card">' +
@@ -3775,15 +4300,23 @@ function viewPlayers() {
 // All-time stats and recent matches, aggregated from local history.
 function viewStats() {
   var hist = jfRead(JF_HISTORY_KEY, []);
+  if (!Array.isArray(hist)) hist = [];
   var agg = {};
+  // History is read straight off the device and can hold records from older
+  // versions or a game that was interrupted mid-write, so every field here is
+  // treated as optional: one bad row must not take the whole screen down.
   hist.forEach(function (m) {
+    if (!m || !Array.isArray(m.players)) return;
+    var winners = Array.isArray(m.winners) ? m.winners : [];
     m.players.forEach(function (p) {
+      if (!p || typeof p.name !== "string" || !p.name) return;
+      var score = typeof p.score === "number" && isFinite(p.score) ? p.score : 0;
       var k = p.name.toLowerCase();
       if (!agg[k]) agg[k] = { name: p.name, games: 0, wins: 0, points: 0, best: -Infinity };
       agg[k].games++;
-      agg[k].points += p.score;
-      if (p.score > agg[k].best) agg[k].best = p.score;
-      if (m.winners.some(function (w) { return w.toLowerCase() === k; })) agg[k].wins++;
+      agg[k].points += score;
+      if (score > agg[k].best) agg[k].best = score;
+      if (winners.some(function (w) { return typeof w === "string" && w.toLowerCase() === k; })) agg[k].wins++;
     });
   });
   var players = Object.keys(agg).map(function (k) { return agg[k]; })
@@ -3800,12 +4333,17 @@ function viewStats() {
   if (!players.length) playerRows = '<p class="muted">No finished games yet. Stats appear after your first Final Jeopardy.</p>';
 
   var matchRows = hist.slice(0, 12).map(function (m) {
+    if (!m || !Array.isArray(m.players)) return "";
     var d = new Date(m.at);
-    var when = (d.getMonth() + 1) + "/" + d.getDate();
+    var when = isFinite(d.getTime()) ? (d.getMonth() + 1) + "/" + d.getDate() : "";
+    var boards = Array.isArray(m.boards) ? m.boards.filter(Boolean) : [];
+    var winners = Array.isArray(m.winners) ? m.winners.filter(Boolean) : [];
+    var line = m.players.filter(function (p) { return p && p.name; })
+      .map(function (p) { return esc(p.name) + ' ' + (typeof p.score === "number" ? p.score : 0); }).join(' &middot; ');
     return '<div class="search-hit" style="cursor:default;border-left-color:#ffd166">' +
-      '<div class="search-hit-meta">' + when + ' &middot; ' + esc(m.boards.join(" + ")) + '</div>' +
-      '<div class="search-hit-q">' + m.players.map(function (p) { return esc(p.name) + ' ' + p.score; }).join(' &middot; ') + '</div>' +
-      '<div class="search-hit-a">Winner: ' + esc(m.winners.join(" & ")) + '</div>' +
+      '<div class="search-hit-meta">' + when + (boards.length ? ' &middot; ' + esc(boards.join(" + ")) : '') + '</div>' +
+      '<div class="search-hit-q">' + line + '</div>' +
+      (winners.length ? '<div class="search-hit-a">Winner: ' + esc(winners.join(" & ")) + '</div>' : '') +
     '</div>';
   }).join("");
   if (!matchRows) matchRows = '<p class="muted">Match history shows up here.</p>';
@@ -3911,7 +4449,9 @@ function viewInterlude() {
       '<span class="win-score">' + p.score + '</span>' +
     '</div>';
   }).join("");
-  var r2 = BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0];
+  // state.match is null in a classic single-board game, and a restored
+  // snapshot can land here without one, so never assume it exists.
+  var r2 = state.match ? BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0] : null;
   return '<div class="win-bg"><div class="win-wrap">' +
     '<h1 class="win-title">ROUND 1 COMPLETE</h1>' +
     '<p class="win-champ-line">Next up: ' + esc(r2 ? r2.name : "Round 2") + ' &mdash; every clue worth double, with two Daily Doubles hiding on the board.</p>' +
@@ -4010,7 +4550,14 @@ function buzzMirrorHtml(bc) {
       if (!c.playing) {
         clipHtml = '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">The host has not started the clip yet.</p>';
       } else if (bc.playingClip && c.videoId) {
-        clipHtml = '<div class="buzz-clip-frame"><iframe src="https://www.youtube.com/embed/' + esc(c.videoId) + '?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe></div>';
+        // The picture is the answer on a "name this opening" clue, so the frame
+        // stays blurred on the phone until the host reveals, exactly as it does
+        // on the big screen. Audio is unaffected.
+        clipHtml = '<div class="buzz-clip-frame' + (c.revealed ? '' : ' buzz-clip-hidden') + '">' +
+            '<iframe src="https://www.youtube.com/embed/' + esc(c.videoId) + '?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe>' +
+            (c.revealed ? '' : '<div class="buzz-clip-veil"><span>&#9834;</span><span class="buzz-clip-veil-text">AUDIO ONLY</span></div>') +
+          '</div>' +
+          (c.revealed ? '' : '<p class="buzz-timer-note">Video hidden until the host reveals the answer.</p>');
       } else {
         clipHtml = '<button class="big-gold" style="margin-top:10px;padding:14px" data-action="phonePlayClip">&#9654;&nbsp; Play the audio on this phone</button>' +
           '<p class="buzz-timer-note">Playing on the host screen now &mdash; tap to hear it here (headphones work best).</p>';
@@ -4072,6 +4619,78 @@ function spectateTimerHtml(bc) {
   var elapsed = Math.min(g.timerDuration, (Date.now() - bc.timerAnchor) / 1000);
   return '<div class="timer-track" style="max-width:640px;margin:18px auto 0"><div class="timer-bar" style="--timer-duration:' + g.timerDuration + 's;animation-delay:-' + elapsed.toFixed(2) + 's"></div></div>';
 }
+
+// ---- Host Control: the host's own phone ----
+// Holds the answer at all times, but only shows it when the host taps Peek,
+// and Peek never leaves this device — the big screen is unaffected.
+function viewHostControl(bc) {
+  var g = bc.game || {};
+  var c = g.clue;
+  var head = '<div class="hc-bar">' +
+      '<span class="hc-tag">HOST CONTROL</span>' +
+      '<button class="hc-leave" data-action="leaveBuzzer">Leave</button>' +
+    '</div>';
+
+  var scores = (g.scores || []).map(function (p, i) {
+    return '<div class="hc-score" data-key="hc-' + esc(p.name) + '">' +
+        '<span class="dot" style="background:' + esc(p.color || '#8b92c0') + '"></span>' +
+        '<span class="hc-score-name">' + esc(p.name) + (i === g.turn ? ' &middot;' : '') + '</span>' +
+        '<span class="hc-score-val">' + p.score + '</span>' +
+        (c ? '<button class="plus-btn hc-mini" data-action="hostScore" data-i="' + i + '" data-correct="1">+</button>' +
+             '<button class="minus-btn hc-mini" data-action="hostScore" data-i="' + i + '" data-correct="0">&minus;</button>' : '') +
+      '</div>';
+  }).join('');
+
+  if (!c) {
+    var waiting = g.final
+      ? 'Final Jeopardy &middot; ' + esc((g.final.category || '').toUpperCase())
+      : (g.pick && g.pick.turn ? esc(g.pick.turn) + ' is picking a tile' : 'Waiting for the next clue');
+    var finalPeek = (g.final && bc.peek && g.final.a)
+      ? '<div class="hc-answer">' + esc(g.final.a) + '</div>'
+      : '';
+    return head +
+      '<div class="hc-wrap">' +
+        '<p class="hc-waiting">' + waiting + '</p>' +
+        (g.final && g.final.a ? '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' + finalPeek : '') +
+        '<div class="hc-scores">' + scores + '</div>' +
+        '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' +
+      '</div>';
+  }
+
+  var peekBlock = bc.peek
+    ? '<div class="hc-answer">' + esc(c.a || '(no answer on this clue)') + '</div>' +
+      (c.note ? '<p class="hc-note">' + esc(c.note) + '</p>' : '')
+    : '<p class="hc-hidden">Answer hidden &mdash; only this phone can show it</p>';
+
+  var buzzLine = (g.buzz && g.buzz.winner)
+    ? '<div class="hc-buzz">' + esc(g.buzz.winner) + ' buzzed in</div>' : '';
+
+  var judge = (g.buzz && g.buzz.winner && !c.judged)
+    ? '<div class="hc-judge">' +
+        '<button class="hc-btn hc-right" data-action="hostJudge" data-correct="1">Right</button>' +
+        '<button class="hc-btn hc-wrong" data-action="hostJudge" data-correct="0">Wrong</button>' +
+      '</div>' : '';
+
+  return head +
+    '<div class="hc-wrap">' +
+      '<p class="hc-cat">' + esc((c.cat || '').toUpperCase()) + ' &middot; ' + (c.value || 0) + '</p>' +
+      '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio / video clue' : '')) + '</p>' +
+      (c.isVideo ? '<p class="hc-meta">' + (c.playing ? 'Clip is playing on the big screen' : 'Clip not started yet') + '</p>' : '') +
+      '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
+      peekBlock +
+      buzzLine +
+      judge +
+      '<div class="hc-actions">' +
+        (c.hostRevealed
+          ? '<button class="hc-btn hc-dim" data-action="hostToggleScreenAnswer">Toggle on big screen</button>'
+          : '<button class="hc-btn hc-reveal" data-action="hostReveal">Show answer on big screen</button>') +
+        '<button class="hc-btn hc-next" data-action="hostClose">Next clue</button>' +
+      '</div>' +
+      '<div class="hc-scores">' + scores + '</div>' +
+      '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' +
+    '</div>';
+}
+
 function viewSpectate(bc) {
   var g = bc.game || {};
   var backdrop = g.art ?
@@ -4155,6 +4774,13 @@ function viewBuzzer() {
       '</div>' +
     '</div></div>';
   }
+  if (bc.stage === "ready" && bc.role === "host") {
+    var hostBar = bc.disconnected ?
+      '<div class="buzz-reconnect-bar">Connection lost.' +
+        '<span><button data-action="reconnectBuzzer">Reconnect</button><button data-action="leaveBuzzer" style="color:#ff8aa0">Close</button></span>' +
+      '</div>' : '';
+    return hostBar + viewHostControl(bc);
+  }
   if (bc.stage === "ready" && bc.role === "screen") {
     var tvBar = bc.disconnected ?
       '<div class="buzz-reconnect-bar">Connection lost.' +
@@ -4209,6 +4835,14 @@ function viewBuzzer() {
       (bc.msg ? '<p class="err">' + esc(bc.msg) + '</p>' : '') +
       '<button class="big-gold" data-action="submitBuzzerJoin"' + (connecting ? " disabled" : "") + '>' + (connecting ? "Connecting&hellip;" : "Join Room") + '</button>' +
       '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="watchAsTv"' + (connecting ? " disabled" : "") + '>Watch on TV (no buzzer)</button>' +
+      '<div class="host-claim">' +
+        '<p class="host-claim-lbl">Hosting from this phone?</p>' +
+        '<div class="host-claim-row">' +
+          '<input class="input" id="hostPinInput" maxlength="4" inputmode="numeric" placeholder="PIN" value="' + esc(bc.hostPin || "") + '"' + (connecting ? " disabled" : "") + ' />' +
+          '<button class="btn-gold" data-action="controlAsHost"' + (connecting ? " disabled" : "") + '>Host Control</button>' +
+        '</div>' +
+        '<p class="host-claim-hint">The 4-digit PIN is on the host screen. Host Control shows you the answers privately.</p>' +
+      '</div>' +
       '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back</button>' +
     '</div>' +
   '</div></div>';
@@ -4289,8 +4923,20 @@ function settingsPanelHtml() {
   var content = setToggleRow("toggleAdultMode", "After Dark 18+",
     state.adultEnabled ? "Unlocked &middot; mature boards are visible" : "Off &middot; hides the mature board section", state.adultEnabled, true);
 
+  var feel = setToggleRow("toggleJuice", "Motion &amp; Effects",
+      "Shakes, slides, pop-ins and takeovers", state.juice !== false) +
+    (HAS_VIBRATE
+      ? setToggleRow("toggleHaptics", "Vibration", "Haptic taps on this phone", !!state.haptics)
+      : '<div class="set-row set-row-static set-row-off">' +
+          '<span class="set-main"><span class="set-name">Vibration</span>' +
+            '<span class="set-desc">Not supported by this browser &mdash; iPhones cannot vibrate from a web page</span>' +
+          '</span>' +
+          '<span class="switch"></span>' +
+        '</div>');
+
   return '<div class="settings-panel">' +
     setGroup("AUDIO", audio) +
+    setGroup("FEEL", feel) +
     setGroup("GAMEPLAY", gameplay) +
     setGroup("PHONE ROOM", room) +
     setGroup("CONTENT", content) +
@@ -4314,7 +4960,14 @@ function viewHostRoom() {
   } else if (b.status === "error") {
     statusLine = '<p class="err" style="text-align:center">Room connection lost. Close and reopen the room.</p>';
   } else {
-    statusLine = '<p class="host-join-line">Scan the code, or open <strong>' + esc(joinUrl) + '</strong> and tap <strong>JOIN A ROOM</strong>.</p>';
+    statusLine = '<p class="host-join-line">Scan the code, or open <strong>' + esc(joinUrl) + '</strong> and tap <strong>JOIN A ROOM</strong>.</p>' +
+      (b.hostPin ?
+        '<p class="host-join-line" style="margin-top:6px">Hosting from your own phone? Join, then enter host PIN ' +
+          '<span class="host-pin-chip">' + esc(b.hostPin) + '</span>' +
+          (b.hostClaimed ? ' &middot; <span style="color:#7ee2b0;font-weight:800">host phone connected</span>' : '') +
+        '</p>' +
+        '<p class="buzz-timer-note" style="text-align:center">Keep this PIN to yourself &mdash; it shows the answers.</p>'
+      : '');
   }
   var qrBlock = "";
   if (b.status === "open" && b.code) {
@@ -4389,8 +5042,16 @@ function viewDailyDoubleWager() {
 function isActiveVideoPlaying() {
   return !!state.active && state.playing && !!questionItem().id;
 }
+// Returns a blank clue rather than throwing: the board can disappear from
+// under an open question (New Players, Switch Board, a stale restore), and a
+// render must never die halfway through and leave a blank screen.
+var EMPTY_CLUE = { value: 0, q: "", a: "" };
 function questionItem() {
-  return currentBoard().textBoard[state.active.catKey].questions[state.active.qIndex];
+  var b = currentBoard();
+  if (!b || !state.active) return EMPTY_CLUE;
+  var col = b.textBoard[state.active.catKey];
+  if (!col || !col.questions) return EMPTY_CLUE;
+  return col.questions[state.active.qIndex] || EMPTY_CLUE;
 }
 function alignmentAnswerWord(a) {
   if (/^Hero/i.test(a)) return "Hero";
@@ -4548,7 +5209,7 @@ function viewClueFooter() {
   var scoreBlock = "";
   if (state.revealed && !state.answerHidden) {
     var rows = state.players.map(function (p, i) {
-      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '">' +
+      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '" data-key="clue-score-' + esc(p.name) + '">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
         '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
         '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
@@ -4648,10 +5309,14 @@ function viewWin() {
 function viewBoard() {
   var board = currentBoard();
   var categories = getCategories();
+  var cascade = !!state.cascadeBoard && juiceOn();
+  state.cascadeBoard = false; // one shot, so re-renders do not replay it
 
   var chips = state.players.map(function (p, i) {
     var on = i === state.turn;
-    return '<div class="chip" style="background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
+    var st = p.streak || 0;
+    var charge = state.roomRules.streakBonus && st > 0 && st < 3 ? ' chip-charge chip-charge-' + st : '';
+    return '<div class="chip' + (on ? ' chip-turn' : '') + charge + '" data-key="chip-' + esc(p.name) + '" style="--pc:' + p.color + ';background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
       '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
       (state.roomRules.streakBonus && (p.streak || 0) >= 3 ? '<span class="chip-fx chip-fx-good" title="On a streak">STREAK ' + p.streak + '</span>' : '') +
@@ -4674,7 +5339,9 @@ function viewBoard() {
       var val = col.questions[row].value * roundMultiplier();
       var bgc = isUsed ? "#10142e" : (isVideoTile ? "#3a1d3f" : "#1d2455");
       var fgc = isUsed ? "#2a2f55" : gold;
-      tiles += '<button class="tile" style="background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
+      // diagonal cascade: delay grows with row + column so tiles sweep in
+      var casc = cascade ? ' tile-cascade" style="--d:' + (0.028 * (row + ci)).toFixed(3) + 's;' : '" style="';
+      tiles += '<button class="tile' + casc + 'background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
         (isUsed ? "disabled" : 'data-action="open" data-cat="' + ci + '" data-row="' + row + '"') + '>' +
         (isUsed ? "" : val) + '</button>';
     }
@@ -4682,8 +5349,8 @@ function viewBoard() {
 
   var menu = renderMenu(withUndo(gameMenuItems(true)));
 
-  return menu + stageBackdropHtml() + '<div style="min-height:100vh;padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div style="max-width:820px;margin:0 auto">' +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">' + chips + '</div>' +
+  return menu + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
+    '<div class="board-chiprow">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(state.players[state.turn].name) + "'s pick" +
     '</div>' +
@@ -4938,8 +5605,55 @@ function renderImportPrompt() {
 }
 
 // ---- render + events ----
+// Phases that need a live board cannot survive without one. Rather than
+// rendering into nothing, step back to a screen that makes sense.
+function ensureConsistentState() {
+  // Any hole or junk entry in the player list poisons every p.name/p.score
+  // read downstream, so scrub it once here rather than guarding 50 call sites.
+  if (Array.isArray(state.players)) {
+    var clean = state.players.filter(function (p) { return p && typeof p.name === "string"; });
+    if (clean.length !== state.players.length) state.players = clean;
+  } else {
+    state.players = [];
+  }
+  var needsBoard = state.phase === "board" || state.phase === "question" ||
+                   state.phase === "final" || state.phase === "interlude";
+  // Removing every player mid-game used to crash these screens, because they
+  // read state.players[state.turn] directly. Send the host back to set-up.
+  if (needsBoard && (!state.players || !state.players.length)) {
+    state.active = null;
+    state.wagering = false;
+    state.revealed = false;
+    state.phase = "players";
+    return;
+  }
+  // the turn pointer can also outlive the player it pointed at
+  if (state.players && state.players.length && state.turn >= state.players.length) {
+    state.turn = 0;
+  }
+  if (needsBoard && !currentBoard()) {
+    state.active = null;
+    state.wagering = false;
+    state.revealed = false;
+    state.wager = null;
+    state.phase = (state.players && state.players.length) ? "boards" : "players";
+    return;
+  }
+  // an out-of-range clue reference is the same problem one level down
+  if (state.phase === "question" && state.active) {
+    var b = currentBoard();
+    var col = b && b.textBoard[state.active.catKey];
+    if (!col || !col.questions || !col.questions[state.active.qIndex]) {
+      state.active = null;
+      state.wagering = false;
+      state.phase = "board";
+    }
+  }
+}
 function render() {
   var root = document.getElementById("root");
+  ensureConsistentState();
+  flipCapture(); // measure the outgoing DOM before it is replaced
   var html;
   if (state.wheel) html = viewWheel();
   else if (state.phase === "buzzer") html = viewBuzzer();
@@ -4958,6 +5672,7 @@ function render() {
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
   root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate();
+  flipPlay(); // slide anything that moved from where it used to be
   saveGameSnapshot();
   broadcastSync();
   syncThinkLoop();
@@ -4980,6 +5695,11 @@ function render() {
   var phoneWagerField = document.getElementById("phoneWagerInput");
   if (phoneWagerField) {
     phoneWagerField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.wagerInput = e.target.value; });
+  }
+  var hostPinField = document.getElementById("hostPinInput");
+  if (hostPinField) {
+    hostPinField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.hostPin = e.target.value; });
+    hostPinField.addEventListener("keydown", function (e) { if (e.key === "Enter") controlAsHost(); });
   }
   var buzzCodeField = document.getElementById("buzzCodeInput");
   if (buzzCodeField) {
@@ -5049,6 +5769,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   var t = e.target.closest("[data-action]");
   if (!t) return;
   var action = t.getAttribute("data-action");
+  hap(action === "open" || action === "selectBoard" ? "press" : "tap");
   if (action === "selectBoard") selectBoard(t.getAttribute("data-id"));
   else if (action === "continueToBoards") continueToBoards();
   else if (action === "editPlayers") editPlayers();
@@ -5097,6 +5818,14 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleStreakBonus") toggleStreakBonus();
   else if (action === "toggleOneBuzz") toggleOneBuzz();
   else if (action === "watchAsTv") watchAsTv();
+  else if (action === "controlAsHost") controlAsHost();
+  else if (action === "hostPeek") toggleHostPeek();
+  else if (action === "hostReveal") sendHostCmd("reveal");
+  else if (action === "hostToggleScreenAnswer") sendHostCmd("toggleAnswerOnScreen");
+  else if (action === "hostClose") sendHostCmd("close");
+  else if (action === "hostUndo") sendHostCmd("undo");
+  else if (action === "hostJudge") sendHostCmd("judge", { correct: t.getAttribute("data-correct") === "1" });
+  else if (action === "hostScore") sendHostCmd("score", { playerIndex: +t.getAttribute("data-i"), correct: t.getAttribute("data-correct") === "1" });
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
   else if (action === "submitBuzzerJoin") submitBuzzerJoin();
   else if (action === "sendBuzz") sendBuzz();
@@ -5148,6 +5877,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
+  else if (action === "toggleJuice") toggleJuice();
+  else if (action === "toggleHaptics") toggleHaptics();
   else if (action === "openWheel") openWheel();
   else if (action === "closeWheel") closeWheel();
   else if (action === "chooseWheelTarget") chooseWheelTarget(t.getAttribute("data-mode"));
