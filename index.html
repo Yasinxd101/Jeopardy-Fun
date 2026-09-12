@@ -1757,7 +1757,8 @@ function loadFanBoards() {
     .catch(function () {});
 }
 
-var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c"];
+var MAX_PLAYERS = 8;
+var PLAYER_COLORS = ["#ff5470", "#3da9fc", "#2cb67d", "#ff8906", "#a786df", "#f25f4c", "#22d3ee", "#e879f9"];
 var gold = "#ffd166";
 
 // ---- state ----
@@ -2424,7 +2425,7 @@ function handleBuzzerData(conn, d) {
     conn.buzzName = clampName(d.name) || "Player";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     var idx = playerIndexByName(conn.buzzName);
-    if (idx === -1 && state.players.length < 6) {
+    if (idx === -1 && state.players.length < MAX_PLAYERS) {
       state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), shape: d.shape || "circle", immune: false, skipNextTurn: false });
       idx = state.players.length - 1;
     } else if (idx !== -1 && d.shape) {
@@ -3274,7 +3275,7 @@ var MAX_NAME = 14;
 function clampName(n) { return String(n == null ? "" : n).trim().slice(0, MAX_NAME); }
 function addPlayer() {
   var name = clampName(state.nameInput);
-  if (!name || state.players.length >= 6) return;
+  if (!name || state.players.length >= MAX_PLAYERS) return;
   var dupe = state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); });
   if (dupe) { state.nameError = '"' + name + '" is already taken. Pick a different name.'; render(); return; }
   state.players.push({ name: name, score: 0, color: nextAvailableColor(), shape: nextAvatarShape(), immune: false, skipNextTurn: false });
@@ -4613,7 +4614,7 @@ function viewPlayers() {
       '<button class="x-btn" data-action="remove" data-i="' + i + '">&times;</button>' +
     '</div>';
   }).join("");
-  if (!state.players.length) playerRows = '<p class="muted">No players yet. Add up to 6.</p>';
+  if (!state.players.length) playerRows = '<p class="muted">No players yet. Add up to ' + MAX_PLAYERS + '.</p>';
 
   var save = savedGame();
   var resumeCard = "";
