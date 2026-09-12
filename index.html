@@ -1067,7 +1067,7 @@
   .more-toggle {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     width: 100%; background: none; border: none; margin-top: 16px;
-    color: #6a72a8; font-family: inherit; font-weight: 800; font-size: 12.5px;
+    color: #9aa2cc; font-family: inherit; font-weight: 800; font-size: 12.5px;
     letter-spacing: 1px; cursor: pointer; padding: 8px;
   }
   .more-caret { font-size: 11px; }
@@ -1099,7 +1099,10 @@
     animation: tk-in 0.2s ease both;
   }
   .help-sheet {
-    width: 100%; max-width: 620px; max-height: 88vh; display: flex; flex-direction: column;
+    /* min-width:0 kills the flex min-content floor, which was letting the
+       sheet grow past a 320px screen and push the page sideways. */
+    width: 100%; max-width: 620px; min-width: 0; max-height: 88vh;
+    display: flex; flex-direction: column;
     background: #131838; border: 1px solid #2a2f55; border-radius: 20px 20px 0 0;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
     animation: help-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1114,14 +1117,14 @@
     background: none; border: none; color: #aab0d8; font-size: 26px; line-height: 1;
     cursor: pointer; padding: 0 6px; min-width: 40px; min-height: 40px;
   }
-  .help-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 16px 26px; }
+  .help-body { overflow-y: auto; overflow-x: hidden; min-width: 0; -webkit-overflow-scrolling: touch; padding: 4px 16px 26px; }
   .help-sec { margin-top: 18px; }
   .help-h {
     margin: 0 0 8px; font-size: 13px; font-weight: 900; letter-spacing: 1px;
     color: #fff; text-transform: uppercase;
   }
   .help-list { margin: 0; padding-left: 18px; }
-  .help-list li { color: #c2c8ea; font-size: 14px; line-height: 1.55; margin-bottom: 7px; }
+  .help-list li { color: #c2c8ea; font-size: 14px; line-height: 1.55; margin-bottom: 7px; overflow-wrap: anywhere; }
   .help-list strong { color: #ffd166; }
   @media (prefers-reduced-motion: reduce) { .help-overlay, .help-sheet { animation: none; } }
 
@@ -2205,8 +2208,21 @@ function flipPlay() {
 }
 
 // Impact: a short shake on the whole stage for the moments that should land.
+// The shake lives on #root, which is also the ancestor of every overlay. A
+// transformed ancestor becomes the containing block for position:fixed, so a
+// shake running under an open sheet drags it sideways and scrolls the page.
+// Overlays and the shake simply never need to happen at the same time.
+function modalOpen() {
+  return !!(state.helpOpen || state.menuOpen || state.confirm || state.adultGate);
+}
+function stopShake() {
+  var root = document.getElementById("root");
+  if (!root || !root.classList.contains("shake-now")) return;
+  root.classList.remove("shake-now");
+  root.style.willChange = "";
+}
 function shakeScreen(strength) {
-  if (!juiceOn()) return;
+  if (!juiceOn() || modalOpen()) return;
   var root = document.getElementById("root");
   if (!root) return;
   root.style.setProperty("--shake-amp", (strength || 7) + "px");
@@ -3712,6 +3728,7 @@ function jfSaveSettings() {
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
     juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit, gameMode: state.gameMode,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
+    playStyle: state.playStyle,
   });
 }
 function loadSettings() {
@@ -3723,6 +3740,7 @@ function loadSettings() {
   state.adultEnabled = !!s0.adultEnabled;
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
+  if (s0.playStyle === "screen" || s0.playStyle === "buzzers") state.playStyle = s0.playStyle;
   if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
   if (typeof s0.gameMode === "string" && GAME_MODES.some(function (m) { return m.id === s0.gameMode; })) state.gameMode = s0.gameMode;
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
@@ -4356,39 +4374,53 @@ function renderHelp() {
           "Right adds the points. Wrong takes them away.",
           "When every tile is gone, you finish with Final Jeopardy.",
         ]) +
-        helpSection("Everyone on one screen", [
-          "Add each player's name, pick a board, and play off the one device.",
-          "Whoever's turn it is picks the next tile.",
-          "Use the <strong>+</strong> and <strong>&minus;</strong> buttons under the answer to score.",
+        helpSection("Setting up", [
+          "Type in everyone's name, then choose how you are playing.",
+          "<strong>One screen</strong> means you all look at this device and the host says who answered first.",
+          "<strong>Phone buzzers</strong> means everyone joins on their own phone and races to buzz in.",
+          "Then tap the big button to pick a board. Whoever's turn it is picks the next tile.",
           "Playing alone works the same way &mdash; add just yourself and keep your own score.",
         ]) +
         helpSection("Phones as buzzers", [
-          "On the big screen tap <strong>HOST A ROOM</strong>. It shows a room code and a QR code.",
-          "Everyone else opens the same link on their phone and taps <strong>JOIN A ROOM</strong>.",
+          "Choose <strong>Phone buzzers</strong> and the room opens on the way to the board picker.",
+          "The room screen shows a QR code; the code and PIN stay covered until you tap <strong>Show code</strong>.",
+          "Everyone else opens the same link and taps <strong>JOIN SOMEONE ELSE&rsquo;S ROOM</strong>.",
           "They type the code and their name, and get a big buzzer.",
           "First phone to press wins the buzz. The host taps Right or Wrong.",
           "<strong>Watch on TV</strong> joins a screen that follows the game with no buzzer.",
         ]) +
         helpSection("Running it from your phone", [
-          "The host screen has a 4-digit <strong>host PIN</strong>. Keep it to yourself &mdash; it shows the answers.",
-          "On your phone: JOIN A ROOM, enter the PIN, tap <strong>Host Control</strong>.",
+          "The room screen has a 4-digit <strong>host PIN</strong>. Keep it to yourself &mdash; it shows the answers.",
+          "On your phone: join the room, enter the PIN, tap <strong>Host Control</strong>.",
           "<strong>Peek</strong> shows the answer to you only. The big screen does not change.",
-          "From there you can reveal, judge, score, and start or stop the music.",
+          "From there you can reveal, judge, score, start or stop the music, and run all of Final Jeopardy.",
         ]) +
         helpSection("Daily Double and Final", [
           "One hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
           "Bet high and a right answer pays big; a wrong one costs the same.",
           "In <strong>Final Jeopardy</strong> everyone bets secretly, then answers one last question.",
+          "The host screen shows who has their answer in, then reveals it and marks each person.",
+          "If nobody is going to answer, <strong>Skip</strong> jumps straight to the results.",
         ]) +
         helpSection("Music and picture questions", [
           "Some questions play a song. The host picks how long it plays and taps Play.",
-          "Each phone needs one tap on <strong>Turn on sound</strong> before audio can start by itself.",
+          "Each phone needs one tap on <strong>Turn on sound for this phone</strong> before audio can start by itself.",
+          "A phone joining late picks the song up wherever the host already is.",
           "The video stays hidden while it plays, so the picture cannot give it away.",
+        ]) +
+        helpSection("House rules you can turn on", [
+          "<strong>Host Reads It Out</strong> hides the question until the host shows it, so buzzing first is a gamble rather than a reading race.",
+          "<strong>No Minus Points</strong> and <strong>Never Below Zero</strong> keep scores from going backwards.",
+          "<strong>Streak Bonus</strong> pays +100 for every three right in a row.",
+          "<strong>One Buzz Per Question</strong> gives each player a single shot.",
+          "<strong>Correct Answer Picks Next</strong> hands the board to whoever just got it right.",
         ]) +
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
+          "First pick goes to a random player, so nobody gets it just for typing their name first.",
+          "<strong>More options</strong> on the start screen holds settings, the board maker, and your stats.",
           "Settings has sound, motion, vibration, and the 18+ section, which is off until you turn it on.",
-          "<strong>Make your own board</strong> lives under the My Boards tab when you pick a board.",
+          "<strong>Make or import a board</strong> is on the start screen under More options.",
         ]) +
       '</div>' +
     '</div>' +
@@ -6537,6 +6569,7 @@ function ensureConsistentState() {
 function render() {
   var root = document.getElementById("root");
   ensureConsistentState();
+  if (modalOpen()) stopShake();  // never leave a shake running under a sheet
   flipCapture(); // measure the outgoing DOM before it is replaced
   var html;
   if (state.wheel) html = viewWheel();
