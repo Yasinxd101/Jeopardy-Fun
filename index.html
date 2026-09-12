@@ -6024,22 +6024,27 @@ function viewAlignmentChoices(item) {
 function viewClueMedia() {
   var item = questionItem();
   var isVideo = !!item.id;
-  // Read-aloud mode holds the text back so buzzing in is about knowing the
-  // answer, not about reading fastest.
-  if (questionHidden()) {
-    return '<div class="clue-box clue-box-hidden">' +
-        '<span class="read-aloud-tag">THE HOST IS READING IT OUT</span>' +
-        '<span class="read-aloud-sub">Buzz when you know it. Guess early at your own risk.</span>' +
-      '</div>' +
-      '<button class="big-gold" data-action="showQuestionText">Show the question on screen</button>';
-  }
+  // Read-aloud mode holds back the TEXT so buzzing in is about knowing the
+  // answer rather than reading fastest. Art and audio still play: on a "name
+  // this song" clue the media IS the question, and hiding it would leave
+  // nothing to go on. Phones already behave this way.
+  var hidden = questionHidden();
+  var hiddenBox =
+    '<div class="clue-box clue-box-hidden">' +
+      '<span class="read-aloud-tag">THE HOST IS READING IT OUT</span>' +
+      '<span class="read-aloud-sub">Buzz when you know it. Guess early at your own risk.</span>' +
+    '</div>' +
+    '<button class="big-gold" data-action="showQuestionText">Show the question on screen</button>';
+  var art = item.img
+    ? '<img class="clue-img" src="' + esc(item.img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">'
+    : '';
   if (!isVideo) {
-    return '<div class="clue-box">' + esc(item.q) + '</div>' +
-      (item.img ? '<img class="clue-img" src="' + esc(item.img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
+    if (hidden) return hiddenBox + art;
+    return '<div class="clue-box">' + esc(item.q) + '</div>' + art +
       (item.format === "alignmentChoice" ? viewAlignmentChoices(item) :
         item.format === "sequence" ? viewSequenceClue(item) : "");
   }
-  var prompt = item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "";
+  var prompt = hidden ? hiddenBox : (item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "");
   var player;
   if (state.playing) {
     var hideChrome = isVideoBlurred();
