@@ -178,6 +178,14 @@
     line-height: 1.5; text-align: center; font-weight: 600; min-height: 90px;
     display: flex; align-items: center; justify-content: center;
   }
+  /* read-aloud mode: the text is withheld while the host reads it out */
+  .clue-box-hidden {
+    flex-direction: column; gap: 8px; background: #141833;
+    border: 2px dashed #3a4070; text-align: center;
+  }
+  .read-aloud-tag { font-size: 15px; font-weight: 900; letter-spacing: 2px; color: #ffd166; }
+  .read-aloud-sub { font-size: 13px; font-weight: 600; color: #8b92c0; line-height: 1.4; }
+
   .play-cover {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     background: #080a18; color: #fff; cursor: pointer; display: flex; flex-direction: column;
@@ -930,6 +938,24 @@
   }
   .hc-note { margin: 8px 0 0; color: #8b92c0; font-size: 12px; line-height: 1.4; text-align: center; }
   .hc-hidden { margin: 10px 0 0; text-align: center; color: #6a72a8; font-size: 12px; font-weight: 700; }
+  /* Final Jeopardy judged from the host's phone */
+  .hc-final-q { margin: 10px 0 0; font-size: 15px; font-weight: 700; line-height: 1.4; text-align: center; overflow-wrap: anywhere; }
+  .hc-final-row {
+    margin-top: 10px; background: #11152f; border: 1px solid #2a2f55;
+    border-radius: 12px; padding: 10px 12px;
+  }
+  .hc-final-top { display: flex; align-items: center; gap: 8px; }
+  .hc-final-wager { font-size: 11px; color: #8b92c0; font-weight: 700; }
+  .hc-final-wrote {
+    margin: 8px 0; font-size: 14px; font-weight: 700; color: #ffd166;
+    line-height: 1.35; overflow-wrap: anywhere;
+  }
+  .hc-final-wrote em { color: #6a72a8; font-weight: 600; }
+  .hc-final-btns { display: flex; gap: 8px; }
+  .hc-mini2 { padding: 10px 8px; font-size: 13px; }
+  .hc-final-right { display: block; font-weight: 900; font-size: 13px; color: #7ee2b0; }
+  .hc-final-wrong { display: block; font-weight: 900; font-size: 13px; color: #ff8aa0; }
+  .hc-final-skip { display: block; font-weight: 900; font-size: 13px; color: #6a72a8; }
   .hc-buzz {
     margin-top: 14px; padding: 10px; border-radius: 10px; text-align: center;
     background: rgba(255, 209, 102, 0.14); color: #ffd166; font-weight: 900; font-size: 14px;
@@ -973,6 +999,79 @@
   .phone-score-rank { font-weight: 900; font-size: 11px; color: #6a72a8; min-width: 12px; }
   .phone-score-name { flex: 1; min-width: 0; font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .phone-score-val { font-weight: 900; font-size: 13px; color: #ffd166; }
+
+  /* Final Jeopardy: who has their answer in, on the host's big screen */
+  .final-in-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+  .final-in {
+    display: inline-flex; align-items: center; gap: 6px; background: #11152f;
+    border: 1px solid #2a2f55; border-radius: 999px; padding: 6px 12px;
+    font-weight: 700; font-size: 13px; color: #8b92c0; max-width: 100%;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .final-in-yes { border-color: #2cb67d; color: #7ee2b0; }
+  .final-in-mark { font-weight: 900; font-size: 12px; }
+  .final-in-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .final-in-note { text-align: center; color: #8b92c0; font-size: 13px; font-weight: 600; margin: 10px 0 0; }
+  .final-recap-q {
+    background: #1d2455; border-radius: 14px; padding: 16px 18px; font-size: 16px;
+    line-height: 1.45; text-align: center; font-weight: 600; margin-bottom: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Final Jeopardy results as they land on a player's phone */
+  .final-phone-answer {
+    background: #10142e; border: 1px solid #ffd166; border-radius: 12px;
+    padding: 12px 14px; margin: 12px 0 4px; text-align: center;
+    font-weight: 900; font-size: 16px; color: #ffd166; line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .final-phone-board { margin-top: 12px; }
+  .final-phone-row {
+    display: flex; align-items: baseline; gap: 8px; background: #0d1230;
+    border-radius: 9px; padding: 7px 10px; margin-bottom: 5px;
+    border-left: 3px solid #3a4070;
+  }
+  .final-phone-right { border-left-color: #2cb67d; }
+  .final-phone-wrong { border-left-color: #ff5470; }
+  .final-phone-mark { font-weight: 900; font-size: 12px; color: #6a72a8; }
+  .final-phone-right .final-phone-mark { color: #2cb67d; }
+  .final-phone-wrong .final-phone-mark { color: #ff5470; }
+  .final-phone-name { font-weight: 800; font-size: 12px; max-width: 33%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .final-phone-wrote { flex: 1; min-width: 0; font-size: 12px; color: #aab0d8; overflow-wrap: anywhere; }
+  .final-phone-wrote em { color: #6a72a8; }
+  .final-phone-wager { font-weight: 900; font-size: 12px; color: #ffd166; }
+  .final-phone-wrong .final-phone-wager { color: #ff5470; }
+  .final-phone-right .final-phone-wager { color: #2cb67d; }
+
+  /* "how are you playing" picker on the start screen */
+  .play-style { margin-top: 18px; }
+  .play-style-head { margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .play-opt {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    background: #0d1230; border: 1px solid #2a2f55; border-radius: 12px;
+    padding: 11px 12px; margin-bottom: 8px; color: #fff; cursor: pointer;
+    font-family: inherit; transition: border-color 0.18s ease, background 0.18s ease;
+  }
+  .play-opt-on { border-color: #ffd166; background: #191f44; }
+  .play-opt-tick {
+    flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%;
+    border: 2px solid #3a4070; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #0b0f24;
+  }
+  .play-opt-on .play-opt-tick { background: #ffd166; border-color: #ffd166; }
+  .play-opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .play-opt-title { font-weight: 800; font-size: 14px; }
+  .play-opt-sub { font-size: 12px; color: #8b92c0; line-height: 1.35; }
+
+  /* the fold-away half of the start screen */
+  .more-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; background: none; border: none; margin-top: 16px;
+    color: #6a72a8; font-family: inherit; font-weight: 800; font-size: 12.5px;
+    letter-spacing: 1px; cursor: pointer; padding: 8px;
+  }
+  .more-caret { font-size: 11px; }
+  .more-panel { margin-top: 4px; animation: mirror-fade 0.2s ease both; }
 
   /* game mode picker on the main menu */
   .mode-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 18px; }
@@ -1802,12 +1901,15 @@ var state = {
   editingPlayerIndex: null,
   editingScoreIndex: null,
   nextShape: null,        // avatar shape chosen for the next player added
-  roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1 },
+  roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false },
+  questionShown: false,   // read-aloud mode: has the host put the text on screen yet
   dailyDoubles: [],       // all hidden daily double tiles this round
   buzzedThisClue: {},     // playerIndex map for the one buzz per clue rule
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
+  setupMoreOpen: false,   // the fold-away half of the start screen
+  playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
   wheelRemoved: { chaos: [], success: [], failure: [] },  // segment ids permanently removed per wheel
   wheel: null,            // {activeWheel, stage, targetIndex, segmentId, rotation, triviaQ, showTriviaAnswer, judged, summary, summaryGood, opponentIndex, chainNote}
@@ -2308,6 +2410,8 @@ function startBuzzerRoom() {
   if (!buzzerAvailable()) { state.buzzer.status = "unavailable"; render(); return; }
   var code = makeRoomCode();
   lastSyncBase = "";
+  // a fresh room means a fresh code and PIN, so cover them again
+  state.showRoomCode = false;
   state.buzzer.on = true;
   state.buzzer.code = code;
   state.buzzer.hostPin = String(Math.floor(1000 + Math.random() * 9000));
@@ -2384,6 +2488,18 @@ function applyHostCommand(d) {
     adjustClipLimit(+d.delta || 0);
   } else if (cmd === "undo") {
     undoLastScore();
+  } else if (cmd === "showQuestion") {
+    showQuestionText();
+  } else if (cmd === "finalReveal") {
+    if (state.phase === "final" && state.finalStage === "clue") revealFinalAnswer();
+  } else if (cmd === "markFinal") {
+    var fi = +d.playerIndex;
+    if (state.phase === "final" && state.finalStage === "answer" &&
+        state.players[fi] && !state.finalResults[fi]) markFinal(fi, !!d.correct);
+  } else if (cmd === "finishFinal") {
+    if (state.phase === "final" && state.finalStage === "answer") finishFinal();
+  } else if (cmd === "skipFinal") {
+    if (state.phase === "final" && state.finalStage === "answer") skipFinal();
   }
   renderOrUpdateClue();
 }
@@ -2595,7 +2711,10 @@ function buzzerSyncPayload() {
       cat: currentBoard().textBoard[state.active.catKey].category,
       value: activeValue(),
       wagering: !!state.wagering,
-      q: state.wagering ? "" : (item.q || ""),
+      // In read-aloud mode the text is withheld from every screen until the
+      // host shows it, phones included.
+      hiddenQ: questionHidden(),
+      q: (state.wagering || questionHidden()) ? "" : (item.q || ""),
       isVideo: !!item.id,
       videoId: state.wagering ? null : (item.id || null),
       playing: !!state.playing,
@@ -2617,6 +2736,9 @@ function buzzerSyncPayload() {
       var ddp = state.players[state.turn];
       if (ddp) p.clue.dd = { player: ddp.name, cap: ddWagerCap(ddp) };
     }
+    if (state.wager != null && state.players[state.turn]) {
+      p.clue.ddOwner = state.players[state.turn].name; // their question alone
+    }
     p.buzz = { winner: state.buzzer.winnerName || null, armed: !!state.buzzer.armed };
     if (state.timerEnabled && !state.revealed && !state.wagering) p.timerDuration = state.timerDuration;
   } else if (state.phase === "board" && state.boardId && !state.wheel) {
@@ -2635,7 +2757,16 @@ function buzzerSyncPayload() {
       var pend = state.players[state.finalPlayerIndex];
       if (pend) { p.final.pending = pend.name; p.final.cap = Math.max(pend.score, 0); }
     } else {
-      p.final.q = fin.q; // the clue is public once wagers are locked; the answer never is
+      p.final.q = fin.q; // the question is public once wagers are locked
+      if (state.finalStage === "answer" && state.phoneMirror) {
+        p.final.a = fin.a; // the host has revealed it, so it is public now
+        p.final.board = state.players.map(function (pl, i) {
+          var r = state.finalResults[i];
+          return { name: pl.name, score: pl.score, wager: state.finalWagers[i] || 0,
+                   wrote: state.finalAnswers[i] || "",
+                   result: r === "correct" ? "right" : r === "incorrect" ? "wrong" : "skip" };
+        });
+      }
       if (state.finalStage === "clue") {
         p.final.answered = Object.keys(state.finalAnswers).map(function (i) {
           return state.players[i] ? state.players[i].name : "";
@@ -2682,6 +2813,7 @@ function extendHostPayload(p) {
     p.clue.a = hitem.a;
     p.clue.note = hitem.note || null;
     p.clue.aimg = hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null);
+    p.clue.q = hitem.q || "";                 // the host always has the text
     p.clue.hostRevealed = !!state.revealed;   // what the big screen is showing
     p.clue.judged = !!state.judgedThisClue;
     p.clue.value = activeValue();
@@ -2689,6 +2821,17 @@ function extendHostPayload(p) {
   if (state.phase === "final" && p.final) {
     p.final.q = currentBoard().final.q;
     p.final.a = currentBoard().final.a;
+    // Everything the host needs to judge Final from their own phone.
+    p.final.board = state.players.map(function (pl, i) {
+      var r = state.finalResults[i];
+      return { name: pl.name, color: pl.color, shape: pl.shape, score: pl.score,
+               wager: state.finalWagers[i] || 0,
+               wagerSet: state.finalWagers[i] != null,
+               wrote: state.finalAnswers[i] || "",
+               result: r === "correct" ? "right" : r === "incorrect" ? "wrong" : r === "skipped" ? "skip" : "" };
+    });
+    p.final.allMarked = state.players.every(function (pl, i) { return !!state.finalResults[i]; });
+    p.final.canUndo = !!state.lastScoreChange;
   }
   p.hostControl = true;
   p.scores = state.players.map(function (pl) {
@@ -3176,6 +3319,7 @@ function exportBuilderJson() {
   document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
 }
+var importMsgTimer = null;
 function importBoardFile(file) {
   var reader = new FileReader();
   reader.onload = function () {
@@ -3204,6 +3348,13 @@ function importBoardFile(file) {
     state.importFileMsg = msg;
     state.boardsTab = "My Boards";
     render();
+    if (importMsgTimer) clearTimeout(importMsgTimer);
+    importMsgTimer = setTimeout(function () {
+      importMsgTimer = null;
+      if (!state.importFileMsg) return;
+      state.importFileMsg = "";
+      render();
+    }, 4000);
   };
   reader.readAsText(file);
 }
@@ -3291,7 +3442,16 @@ function removePlayer(i) {
 }
 function continueToBoards() {
   if (!modeIsReady()) return; // the mode is scaffolding only
-  if (state.players.length) { state.phase = "boards"; render(); }
+  if (!state.players.length) return;
+  // On phone-buzzer nights the room has to exist before anyone can join, so
+  // the start button takes you through the room screen on the way.
+  if (state.playStyle === "buzzers" && !state.buzzer.on) {
+    openHostRoom();
+    state.hostRoomReturn = "boards";   // "Done" on the room screen goes forward
+    return;
+  }
+  state.phase = "boards";
+  render();
 }
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
 function previewBoard(id) {
@@ -3419,7 +3579,7 @@ function selectBoard(id) {
   state.matchPending = null;
   state.boardId = id;
   state.used = {};
-  state.turn = 0;
+  state.turn = randomStartTurn();
   state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
@@ -3451,7 +3611,7 @@ function selectRound2(id) {
   state.matchPending = null;
   state.boardId = round1;
   state.used = {};
-  state.turn = 0;
+  state.turn = randomStartTurn();
   state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
@@ -3510,6 +3670,7 @@ function newPlayers() {
   state.revealed = false;
   state.answerHidden = false;
   state.judgedThisClue = false;
+  state.questionShown = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -3572,6 +3733,7 @@ function loadSettings() {
     state.roomRules.keepTurn = !!s0.roomRules.keepTurn;
     state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
+    state.roomRules.readAloud = !!s0.roomRules.readAloud;
     if (typeof s0.roomRules.ddCount === "number") state.roomRules.ddCount = Math.max(0, Math.min(3, s0.roomRules.ddCount));
   }
 }
@@ -3886,6 +4048,7 @@ function openQuestion(catKey, qIndex) {
   state.revealed = false;
   state.answerHidden = false;
   state.judgedThisClue = false;
+  state.questionShown = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -3928,7 +4091,14 @@ function submitWager() {
   state.wager = amt;
   state.wagering = false;
   state.clueOpenedAt = Date.now();
-  armBuzzers();
+  if (state.buzzer.on) {
+    disarmBuzzers(false);
+    // Point the host's Right/Wrong at the player who wagered, so the score
+    // always lands on them and never on someone who buzzed in.
+    state.buzzer.winnerName = player.name;
+    state.buzzer.winnerIndex = state.turn;
+    broadcastBuzzer({ type: "disarm" });
+  }
   render();
 }
 function activeValue() {
@@ -3997,6 +4167,10 @@ function undoLastScore() {
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + last.playerIndex, old, next);
   tickScoreDisplay("score-disp-f" + last.playerIndex, old, next);
+}
+// Nobody should get first pick just for typing their name first.
+function randomStartTurn() {
+  return state.players.length ? Math.floor(Math.random() * state.players.length) : 0;
 }
 function advanceTurn() {
   if (!state.players.length) { state.turn = 0; return; }
@@ -4275,6 +4449,7 @@ function closeQuestion() {
   state.revealed = false;
   state.answerHidden = false;
   state.judgedThisClue = false;
+  state.questionShown = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -4311,7 +4486,7 @@ function newRound() {
   state.used = {};
   state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
-  state.turn = 0;
+  state.turn = randomStartTurn();
   if (state.match) { state.match.round = 1; state.boardId = state.match.round1BoardId; }
   assignDailyDoubles();
   state.finalDone = false;
@@ -4659,23 +4834,54 @@ function viewPlayers() {
       }).join('') + '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
-      '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;margin-top:14px;color:#fff;cursor:pointer">' +
-        '<span style="font-weight:700;font-size:14px">Settings</span>' +
-        '<span style="font-weight:800;font-size:13px;color:#aab0d8">' + (state.settingsOpen ? "▲" : "▼") + '</span>' +
+      playStyleHtml() +
+      '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">' +
+        (state.playStyle === "buzzers" ? 'Open the Room &amp; Pick a Board' : 'Pick a Board') + '</button>' +
+      '<button class="big-gold" style="margin-top:10px;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN SOMEONE ELSE&rsquo;S ROOM</button>' +
+      // Everything below is a one-off: it stays folded away so the first screen
+      // is just "who is playing" and "go".
+      '<button class="more-toggle" data-action="toggleSetupMore">' +
+        '<span>More options</span>' +
+        '<span class="more-caret">' + (state.setupMoreOpen ? "▲" : "▼") + '</span>' +
       '</button>' +
-      '<div id="settingsWrap">' + (state.settingsOpen ? settingsPanelHtml() : "") + '</div>' +
-      '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">Pick a Board</button>' +
-      '<div style="display:flex;gap:10px;margin-top:10px">' +
-        '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="openHostRoom">HOST A ROOM</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
-      '</div>' +
-      packButton +
-      '<p class="muted" style="margin-top:14px">' +
-        '<button data-action="openHelp" class="inline-link" style="background:none;border:none;color:#ffd166;font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline">How it works</button>' +
-        ' &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
-      '</p>' +
+      (state.setupMoreOpen
+        ? '<div class="more-panel">' +
+            '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
+              '<span style="font-weight:700;font-size:14px">Settings</span>' +
+              '<span style="font-weight:800;font-size:13px;color:#aab0d8">' + (state.settingsOpen ? "▲" : "▼") + '</span>' +
+            '</button>' +
+            '<div id="settingsWrap">' + (state.settingsOpen ? settingsPanelHtml() : "") + '</div>' +
+            packButton +
+            '<p class="muted" style="margin-top:14px">' +
+              '<button data-action="openHelp" class="inline-link" style="background:none;border:none;color:#ffd166;font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline">How it works</button>' +
+              ' &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
+            '</p>' +
+          '</div>'
+        : '<div id="settingsWrap"></div>') +
     '</div>' +
   '</div></div>';
+}
+
+// One decision up front: are people buzzing in on their phones, or is everyone
+// crowded round one screen? It changes what the start button does.
+function playStyleHtml() {
+  var opts = [
+    { id: "screen", title: "One screen", sub: "Everyone looks at this device. The host calls who answered first." },
+    { id: "buzzers", title: "Phone buzzers", sub: "Players join on their own phones and race to buzz in." },
+  ];
+  return '<div class="play-style">' +
+    '<p class="play-style-head">HOW ARE YOU PLAYING?</p>' +
+    opts.map(function (o) {
+      var on = state.playStyle === o.id;
+      return '<button class="play-opt' + (on ? ' play-opt-on' : '') + '" data-action="setPlayStyle" data-style="' + o.id + '">' +
+          '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
+          '<span class="play-opt-text">' +
+            '<span class="play-opt-title">' + o.title + '</span>' +
+            '<span class="play-opt-sub">' + o.sub + '</span>' +
+          '</span>' +
+        '</button>';
+    }).join('') +
+  '</div>';
 }
 
 // All-time stats and recent matches, aggregated from local history.
@@ -4917,6 +5123,22 @@ function buzzMirrorHtml(bc) {
         '<p class="buzz-timer-note">Your answer goes only to the host.</p>';
       }
       body = (f.q ? '<p class="buzz-mirror-q">' + esc(f.q) + '</p>' : '') + answerUi;
+    } else if (f.a) {
+      // The host has revealed it, so every phone shows the answer and what
+      // everyone actually wrote down.
+      var rows = (f.board || []).map(function (pl) {
+        var r = pl.result === "right" ? "right" : pl.result === "wrong" ? "wrong" : "skip";
+        var mark = r === "right" ? "&#10003;" : r === "wrong" ? "&#10007;" : "&ndash;";
+        return '<div class="final-phone-row final-phone-' + r + '" data-key="fp-' + esc(pl.name) + '">' +
+            '<span class="final-phone-mark">' + mark + '</span>' +
+            '<span class="final-phone-name">' + esc(pl.name) + '</span>' +
+            '<span class="final-phone-wrote">' + (pl.wrote ? esc(pl.wrote) : '<em>no answer</em>') + '</span>' +
+            '<span class="final-phone-wager">' + (r === "wrong" ? "-" : r === "right" ? "+" : "") + (pl.wager || 0) + '</span>' +
+          '</div>';
+      }).join('');
+      body = (f.q ? '<p class="buzz-mirror-q">' + esc(f.q) + '</p>' : '') +
+        '<div class="final-phone-answer">' + esc(f.a) + '</div>' +
+        (rows ? '<div class="final-phone-board"><p class="phone-scores-head">WHAT EVERYONE WROTE</p>' + rows + '</div>' : '');
     } else {
       body = '<p class="buzz-mirror-revealed">Answer is up on the host screen</p>';
     }
@@ -4995,7 +5217,12 @@ function buzzMirrorHtml(bc) {
     return '<div class="buzz-mirror">' +
       '<p class="buzz-mirror-cat">' + esc(c.cat.toUpperCase()) + '</p>' +
       '<p class="buzz-mirror-value">' + c.value + ' POINTS</p>' +
-      (c.q ? '<p class="buzz-mirror-q">' + esc(c.q) + '</p>' : '') +
+      (c.hiddenQ
+        ? '<div class="clue-box clue-box-hidden" style="font-size:14px;padding:16px 12px">' +
+            '<span class="read-aloud-tag">THE HOST IS READING IT OUT</span>' +
+            '<span class="read-aloud-sub">Buzz when you know it.</span>' +
+          '</div>'
+        : (c.q ? '<p class="buzz-mirror-q">' + esc(c.q) + '</p>' : '')) +
       imgHtml +
       clipHtml +
       timerHtml +
@@ -5045,6 +5272,82 @@ function spectateTimerHtml(bc) {
   return '<div class="timer-track" style="max-width:640px;margin:18px auto 0"><div class="timer-bar" style="--timer-duration:' + g.timerDuration + 's;animation-delay:-' + elapsed.toFixed(2) + 's"></div></div>';
 }
 
+// Final Jeopardy, driven from the host's phone. The answer is on this device
+// from the moment wagers are locked, but stays behind Peek until tapped.
+function hostFinalHtml(bc, f) {
+  var board = f.board || [];
+  var stage = f.stage;
+  var head = '<p class="hc-waiting">FINAL JEOPARDY' + (f.category ? ' &middot; ' + esc(f.category.toUpperCase()) : '') + '</p>';
+
+  var peekBtn = f.a
+    ? '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
+      (bc.peek ? '<div class="hc-answer">' + esc(f.a) + '</div>' : '')
+    : '';
+  var qBlock = f.q ? '<p class="hc-final-q">' + esc(f.q) + '</p>' : '';
+
+  if (stage === "wager") {
+    var waitRows = board.map(function (p) {
+      return '<div class="hc-score">' +
+          '<span class="dot" style="background:' + esc(p.color || '#8b92c0') + '"></span>' +
+          '<span class="hc-score-name">' + esc(p.name) + '</span>' +
+          '<span class="hc-score-val">' + (p.wagerSet ? 'wagered ' + p.wager : '&hellip;') + '</span>' +
+        '</div>';
+    }).join('');
+    return '<div class="hc-wrap">' + head +
+      '<p class="hc-hidden">' + esc(f.pending ? f.pending + ' is setting a wager' : 'Wagers are going in') + '&hellip;</p>' +
+      '<div class="hc-scores">' + waitRows + '</div>' +
+      peekBtn +
+    '</div>';
+  }
+
+  if (stage === "clue") {
+    var wroteRows = board.map(function (p) {
+      return '<div class="hc-score">' +
+          '<span class="dot" style="background:' + esc(p.color || '#8b92c0') + '"></span>' +
+          '<span class="hc-score-name">' + esc(p.name) + '</span>' +
+          '<span class="hc-score-val">' + (p.wrote ? '&#10003; in' : 'writing&hellip;') + '</span>' +
+        '</div>';
+    }).join('');
+    return '<div class="hc-wrap">' + head + qBlock +
+      '<div class="hc-scores">' + wroteRows + '</div>' +
+      peekBtn +
+      '<button class="hc-btn hc-right" data-action="hostFinalReveal">Reveal the answer on the big screen</button>' +
+    '</div>';
+  }
+
+  // answer stage: judge every player from here
+  var judgeRows = board.map(function (p, i) {
+    var verdict = p.result === "right"
+      ? '<span class="hc-final-right">Correct</span>'
+      : p.result === "wrong" ? '<span class="hc-final-wrong">Incorrect</span>'
+      : p.result === "skip" ? '<span class="hc-final-skip">Skipped</span>'
+      : '<span class="hc-final-btns">' +
+          '<button class="hc-btn hc-right hc-mini2" data-action="hostMarkFinal" data-i="' + i + '" data-correct="1">Right</button>' +
+          '<button class="hc-btn hc-wrong hc-mini2" data-action="hostMarkFinal" data-i="' + i + '" data-correct="0">Wrong</button>' +
+        '</span>';
+    return '<div class="hc-final-row" data-key="hf-' + esc(p.name) + '">' +
+        '<div class="hc-final-top">' +
+          '<span class="dot" style="background:' + esc(p.color || '#8b92c0') + '"></span>' +
+          '<span class="hc-score-name">' + esc(p.name) + '</span>' +
+          '<span class="hc-final-wager">wagered ' + p.wager + '</span>' +
+          '<span class="hc-score-val">' + p.score + '</span>' +
+        '</div>' +
+        '<p class="hc-final-wrote">' + (p.wrote ? esc(p.wrote) : '<em>no answer written</em>') + '</p>' +
+        verdict +
+      '</div>';
+  }).join('');
+
+  return '<div class="hc-wrap">' + head + qBlock +
+    '<div class="hc-answer">' + esc(f.a || '') + '</div>' +
+    '<p class="hc-hidden">Mark each player to apply their wager.</p>' +
+    judgeRows +
+    (f.canUndo ? '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' : '') +
+    (f.allMarked
+      ? '<button class="hc-btn hc-right" data-action="hostFinishFinal">See the final results</button>'
+      : '<button class="hc-btn hc-undo" data-action="hostSkipFinal">Skip the rest &mdash; see the results</button>') +
+  '</div>';
+}
+
 // ---- Host Control: the host's own phone ----
 // Holds the answer at all times, but only shows it when the host taps Peek,
 // and Peek never leaves this device — the big screen is unaffected.
@@ -5074,6 +5377,10 @@ function viewHostControl(bc) {
         '<span class="hc-board-left">' + g.board.cluesLeft + ' questions left</span>' +
       '</div>'
     : '';
+
+  // Final Jeopardy gets its own host screen: the answer, what every player
+  // wrote, and the Right/Wrong buttons, all from the host's phone.
+  if (!c && g.final) return head + hostFinalHtml(bc, g.final);
 
   if (!c) {
     var waiting = g.final
@@ -5138,6 +5445,10 @@ function viewHostControl(bc) {
               ? '<button class="clip-stop" data-action="hostStopClip">Stop</button>'
               : '<button class="clip-play" data-action="hostPlayClip">Play</button>') +
           '</div>'
+        : '') +
+      (c.hiddenQ
+        ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
+          '<p class="hc-hidden">Only you can see the text right now &mdash; read it out.</p>'
         : '') +
       '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
       peekBlock +
@@ -5347,6 +5658,7 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleFloorZero", "Never Below Zero", "Scores stop at 0 instead of going negative", r.floorZero) +
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) +
+    setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
     setToggleRow("togglePhoneMirror", "Mirror Questions to Phones", "Players see the question and art on their phone", state.phoneMirror));
 }
 function settingsPanelHtml() {
@@ -5388,6 +5700,7 @@ function settingsPanelHtml() {
     setToggleRow("toggleFloorZero", "Never Below Zero", "Scores stop at 0 instead of going negative", r.floorZero) +
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     setToggleRow("toggleOneBuzz", "One Buzz Per Question", "In buzzer rooms, each player gets one shot", r.oneBuzz) +
+    setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
     setToggleRow("toggleWheelOfChaos", "Wheel of Chaos", "Random challenges between questions", state.wheelOfChaosEnabled);
 
   var room = setToggleRow("togglePhoneMirror", "Mirror Questions to Phones",
@@ -5424,6 +5737,18 @@ function toggleOneBuzz() { state.roomRules.oneBuzz = !state.roomRules.oneBuzz; s
 function toggleNoMinus() { state.roomRules.noMinus = !state.roomRules.noMinus; settingsChanged(); }
 function toggleFloorZero() { state.roomRules.floorZero = !state.roomRules.floorZero; settingsChanged(); }
 function toggleKeepTurn() { state.roomRules.keepTurn = !state.roomRules.keepTurn; settingsChanged(); }
+function toggleReadAloud() { state.roomRules.readAloud = !state.roomRules.readAloud; settingsChanged(); }
+// Read-aloud mode: the text is withheld while the host reads it, so buzzing
+// first is a gamble rather than a reading-speed contest.
+function questionHidden() {
+  return !!state.roomRules.readAloud && !state.questionShown && !state.revealed;
+}
+function showQuestionText() {
+  if (!questionHidden()) return;
+  state.questionShown = true;
+  hap("tap");
+  render();
+}
 function viewHostRoom() {
   var b = state.buzzer;
   var joinUrl = (location.host || "this site") + location.pathname.replace(/index\.html$/, "");
@@ -5588,6 +5913,15 @@ function viewAlignmentChoices(item) {
 function viewClueMedia() {
   var item = questionItem();
   var isVideo = !!item.id;
+  // Read-aloud mode holds the text back so buzzing in is about knowing the
+  // answer, not about reading fastest.
+  if (questionHidden()) {
+    return '<div class="clue-box clue-box-hidden">' +
+        '<span class="read-aloud-tag">THE HOST IS READING IT OUT</span>' +
+        '<span class="read-aloud-sub">Buzz when you know it. Guess early at your own risk.</span>' +
+      '</div>' +
+      '<button class="big-gold" data-action="showQuestionText">Show the question on screen</button>';
+  }
   if (!isVideo) {
     return '<div class="clue-box">' + esc(item.q) + '</div>' +
       (item.img ? '<img class="clue-img" src="' + esc(item.img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
@@ -5693,7 +6027,9 @@ function viewClueFooter() {
     if (state.buzzer.winnerName) {
       // Judging stays up after the reveal so the host can check the answer first.
       var canJudge = !state.judgedThisClue && state.buzzer.winnerIndex != null && state.buzzer.winnerIndex !== -1;
-      buzzBlock = '<div class="buzz-banner"><span>' + esc(state.buzzer.winnerName) + ' buzzed in!</span>' +
+      var ddOwned = state.wager != null;
+      buzzBlock = '<div class="buzz-banner"><span>' + esc(state.buzzer.winnerName) +
+        (ddOwned ? ' is answering the Daily Double' : ' buzzed in!') + '</span>' +
         (canJudge ?
           '<span style="display:flex;gap:8px">' +
             '<button class="buzz-judge buzz-judge-right" data-action="judgeBuzz" data-correct="1">Right</button>' +
@@ -5910,15 +6246,35 @@ function viewFinalWager(fin) {
   '</div></div>';
 }
 
+// Nobody has to answer Final Jeopardy. Anyone left unmarked simply keeps the
+// score they had, so the game can always reach its results screen.
+function skipFinal() {
+  state.players.forEach(function (p, i) {
+    if (!state.finalResults[i]) state.finalResults[i] = "skipped";
+  });
+  finishFinal();
+}
 function viewFinalClue(fin) {
   return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">FINAL JEOPARDY</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:22px;margin-bottom:14px">' + esc(fin.category) + '</div>' +
     '<div style="background:#1d2455;border-radius:16px;padding:28px 22px;font-size:21px;line-height:1.5;text-align:center;font-weight:600;min-height:90px;display:flex;align-items:center;justify-content:center">' + esc(fin.q) + '</div>' +
-    (state.buzzer.on ?
-      '<p style="text-align:center;color:#7ee2b0;font-weight:800;font-size:14px;margin-top:14px">' +
-        Object.keys(state.finalAnswers).length + ' of ' + state.players.length + ' phone answers locked in</p>' : '') +
-    '<button class="big-gold" data-action="revealFinalAnswer">Reveal Answer</button>' +
+    // Who is actually in, not just how many — the host needs to know who they
+    // are still waiting on.
+    '<div class="final-in-row">' + state.players.map(function (p, i) {
+      var inYet = state.finalAnswers[i] != null && state.finalAnswers[i] !== "";
+      return '<span class="final-in' + (inYet ? ' final-in-yes' : '') + '" data-key="fi-' + esc(p.name) + '">' +
+          '<span class="final-in-mark">' + (inYet ? '&#10003;' : '&hellip;') + '</span>' +
+          avatarHtml(p, 11) +
+          '<span class="final-in-name">' + esc(p.name) + '</span>' +
+        '</span>';
+    }).join('') + '</div>' +
+    '<p class="final-in-note">' +
+      Object.keys(state.finalAnswers).length + ' of ' + state.players.length +
+      (state.buzzer.on ? ' answers in from phones' : ' written down') +
+      '. Everyone can also just write on paper.</p>' +
+    '<button class="big-gold" data-action="revealFinalAnswer">Reveal the Answer</button>' +
+    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="skipFinal">Nobody answered &mdash; skip to the results</button>' +
   '</div></div>';
 }
 
@@ -5935,8 +6291,10 @@ function viewFinalAnswerStage(fin) {
     var typed = state.finalAnswers[i];
     return '<div class="row-item" style="flex-wrap:wrap">' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
-      '<span style="flex:1;font-weight:700">' + esc(p.name) + ' (wagered ' + wager + ')' +
-        (typed ? '<br><span style="color:#ffd166;font-weight:600;font-size:14px">wrote: ' + esc(typed) + '</span>' : '') + '</span>' +
+      '<span style="flex:1;font-weight:700;min-width:0;overflow-wrap:anywhere">' + esc(p.name) + ' (wagered ' + wager + ')' +
+        (typed
+          ? '<br><span style="color:#ffd166;font-weight:600;font-size:14px">wrote: ' + esc(typed) + '</span>'
+          : '<br><span style="color:#6a72a8;font-weight:600;font-size:13px">nothing came in from a phone &mdash; check their paper</span>') + '</span>' +
       '<span class="score-num" id="score-disp-f' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
       status +
     '</div>';
@@ -5944,11 +6302,17 @@ function viewFinalAnswerStage(fin) {
   var allMarked = state.players.every(function (p, i) { return !!state.finalResults[i]; });
   return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">FINAL JEOPARDY</div>' +
+    '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:18px;margin-bottom:10px">' + esc(fin.category) + '</div>' +
+    // The question stays on screen next to the answer, so the host can read
+    // both while judging what people wrote.
+    '<div class="final-recap-q">' + esc(fin.q) + '</div>' +
     '<div class="answer-box">' + esc(fin.a) + '</div>' +
     '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Mark each player correct or incorrect to apply their wager.</p>' +
     '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>' +
     (state.lastScoreChange ? '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="undoLastScore">Undo Last Mark</button>' : '') +
-    (allMarked ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="finishFinal">See Final Results</button>' : '') +
+    (allMarked
+      ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="finishFinal">See Final Results</button>'
+      : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="skipFinal">Skip the rest &mdash; see the results</button>') +
   '</div></div>';
 }
 
@@ -6344,6 +6708,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleNoMinus") toggleNoMinus();
   else if (action === "toggleFloorZero") toggleFloorZero();
   else if (action === "toggleKeepTurn") toggleKeepTurn();
+  else if (action === "toggleReadAloud") toggleReadAloud();
+  else if (action === "showQuestionText") showQuestionText();
   else if (action === "watchAsTv") watchAsTv();
   else if (action === "controlAsHost") controlAsHost();
   else if (action === "hostPeek") toggleHostPeek();
@@ -6351,6 +6717,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "hostToggleScreenAnswer") sendHostCmd("toggleAnswerOnScreen");
   else if (action === "hostClose") sendHostCmd("close");
   else if (action === "hostUndo") sendHostCmd("undo");
+  else if (action === "hostShowQuestion") sendHostCmd("showQuestion");
+  else if (action === "hostFinalReveal") sendHostCmd("finalReveal");
+  else if (action === "hostMarkFinal") sendHostCmd("markFinal", { playerIndex: +t.getAttribute("data-i"), correct: t.getAttribute("data-correct") === "1" });
+  else if (action === "hostFinishFinal") sendHostCmd("finishFinal");
+  else if (action === "hostSkipFinal") sendHostCmd("skipFinal");
   else if (action === "hostPlayClip") sendHostCmd("playClip");
   else if (action === "hostStopClip") sendHostCmd("stopClip");
   else if (action === "hostClipUp") sendHostCmd("clipLen", { delta: 5 });
@@ -6395,6 +6766,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "revealFinalAnswer") revealFinalAnswer();
   else if (action === "markFinal") markFinal(+t.getAttribute("data-i"), t.getAttribute("data-correct") === "1");
   else if (action === "finishFinal") finishFinal();
+  else if (action === "skipFinal") skipFinal();
   else if (action === "undoLastScore") undoLastScore();
   else if (action === "previewBoard") previewBoard(t.getAttribute("data-id"));
   else if (action === "cancelPreview") cancelPreview();
@@ -6405,6 +6777,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "savePlayerName") savePlayerName(+t.getAttribute("data-i"));
   else if (action === "confirmRemovePlayerInGame") confirmRemovePlayerInGame(+t.getAttribute("data-i"));
   else if (action === "toggleSettings") toggleSettings();
+  else if (action === "toggleSetupMore") { state.setupMoreOpen = !state.setupMoreOpen; render(); }
+  else if (action === "setPlayStyle") { state.playStyle = t.getAttribute("data-style"); hap("tap"); render(); }
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
