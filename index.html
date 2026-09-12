@@ -35,7 +35,12 @@
     .plus-btn:not(:disabled):hover, .minus-btn:not(:disabled):hover { filter: brightness(1.12); }
   }
   .wrap {
+    /* svh, not vh: on a phone 100vh is the height with the URL bar HIDDEN, so
+       a page laid out to 100vh is taller than what you can actually see the
+       moment the page loads -- it overflows by exactly the browser chrome.
+       svh is the URL-bar-showing height, which is the one that is always true. */
     min-height: 100vh;
+    min-height: 100svh;
     padding: 64px 16px 32px;
     display: flex;
     flex-direction: column;
@@ -100,7 +105,8 @@
   .board-grid { display: grid; gap: 6px; width: 100%; }
   .board-screen .board-grid {
     flex: 1; min-height: 0;
-    grid-template-rows: auto repeat(5, minmax(44px, 1fr));
+    /* --rows comes from the board: a board is whatever grid its maker built. */
+    grid-template-rows: auto repeat(var(--rows, 5), minmax(44px, 1fr));
   }
   .board-screen .tile, .board-screen .cat-head { height: 100%; }
   .cat-head {
@@ -584,122 +590,241 @@
   /* Wide enough for two columns: the form, and a reference panel docked
      beside it that follows whichever question you are writing. */
   @media (min-width: 900px) { .builder-inner { max-width: 1120px; } }
-  .builder-cols { display: block; }
-  .builder-main { min-width: 0; }
-  @media (min-width: 900px) {
-    .builder-cols { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
-  }
-  .bside {
-    margin-top: 18px; background: #0d1230; border: 1px solid #23284b;
-    border-radius: 14px; overflow: hidden;
-  }
-  @media (min-width: 900px) {
-    .bside { margin-top: 0; position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; }
-  }
   @media (max-width: 899px) {
     /* Fixed rather than sticky: html/body carry overflow-x:hidden (which keeps
        the screen shake from scrolling the page sideways), and that makes body a
        scroll container, which silently disables position:sticky against the
        viewport. The builder never shakes, so there is no transformed ancestor
        to break fixed positioning here. */
-    .bside {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin-top: 0;
-      display: flex; flex-direction: column; max-height: 52vh;
-      border-radius: 14px 14px 0 0; border-left: none; border-right: none; border-bottom: none;
-      background: #0f1433; box-shadow: 0 -12px 34px rgba(4, 6, 16, 0.75);
-    }
-    .bside-shut { box-shadow: 0 -8px 24px rgba(4, 6, 16, 0.6); }
     /* leave room so the drawer never covers the last control on the page */
     .builder-bg { padding-bottom: 108px; }
   }
-  .bside-head { display: flex; align-items: stretch; gap: 0; border-bottom: 1px solid #23284b; flex: none; }
-  .bside-tab {
-    flex: 1; background: none; border: none; color: #8b92c0; font-family: inherit;
-    font-weight: 800; font-size: 12.5px; padding: 12px 8px; min-height: 44px; cursor: pointer;
-    border-bottom: 2px solid transparent;
-  }
-  .bside-tab-on { color: var(--ba); border-bottom-color: var(--ba); }
-  .bside-fold {
-    flex: none; width: 44px; background: none; border: none; border-left: 1px solid #23284b;
-    color: #8b92c0; font-size: 17px; cursor: pointer; font-family: inherit;
-  }
-  .bside-shut .bside-head { border-bottom: none; }
-  .bside-peek {
-    width: 100%; background: none; border: none; border-bottom: 1px solid #23284b;
-    color: #9aa2cc; font-family: inherit; font-weight: 800; font-size: 12.5px;
-    padding: 12px 10px; min-height: 44px; cursor: pointer;
-  }
-  .bside-body { padding: 14px; overflow-y: auto; }
-  .bside-note { margin: 0 0 12px; font-size: 12px; color: #8b92c0; line-height: 1.45; }
-  .bside-block { margin-bottom: 14px; }
-  .bside-label {
-    margin: 0 0 4px; font-size: 9.5px; font-weight: 900; letter-spacing: 1.2px;
-    color: #6a72a8; text-transform: uppercase;
-  }
-  .bside-strong { margin: 0; font-weight: 900; font-size: 15px; color: var(--ba); }
-  .bside-text { margin: 0; font-size: 13px; line-height: 1.5; color: #c2c8ea; overflow-wrap: anywhere; }
-  .bside-answer { margin: 4px 0 0; font-size: 13px; font-weight: 800; color: #7ee2b0; overflow-wrap: anywhere; }
-  .bside-btn {
-    width: 100%; margin-top: 4px; background: #161b3d; border: 1px solid #2a2f55;
-    border-radius: 10px; color: #c2c8ea; font-family: inherit; font-weight: 800;
-    font-size: 12.5px; padding: 11px; min-height: 42px; cursor: pointer;
-  }
   /* your own question, drawn the way a player meets it */
-  .bside-stage { background: #0b0f24; border: 1px solid #23284b; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-  .bside-stage-cat {
-    margin: 0; font-size: 9.5px; font-weight: 900; letter-spacing: 1.4px;
-    color: #8b92c0; text-align: center; overflow-wrap: anywhere;
+  /* the three-step walkthrough shared by Example and Preview */
+  /* step one: the column of tiles, with the one you are writing lit up */
+  /* ================= the board maker =================
+     Step one asks for a name next to a live copy of the card people will tap.
+     Step two is the board itself: the grid you are filling is the grid they
+     will play, and everything you type happens in a popup on top of it. */
+  .bname-bg { display: flex; align-items: center; justify-content: center; padding: 24px 16px 32px; }
+  .bname-wrap { width: 100%; max-width: 460px; }
+  .bname-step { margin: 0 0 6px; font-size: 10px; font-weight: 900; letter-spacing: 2.4px; color: var(--ba); }
+  .bname-title { margin: 0 0 6px; font-size: clamp(24px, 6.4vw, 32px); font-weight: 900; line-height: 1.12; }
+  .bname-sub { margin: 0 0 20px; font-size: 13.5px; color: #9aa2cc; line-height: 1.5; }
+  .bname-card {
+    position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px;
+    background: #161b3d; border: 1px solid #2a2f55; border-left: 5px solid var(--ba);
+    border-radius: 16px; padding: 14px; box-shadow: 0 10px 30px rgba(4, 6, 16, 0.5);
   }
-  .bside-stage-val { margin: 2px 0 10px; font-size: 20px; font-weight: 900; color: var(--ba); text-align: center; }
-  .bside-stage-q {
-    background: #1d2455; border-radius: 9px; padding: 12px; font-size: 13px;
-    line-height: 1.45; text-align: center; font-weight: 600; overflow-wrap: anywhere;
-  }
-  .bside-stage-img { display: block; max-width: 100%; margin: 8px auto 0; border-radius: 8px; }
-  .bside-stage-a {
-    margin-top: 8px; background: #13351f; border: 1px solid #2cb67d; border-radius: 9px;
-    padding: 10px; font-size: 13px; font-weight: 800; color: #7ee2b0;
-    text-align: center; overflow-wrap: anywhere;
-  }
-  .bside-empty { background: #11152f; border: 1px dashed #3a4070; color: #6a72a8; font-weight: 600; font-style: italic; }
-  .bside-stage-note { margin: 8px 0 0; font-size: 11.5px; color: #8b92c0; line-height: 1.4; text-align: center; }
-  /* the board being made, shown as the card players will pick */
-  .builder-hero {
-    position: relative; overflow: hidden; border-radius: 18px; margin-bottom: 16px;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--ba) 26%, #10142e), #10142e);
-    border: 1px solid color-mix(in srgb, var(--ba) 45%, #2a2f55);
-    box-shadow: 0 14px 40px -18px var(--ba);
-  }
-  @supports not (background: color-mix(in srgb, red 10%, blue)) {
-    .builder-hero { background: #161b3d; border-color: #2a2f55; }
-  }
-  .builder-hero-art {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0.3;
-  }
-  .builder-hero-body { position: relative; display: flex; align-items: center; gap: 14px; padding: 18px 18px; }
-  .builder-hero-badge {
-    width: 52px; height: 52px; flex: none; border-radius: 14px;
-    background: var(--ba); color: #0b0f24;
+  .bname-card-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.22; }
+  .bname-card-icon {
+    position: relative; flex: none; width: 52px; height: 52px; border-radius: 13px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 24px;
+    background: color-mix(in srgb, var(--ba) 18%, #0d1230);
+    color: var(--ba); font-size: 26px; font-weight: 900;
+    border: 1px solid color-mix(in srgb, var(--ba) 45%, transparent);
   }
-  .builder-hero-text { min-width: 0; }
-  .builder-hero-name {
-    margin: 0; font-weight: 900; font-size: 20px; line-height: 1.2;
+  .bname-card-text { position: relative; flex: 1; min-width: 0; }
+  .bname-card-name { margin: 0; font-size: 17px; font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
+  .bname-card-tag { margin: 3px 0 0; font-size: 12.5px; color: #9aa2cc; line-height: 1.35; overflow-wrap: anywhere; }
+  .bname-card-cta { position: relative; flex: none; font-size: 10px; font-weight: 900; letter-spacing: 1.2px; color: var(--ba); }
+  .bname-ghost { color: #5b6291; font-style: italic; }
+  .bname-caption { margin: 8px 0 18px; font-size: 11.5px; color: #6a72a8; text-align: center; }
+  .bname-input { font-size: 17px; }
+  .bname-opt { font-weight: 600; color: #6a72a8; font-size: 11px; }
+  .bname-go { margin-top: 18px; }
+  .bname-foot { display: flex; gap: 12px; justify-content: center; margin-top: 6px; }
+  .bname-foot .my-import-link { width: auto; }
+
+  /* --- step two: the live board --- */
+  .bboard-bg {
+    /* height, not min-height: the board maker is a fixed frame with a
+       scrolling middle. With min-height the frame grew past the screen, the
+       inner scroller was never constrained, and Play test / Save board
+       scrolled away off the bottom on any board with a few rows on it. */
+    height: 100vh; height: 100svh; max-height: 100svh; overflow: hidden;
+    display: flex; flex-direction: column; padding: 0;
+  }
+  .bboard-top {
+    flex: none; display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-bottom: 1px solid #23284b; background: #0d1230;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .bboard-back, .bboard-tools {
+    flex: none; width: 38px; height: 38px; border-radius: 10px; background: #181e44;
+    border: 1px solid #2a2f55; color: #dfe3ff; font-size: 17px; cursor: pointer; font-family: inherit;
+  }
+  .bboard-title { flex: 1; min-width: 0; text-align: center; }
+  .bboard-name {
+    margin: 0; font-size: 15px; font-weight: 900; line-height: 1.15;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .builder-hero-tag {
-    margin: 4px 0 0; font-size: 13px; color: #aab0d8; line-height: 1.35;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  .bboard-prog { margin: 2px 0 0; font-size: 11px; color: #8b92c0; }
+  .bboard-ready { color: #7ee2b0; font-weight: 800; }
+  .bboard-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 12px 16px; }
+  .bboard-bar {
+    flex: none; display: flex; gap: 10px; padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    border-top: 1px solid #23284b; background: #0d1230;
   }
-  .builder-card { border: 1px solid #23284b; }
+  .bbar-test, .bbar-save {
+    flex: 1; border: none; border-radius: 12px; padding: 13px; min-height: 46px;
+    font-family: inherit; font-weight: 900; font-size: 15px; cursor: pointer;
+  }
+  .bbar-test { background: #20264d; color: #dfe3ff; border: 1px solid #343b6b; }
+  .bbar-save { background: var(--ba); color: #0b0f24; }
+  .bbar-test:active, .bbar-save:active { transform: scale(0.98); }
+
+  /* the grid -- deliberately the same shape and weight as the real board */
+  .bgrid {
+    display: grid; gap: 6px; width: 100%;
+    grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  }
+  .bgrid-head {
+    border-radius: 8px; padding: 8px 4px; min-height: 52px; background: #3a2f8f;
+    border: none; color: #fff; font-family: inherit; font-weight: 800; cursor: pointer;
+    font-size: clamp(9px, 2.6vw, 11px); line-height: 1.2; letter-spacing: 0.3px;
+    display: flex; align-items: center; justify-content: center; min-width: 0;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  }
+  .bgrid-head-text { overflow-wrap: anywhere; word-break: break-word; }
+  .bgrid-head-empty { background: #232a5e; color: #9aa2cc; font-style: italic; border: 1px dashed #4a5290; }
+  .bgrid-add-col, .bgrid-add-row {
+    background: none; border: 1px dashed #3a4070; color: var(--ba);
+    font-family: inherit; font-weight: 900; cursor: pointer;
+  }
+  .bgrid-add-col {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1px; font-size: 20px; border-radius: 8px; min-height: 52px; box-shadow: none;
+  }
+  .bgrid-add-lbl { font-size: 7.5px; letter-spacing: 1px; }
+  .bgrid-tile {
+    position: relative; border: none; border-radius: 8px; background: #1d2455;
+    min-height: 56px; padding: 10px 4px; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    transition: filter 0.15s ease, transform 0.12s ease;
+  }
+  .bgrid-tile:hover { filter: brightness(1.2); }
+  .bgrid-tile:active { transform: scale(0.97); }
+  .bgrid-val { font-size: 18px; font-weight: 900; color: #ffd166; }
+  .bgrid-tile-done { background: #23306b; }
+  .bgrid-tile-done .bgrid-val { color: #ffe2a0; }
+  .bgrid-tick, .bgrid-plus {
+    position: absolute; top: 3px; right: 5px; font-size: 10px; font-weight: 900; line-height: 1;
+  }
+  .bgrid-tick { color: #7ee2b0; }
+  .bgrid-plus { color: #5b6291; font-size: 13px; }
+  .bgrid-mark { position: absolute; bottom: 3px; left: 5px; font-size: 10px; color: #c9a6ff; }
+  .bgrid-spacer { min-height: 56px; }
+  .bgrid-add-row { width: 100%; margin-top: 8px; border-radius: 10px; padding: 12px; min-height: 44px; font-size: 13px; }
+  .bgrid-cap { margin: 8px 0 0; font-size: 11.5px; color: #6a72a8; text-align: center; }
+
+  .bfinal {
+    display: block; width: 100%; text-align: left; margin-top: 16px;
+    background: #11152f; border: 1px solid #2a2f55; border-left: 4px solid var(--ba);
+    border-radius: 13px; padding: 13px; cursor: pointer; font-family: inherit;
+  }
+  .bfinal-done { border-color: #2cb67d; border-left-color: #2cb67d; background: #101f1a; }
+  .bfinal-tag { display: block; font-size: 9px; font-weight: 900; letter-spacing: 1.8px; color: #6a72a8; }
+  .bfinal-cat { display: block; margin-top: 4px; font-size: 15px; font-weight: 900; color: var(--ba); overflow-wrap: anywhere; }
+  .bfinal-done .bfinal-cat { color: #7ee2b0; }
+  .bfinal-q { display: block; margin-top: 3px; font-size: 12.5px; color: #9aa2cc; line-height: 1.4; overflow-wrap: anywhere; }
+  .bfinal-state { display: block; margin-top: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.8px; color: #6a72a8; }
+  .bfinal-done .bfinal-state { color: #7ee2b0; }
+
+  /* the popup: the board stays visible underneath it */
+  .bpop-scrim { position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72); z-index: 60; animation: tk-in 0.16s ease both; }
+  .bpop {
+    position: fixed; z-index: 61; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: min(520px, 100%); max-height: 86svh; display: flex; flex-direction: column;
+    background: #141937; border: 1px solid #2a2f55; border-bottom: none;
+    border-radius: 18px 18px 0 0; box-shadow: 0 -16px 44px rgba(4, 6, 16, 0.8);
+    animation: bpop-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes bpop-up { from { transform: translate(-50%, 22px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+  @media (min-width: 700px) {
+    .bpop { bottom: auto; top: 50%; transform: translate(-50%, -50%); border-radius: 18px; border-bottom: 1px solid #2a2f55; }
+    @keyframes bpop-up { from { transform: translate(-50%, -46%); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }
+  }
+  .bpop-head {
+    flex: none; display: flex; align-items: flex-start; gap: 10px;
+    padding: 14px 14px 10px; border-bottom: 1px solid #23284b;
+  }
+  .bpop-head-text { flex: 1; min-width: 0; }
+  .bpop-title { margin: 0; font-size: 15px; font-weight: 900; color: var(--ba); overflow-wrap: anywhere; }
+  .bpop-sub { margin: 2px 0 0; font-size: 11.5px; color: #8b92c0; }
+  .bpop-x {
+    flex: none; width: 38px; height: 38px; border-radius: 10px; background: #0d1230;
+    border: 1px solid #2a2f55; color: #aab0d8; font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit;
+  }
+  .bpop-body { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 14px; }
+  .bpop-area { resize: vertical; min-height: 74px; line-height: 1.45; font-family: inherit; }
+  .bpop-value { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .bpop-val { width: 96px; flex: none; margin-top: 0; }
+  .bpop-value-note { flex: 1; min-width: 130px; font-size: 11px; color: #6a72a8; line-height: 1.35; }
+  .bpop-move { display: flex; gap: 8px; margin-top: 10px; }
+  .bpop-move .pbar-btn { flex: 1; }
+  .bpop-del {
+    width: 100%; margin-top: 14px; background: none; border: 1px solid #4a2733;
+    border-radius: 10px; color: #ff8aa0; font-family: inherit; font-weight: 800;
+    font-size: 12.5px; padding: 10px; min-height: 40px; cursor: pointer;
+  }
+  .bpop-done {
+    flex: none; margin: 0 14px 14px; margin-bottom: max(14px, env(safe-area-inset-bottom));
+    background: var(--ba); border: none; border-radius: 12px; color: #0b0f24;
+    font-family: inherit; font-weight: 900; font-size: 15px; padding: 13px; min-height: 46px; cursor: pointer;
+  }
+  /* the shelf: what you removed, still recoverable */
+  .bbin {
+    background: #171d1a; border: 1px solid #2c5a45; border-left: 4px solid #2cb67d;
+    border-radius: 13px; padding: 11px; margin-bottom: 14px;
+    animation: mirror-fade 0.2s ease both;
+  }
+  .bbin-head { margin: 0 0 8px; font-size: 9px; font-weight: 900; letter-spacing: 1.6px; color: #7ee2b0; }
+  .bbin-row { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .bbin-row:first-of-type { margin-top: 0; }
+  .bbin-what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .bbin-label { font-size: 13.5px; font-weight: 800; overflow-wrap: anywhere; }
+  .bbin-sub { font-size: 11px; color: #8b92c0; }
+  .bbin-back {
+    flex: none; background: #2cb67d; border: none; border-radius: 9px; color: #04210f;
+    font-family: inherit; font-weight: 900; font-size: 12px; padding: 8px 11px;
+    min-height: 34px; cursor: pointer; white-space: nowrap;
+  }
+  .bbin-drop {
+    flex: none; width: 34px; min-height: 34px; background: none; border: 1px solid #3a4070;
+    border-radius: 9px; color: #8b92c0; font-family: inherit; font-size: 17px; cursor: pointer;
+  }
+  .bbin-drop:hover { border-color: #ff5470; color: #ff8aa0; }
+
+  /* the erase block: on its own, at the very bottom, nothing else near it */
+  .bdanger { margin-top: 56px; border-top: 1px dashed #4a2733; padding-top: 18px; }
+  .bdanger-head { margin: 0 0 6px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #ff8aa0; }
+  .bdanger-note { margin: 0 0 12px; font-size: 11.5px; color: #8b92c0; line-height: 1.5; }
+  .bdanger-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    width: 100%; margin-top: 8px; background: none; border: 1px solid #4a2733;
+    border-radius: 11px; padding: 11px 12px; min-height: 46px; cursor: pointer;
+    font-family: inherit; text-align: left;
+  }
+  .bdanger-btn:hover { background: #1e1014; border-color: #ff5470; }
+  .bdanger-name { font-size: 13.5px; font-weight: 800; color: #ff8aa0; overflow-wrap: anywhere; }
+  .bdanger-sub { font-size: 11px; color: #8b92c0; }
+  .bpop-clear { border-color: #3a4070; color: #c2c8ea; }
+  .bpop-del-note { margin: 6px 0 0; font-size: 11px; color: #6a72a8; line-height: 1.4; text-align: center; }
+  .btools { margin-top: 16px; background: #11152f; border: 1px solid #23284b; border-radius: 13px; padding: 13px; }
+  .btools-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btools-row > * { flex: 1; }
+
+  /* the board being made, shown as the card players will pick */
+  @supports not (background: color-mix(in srgb, red 10%, blue)) {
+  }
   .builder-card .builder-sec-num { background: var(--ba); color: #0b0f24; }
   .builder-card .builder-cat-tab-active { background: var(--ba); border-color: var(--ba); color: #0b0f24; }
   /* the three end buttons were wrapping onto two lines each on a phone */
   .builder-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
   .builder-actions button { flex: 1 1 92px; margin-top: 0; padding: 13px 8px; font-size: 14px; white-space: nowrap; }
-  .builder-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   @media (max-width: 520px) { .builder-two { grid-template-columns: 1fr; } }
   .builder-swatch-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
   .builder-wheel {
@@ -714,7 +839,6 @@
     cursor: pointer; color: #9aa2cc; font-size: 13px; line-height: 1.45; text-align: left;
   }
   .builder-adult input { margin-top: 3px; flex: none; }
-  .builder-rows { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
 
   /* progress */
   .builder-progress {
@@ -750,25 +874,6 @@
     display: grid; grid-template-columns: repeat(var(--mini-cols), minmax(0, 1fr));
     gap: 3px; margin-top: 8px;
   }
-  .mini-head {
-    background: #1d2455; border-radius: 5px; padding: 5px 3px; min-height: 30px;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: 8.5px; font-weight: 900; letter-spacing: 0.3px; color: #aab0d8;
-    line-height: 1.15;
-    /* one line, clipped -- breaking a word in half reads as a typo */
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; word-break: keep-all;
-  }
-  .mini-head-on { background: #2a3470; color: var(--ba, #ffd166); }
-  .mini-tile {
-    position: relative; background: #10142e; border: 1px solid #1d2455; border-radius: 5px;
-    min-height: 28px; padding: 2px; cursor: pointer; font-family: inherit;
-    display: flex; align-items: center; justify-content: center;
-    color: #3a4070; font-weight: 900; font-size: 10px;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .mini-tile-done { background: #1d2455; color: var(--ba, #ffd166); }
-  .mini-tile-col { border-color: #43506a; }
-  .mini-tile:hover { background: #2a3470; }
   .mini-media { position: absolute; top: 1px; right: 3px; font-size: 8px; color: #7ee2b0; }
 
   .builder-cat-bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
@@ -780,21 +885,6 @@
   }
   .builder-cat-del { color: #ff8aa0; }
   .builder-cat-move[disabled], .builder-cat-del[disabled] { opacity: 0.35; cursor: default; }
-  .builder-clue {
-    background: #0d1230; border-radius: 12px; padding: 12px;
-    border: 1px solid #1d2242; border-left: 3px solid #2a2f55;
-    transition: border-color 0.2s ease;
-  }
-  .builder-clue:focus-within { border-left-color: var(--ba); }
-  .builder-clue-done { border-left-color: #2cb67d; }
-  .builder-clue-head {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-    color: #ffd166; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 8px;
-  }
-  .builder-clue-tags {
-    font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #8b92c0;
-    text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
   .builder-input { margin-top: 6px; font-size: 14px; padding: 10px 12px; }
   .builder-more {
     width: 100%; margin-top: 8px; background: none; border: none; color: #9aa2cc;
@@ -950,10 +1040,16 @@
   .av-star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   .av-ring { border-radius: 50%; }
   .av-cross { clip-path: polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%); }
-  .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  /* One line rather than two: the second row cost more height than the tokens
+     on it were worth. They share the width instead of scrolling, so every
+     token stays visible down to a 320px screen -- a token you have to scroll
+     sideways to find may as well not be there. */
+  .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: nowrap; }
+  @media (max-width: 380px) { .shape-row { gap: 3px; } }
   .shape-pick {
+    flex: 1 1 0; min-width: 0; max-width: 44px;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 8px;
-    padding: 7px 9px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    padding: 7px 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
   .shape-pick-sel { border-color: #ffd166; background: rgba(255, 209, 102, 0.12); }
   @media (prefers-reduced-motion: reduce) { .tile-zoom { transition: none; } }
@@ -1375,24 +1471,30 @@
   .final-phone-right .final-phone-wager { color: #2cb67d; }
 
   /* "how are you playing" picker on the start screen */
-  .play-style { margin-top: 18px; }
-  .play-style-head { margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .play-style { margin-top: 2px; }
+  .play-style-head { margin: 0 0 7px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  /* Side by side rather than stacked: the two choices are a pair, and the
+     start screen has no vertical room to spend on a paragraph each. */
+  .play-style-row { display: flex; gap: 8px; }
   .play-opt {
-    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 12px;
-    padding: 11px 12px; margin-bottom: 8px; color: #fff; cursor: pointer;
+    padding: 9px 10px; color: #fff; cursor: pointer;
     font-family: inherit; transition: border-color 0.18s ease, background 0.18s ease;
   }
   .play-opt-on { border-color: #ffd166; background: #191f44; }
   .play-opt-tick {
-    flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%;
+    flex: none; width: 16px; height: 16px; border-radius: 50%;
     border: 2px solid #3a4070; display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 900; color: #0b0f24;
+    font-size: 10px; font-weight: 900; color: #0b0f24;
   }
   .play-opt-on .play-opt-tick { background: #ffd166; border-color: #ffd166; }
+  .play-opt-top { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; }
+  /* still used by the team toggle, which stays a full-width row */
   .play-opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .play-opt-title { font-weight: 800; font-size: 14px; }
-  .play-opt-sub { font-size: 12px; color: #8b92c0; line-height: 1.35; }
+  .play-opt-title { font-weight: 800; font-size: 13.5px; }
+  .play-opt-sub { font-size: 11.5px; color: #8b92c0; line-height: 1.3; }
 
   /* buzz-mode roster: names arrive from phones, not from a keyboard */
   .buzz-roster {
@@ -1404,7 +1506,6 @@
     color: var(--mode-accent); text-align: center;
   }
   .buzz-roster-sub { margin: 8px 0 0; font-size: 13px; color: #9aa2cc; line-height: 1.45; text-align: center; }
-  .buzz-roster-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
   .buzz-roster-actions { display: flex; gap: 8px; margin-top: 12px; }
   .buzz-roster-actions button { flex: 1; }
   .set-mode-note {
@@ -1455,6 +1556,108 @@
   }
   .more-caret { font-size: 11px; }
   .more-panel { margin-top: 4px; animation: mirror-fade 0.2s ease both; }
+
+  /* The start screen has one job: show everything you need to get going
+     without a scroll. Everything below is that budget being kept -- the
+     folded-away half is allowed to push past the fold, nothing above it is.
+     Scoped to .setup-wrap so no other screen inherits the squeeze. */
+  /* Everything here scales continuously with the height you can actually see,
+     rather than stepping at height breakpoints. Media queries are the wrong
+     tool on a phone: Safari reports the URL-bar-hidden height to them, so a
+     745px-visible iPhone answers "844" and the tightening never fires. svh
+     inside clamp() is measured against the real visible box. */
+  .setup-wrap { padding: clamp(10px, 2.4svh, 22px) 16px clamp(10px, 2svh, 18px); }
+  .setup-wrap .title { font-size: clamp(23px, 4.4svh, 34px); margin: 0 0 2px; }
+  .setup-wrap .sub { margin: 0 0 clamp(7px, 1.5svh, 12px); font-size: clamp(11.5px, 1.7svh, 13px); }
+  .setup-wrap .card { padding: clamp(11px, 1.9svh, 15px); }
+  .setup-wrap .lbl { font-size: 12px; }
+  .setup-wrap .big-gold, .setup-wrap .big-disabled {
+    margin-top: clamp(9px, 1.7svh, 14px); padding: clamp(10px, 1.6svh, 13px);
+    font-size: clamp(15px, 2.2svh, 18px);
+  }
+  .setup-wrap .shape-row { margin-top: 6px; }
+  .setup-wrap .shape-pick { padding: clamp(5px, 0.9svh, 7px) 0; }
+  .setup-wrap .more-toggle { margin-top: 0; }
+  .setup-wrap .mode-badge { margin-bottom: clamp(8px, 1.5svh, 12px); }
+  .setup-wrap .team-toggle { padding: clamp(8px, 1.4svh, 11px) 10px; }
+  /* The roster is the one part of this screen with no ceiling, so it is the
+     part that scrolls -- two columns once there are enough names to warrant
+     them, and a hard cap past that, rather than letting eight players push
+     the start button off the bottom of the phone. */
+  .roster {
+    margin-top: 12px; display: grid; gap: 6px; grid-template-columns: 1fr;
+    max-height: 30vh; max-height: clamp(52px, 20svh, 300px);
+    overflow-y: auto; scrollbar-width: thin;
+  }
+  .roster-2 { grid-template-columns: 1fr 1fr; }
+  .roster .row-item { padding: 5px 6px 5px 9px; gap: 8px; font-size: 13.5px; }
+  .roster .x-btn { min-width: 30px; min-height: 30px; font-size: 16px; }
+  .roster-more {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
+    mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
+  }
+  .lbl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .lbl-count { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #8b92c0; flex: none; }
+  .setup-foot { display: flex; align-items: stretch; gap: 8px; margin-top: clamp(8px, 1.5svh, 12px); }
+  .setup-foot > * { flex: 1 1 0; margin-top: 0 !important; }
+  .setup-join {
+    background: #20264d; border: 1px solid #343b6b; border-radius: 11px;
+    color: #dfe3ff; font-family: inherit; font-weight: 800; font-size: 12.5px;
+    letter-spacing: 0.6px; cursor: pointer; padding: 10px 8px;
+  }
+  .setup-join:hover { background: #272e5c; }
+
+  /* How you'll play, on the board screen -- one step from the game itself */
+  .pbar {
+    background: #141937; border: 1px solid #2a2f55; border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 12px;
+  }
+  .pbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pbar-head { font-size: 9.5px; font-weight: 900; letter-spacing: 1.8px; color: #6a72a8; flex: none; }
+  .pbar-seg {
+    display: flex; background: #0d1230; border: 1px solid #2a2f55;
+    border-radius: 10px; padding: 2px; gap: 2px;
+  }
+  .pbar-opt {
+    background: none; border: none; border-radius: 8px; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 12.5px; padding: 7px 12px;
+    min-height: 32px; cursor: pointer; white-space: nowrap;
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .pbar-opt-on { background: #ffd166; color: #0b0f24; }
+  .pbar-team {
+    display: inline-flex; align-items: center; gap: 7px; background: #0d1230;
+    border: 1px solid #2a2f55; border-radius: 10px; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 12.5px;
+    padding: 7px 11px; min-height: 34px; cursor: pointer;
+  }
+  .pbar-team-on { border-color: #2cb67d; color: #7ee2b0; background: #12291f; }
+  .pbar-team-on .play-opt-tick { background: #2cb67d; border-color: #2cb67d; }
+  .pbar-room {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b;
+  }
+  .pbar-room-hint { flex: 1; min-width: 140px; font-size: 12px; color: #8b92c0; line-height: 1.4; }
+  .pbar-room-live { flex: 1; min-width: 120px; font-size: 12.5px; font-weight: 800; color: #7ee2b0; }
+  .pbar-btn {
+    background: #20264d; border: 1px solid #343b6b; border-radius: 9px; color: #dfe3ff;
+    font-family: inherit; font-weight: 800; font-size: 12px; padding: 8px 12px;
+    min-height: 34px; cursor: pointer; white-space: nowrap;
+  }
+  .pbar-btn-go { background: #ffd166; border-color: #ffd166; color: #0b0f24; }
+  .pbar-btn-off { color: #ff8aa0; }
+  .pbar-teams { margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b; }
+  .pbar-rules {
+    display: inline-flex; align-items: center; gap: 6px; background: #0d1230;
+    border: 1px solid #2a2f55; border-radius: 10px; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 12.5px;
+    padding: 7px 11px; min-height: 34px; cursor: pointer; white-space: nowrap;
+  }
+  .pbar-rules-on { border-color: #ffd166; color: #ffd166; }
+  .pbar-caret { font-size: 9px; }
+  .pbar-rules-panel { margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b; animation: mirror-fade 0.2s ease both; }
+  .pbar-rules-panel .set-group { margin-top: 10px; }
+  .pbar-rules-panel .set-group:first-child { margin-top: 0; }
 
   /* ---- Millionaire ---- */
   .mil-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1200px 700px at 50% -10%, #10224a 0%, #070b1c 60%); }
@@ -1659,19 +1862,44 @@
   .feud-b-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
   /* the mode badge, and the panel it opens */
+  /* This is a control, not a caption. It is a full-width bar with a filled
+     action chip pinned to the right, so the thing you press is unmistakable
+     even before you read it. */
   .mode-badge {
-    display: inline-flex; align-items: center; gap: 10px; margin: 0 auto 18px;
-    background: #10142e; border: 1px solid var(--mode-accent); border-radius: 999px;
-    padding: 9px 16px; cursor: pointer; font-family: inherit;
-    box-shadow: 0 0 24px -8px var(--mode-accent);
+    display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 12px;
+    background: linear-gradient(180deg, #141a3c, #10142e);
+    border: 1px solid var(--mode-accent); border-radius: 14px;
+    padding: 8px 8px 8px 14px; cursor: pointer; font-family: inherit; text-align: left;
+    box-shadow: 0 0 24px -10px var(--mode-accent), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
   }
-  .mode-badge-lbl { font-size: 9.5px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .mode-badge:hover { background: linear-gradient(180deg, #1a2149, #141937); box-shadow: 0 0 30px -8px var(--mode-accent), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+  .mode-badge:active { transform: scale(0.985); }
+  .mode-badge-lbl { font-size: 9px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; flex: none; }
   .mode-badge-name {
     font-family: var(--mode-font); font-weight: var(--mode-weight);
     letter-spacing: var(--mode-track); text-transform: var(--mode-caps);
-    font-size: 16px; color: var(--mode-accent);
+    font-size: 16px; color: var(--mode-accent); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .mode-badge-arrow { font-size: 11px; color: #8b92c0; }
+  .mode-badge-go {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--mode-accent); color: #0b0f24; border-radius: 10px;
+    padding: 7px 11px; font-size: 10.5px; font-weight: 900; letter-spacing: 1.4px;
+    font-family: system-ui, sans-serif;
+  }
+  .mode-badge-arrow { font-size: 10px; }
+  /* A couple of nudges on arrival: enough to catch the eye once, not a
+     permanently animated page. */
+  .mode-badge-go { animation: badge-nudge 1.5s ease 0.5s 2 both; }
+  @keyframes badge-nudge {
+    0%, 55%, 100% { transform: none; }
+    62% { transform: translateY(-3px); }
+    72% { transform: translateY(0); }
+    80% { transform: translateY(-2px); }
+    88% { transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mode-badge-go { animation: none; } }
   .mp-scrim { position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72); z-index: 84; animation: tk-in 0.18s ease both; }
   .mp-panel {
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 85; width: min(340px, 86vw);
@@ -1798,7 +2026,12 @@
     border-radius: 999px; padding: 7px 14px; color: #aab0d8; font-weight: 800;
     font-size: 12px; cursor: pointer; font-family: inherit;
   }
-  .code-toggle-inline { display: inline-block; margin: 0 0 0 4px; padding: 4px 10px; font-size: 11px; }
+  /* Small, but still a tap target: it was 23px tall, under the 24px floor
+     everything else on the page clears. */
+  .code-toggle-inline {
+    display: inline-block; margin: 0 0 0 4px; padding: 6px 10px;
+    font-size: 11px; min-height: 28px; line-height: 1.4;
+  }
   @media (hover: hover) { .code-toggle:hover { border-color: #ffd166; color: #ffd166; } }
 
   /* board card + read-only board map on Host Control */
@@ -2495,9 +2728,18 @@ function rebuildBoards() {
 // Explain exactly why a board can't be played, or "" when it is valid.
 // Does NOT require an id (that gets assigned on import) so hand-written or
 // AI-generated board files validate on their own merits.
-// A board is a grid of categories x rows. Rows stay at 5 (the 100-500 ladder);
-// the number of categories is the creator's choice.
-var MIN_CATS = 3, MAX_CATS = 8, ROWS_PER_CAT = 5;
+// A board is a grid of categories x rows, and both sides of it are the
+// creator's choice. ROWS_PER_CAT is only the shape a NEW board starts in --
+// the 100-500 ladder everyone expects -- not a rule boards have to keep.
+var MIN_CATS = 1, MAX_CATS = 8, ROWS_PER_CAT = 5;
+var MIN_ROWS = 1, MAX_ROWS = 8;
+// How many rows this particular board has. Every category on a board carries
+// the same number, because a board is a grid, not a set of ragged columns.
+function boardRows(b) {
+  var cols = b && (b.textBoard || b);
+  if (!cols || !cols.length || !cols[0] || !cols[0].questions) return ROWS_PER_CAT;
+  return cols[0].questions.length;
+}
 function boardValidationError(b) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return "the file is not a board object.";
   if (!b.name) return 'the board needs a "name".';
@@ -2506,8 +2748,12 @@ function boardValidationError(b) {
   for (var c = 0; c < b.textBoard.length; c++) {
     var col = b.textBoard[c];
     if (!col || !col.category) return "category " + (c + 1) + " needs a title.";
-    if (!Array.isArray(col.questions) || col.questions.length !== ROWS_PER_CAT) return 'category "' + col.category + '" needs exactly ' + ROWS_PER_CAT + ' questions.';
-    for (var q = 0; q < ROWS_PER_CAT; q++) {
+    if (!Array.isArray(col.questions) || col.questions.length < MIN_ROWS || col.questions.length > MAX_ROWS)
+      return 'category "' + col.category + '" needs between ' + MIN_ROWS + ' and ' + MAX_ROWS + ' questions.';
+    if (col.questions.length !== b.textBoard[0].questions.length)
+      return 'every category needs the same number of questions &mdash; "' + col.category + '" has ' +
+             col.questions.length + ', the first has ' + b.textBoard[0].questions.length + '.';
+    for (var q = 0; q < col.questions.length; q++) {
       var it = col.questions[q];
       if (!it || (!it.q && !it.id)) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
       if (!it.a) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
@@ -2518,7 +2764,7 @@ function boardValidationError(b) {
   if (!b.final.a) return "Final Jeopardy needs an answer.";
   return "";
 }
-// A board is playable if it has an id, 5 categories x 5 filled clues and a final.
+// A board is playable if it has an id, a full grid of filled clues and a final.
 function isValidBoard(b) {
   return !!(b && b.id) && boardValidationError(b) === "";
 }
@@ -2632,6 +2878,7 @@ var state = {
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
+  rulesOpen: false,      // the house rules, open on the board-pick screen
   mil: null,              // Millionaire run in progress
   milPackId: null,
   milVotes: null,         // {connId: optionIndex} while the room is voting
@@ -2776,7 +3023,7 @@ function hexToRgba(hex, alpha) {
 }
 function pickDailyDouble(board) {
   var catIdx = Math.floor(Math.random() * board.textBoard.length);
-  var rowIdx = Math.floor(Math.random() * 5);
+  var rowIdx = Math.floor(Math.random() * boardRows(board));
   return { catKey: catIdx, qIndex: rowIdx };
 }
 function isDailyDoubleTile(catKey, qIndex) {
@@ -2831,7 +3078,7 @@ function assignDailyDoubles() {
 }
 function isAllUsed() {
   var categories = getCategories();
-  var totalTiles = categories.length * 5;
+  var totalTiles = categories.length * boardRows(categories);
   return Object.keys(state.used).length === totalTiles;
 }
 
@@ -3462,7 +3709,7 @@ function buzzerSyncPayload() {
       accent: curB.accent || "#a786df",
       tagline: curB.tagline || "",
       round: state.match ? state.match.round : null,
-      cluesLeft: curB.textBoard.length * ROWS_PER_CAT - Object.keys(state.used || {}).length,
+      cluesLeft: curB.textBoard.length * boardRows(curB) - Object.keys(state.used || {}).length,
     };
   }
   if (state.wheel && (state.wheel.stage === "spinning" || state.wheel.stage === "result")) {
@@ -3931,6 +4178,14 @@ function resumeGame() {
   state.lastScoreChange = null;
   state.scoreHistory = [];
   state.cascadeBoard = true; // stagger the tiles in on a fresh board
+  // A saved game is always a Jeopardy game. Resuming one while another mode
+  // is selected used to leave the board running under that mode's name,
+  // colours and menu.
+  if (state.gameMode !== "jeopardy") {
+    state.gameMode = "jeopardy";
+    applyModeTheme();
+    jfSaveSettings();
+  }
   state.phase = "board";
   render();
 }
@@ -4053,13 +4308,21 @@ function exampleBoard() {
       a: "What is sic transit?" },
   };
 }
-function blankCategory() {
-  var qs = [];
-  for (var r = 0; r < ROWS_PER_CAT; r++) qs.push({ value: (r + 1) * 100, q: "", a: "", note: "", id: "", img: "", aimg: "" });
-  return { category: "", questions: qs };
+function blankQuestion(value) {
+  return { value: value, q: "", a: "", note: "", id: "", img: "", aimg: "" };
+}
+// A new column matches the rows the board already has, values included, so
+// adding a category never leaves a ragged grid.
+function blankCategory(values) {
+  var vals = values && values.length ? values : (function () {
+    var v = []; for (var r = 0; r < ROWS_PER_CAT; r++) v.push((r + 1) * 100); return v;
+  })();
+  return { category: "", questions: vals.map(function (v) { return blankQuestion(v); }) };
 }
 function blankDraft(catCount) {
-  var n = Math.max(MIN_CATS, Math.min(MAX_CATS, catCount || 5));
+  // One category. You add the next one when you want it, rather than being
+  // handed five empty columns and a scroll bar.
+  var n = Math.max(MIN_CATS, Math.min(MAX_CATS, catCount || 1));
   var cats = [];
   for (var c = 0; c < n; c++) cats.push(blankCategory());
   return {
@@ -4076,12 +4339,245 @@ function openBuilder(existingId) {
     var found = customBoards().filter(function (b) { return b.id === existingId; })[0];
     if (found) draft = JSON.parse(JSON.stringify(found));
   }
-  state.builder = { draft: draft || blankDraft(), catIndex: 0, error: "", shareUrl: "",
-                    openRow: -1, lastRow: 0, side: "example",
-                    // docked open on a wide screen; a shut drawer on a phone,
-                    // where an open panel would sit on top of the form
-                    sideOpen: typeof window !== "undefined" && window.innerWidth >= 900 };
+  state.builder = {
+    draft: draft || blankDraft(),
+    // Two steps, and the first one asks a single question. An existing board
+    // already has a name, so editing one goes straight to the grid.
+    step: draft ? "board" : "name",
+    catIndex: 0,
+    editing: null,       // {kind:"tile"|"cat"|"final", ci, row}
+    extrasOpen: false,   // the picture/clip/note half of the tile popup
+    error: "", shareUrl: "", toolsOpen: false,
+  };
   state.phase = "builder";
+  render();
+}
+function builderStep(step) {
+  if (!state.builder) return;
+  if (step === "board" && !state.builder.draft.name.trim()) {
+    state.builder.error = "Give the board a name first.";
+    render();
+    return;
+  }
+  state.builder.error = "";
+  state.builder.step = step;
+  hap("tap");
+  render();
+}
+// Tapping a tile opens it. The board stays on screen behind the popup, so you
+// never lose your place in the grid you are filling.
+function builderEdit(kind, ci, row) {
+  if (!state.builder) return;
+  var c = parseInt(ci, 10), r = parseInt(row, 10);
+  state.builder.editing = {
+    kind: kind,
+    ci: isNaN(c) ? 0 : c,
+    row: isNaN(r) ? 0 : r,
+  };
+  if (!isNaN(c)) state.builder.catIndex = c;   // clue: bindings read this
+  state.builder.extrasOpen = false;
+  hap("tap");
+  render();
+}
+function builderCloseEdit() {
+  if (!state.builder) return;
+  state.builder.editing = null;
+  state.builder.extrasOpen = false;
+  render();
+}
+function builderToggleExtras() {
+  if (!state.builder) return;
+  state.builder.extrasOpen = !state.builder.extrasOpen;
+  render();
+}
+function builderToggleTools() {
+  if (!state.builder) return;
+  state.builder.toolsOpen = !state.builder.toolsOpen;
+  render();
+}
+// A row's value belongs to the row, not to one tile -- that is what makes it
+// a board rather than a list.
+function builderSetRowValue(row, value) {
+  if (!state.builder) return;
+  var r = parseInt(row, 10);
+  var n = parseInt(String(value).replace(/[^0-9-]/g, ""), 10);
+  if (isNaN(r) || isNaN(n)) return;
+  n = Math.max(0, Math.min(100000, n));
+  state.builder.draft.textBoard.forEach(function (col) {
+    if (col.questions[r]) col.questions[r].value = n;
+  });
+}
+function builderAddRow() {
+  if (!state.builder) return;
+  var d = state.builder.draft;
+  if (boardRows(d) >= MAX_ROWS) return;
+  // carry the ladder on: one step past the biggest value already there
+  var vals = d.textBoard[0].questions.map(function (q) { return +q.value || 0; });
+  var last = vals[vals.length - 1] || 0;
+  var stepUp = vals.length > 1 ? (last - vals[vals.length - 2]) : 100;
+  var next = last + (stepUp > 0 ? stepUp : 100);
+  d.textBoard.forEach(function (col) { col.questions.push(blankQuestion(next)); });
+  hap("tap");
+  render();
+}
+// Deleting a row takes a question out of EVERY category, so it is the one
+// control in the popup that can throw away work you cannot get back. It asks
+// first, but only when there is something to lose -- confirming an empty row
+// would just be a dialog for its own sake.
+// ---- removing things, and getting them back ----
+// Nothing you have written is thrown away by a single tap. Removing a category
+// or a row moves it to a holding shelf that stays on screen until you either
+// bring it back -- with everything that was in it -- or erase it on purpose.
+// The only control that really destroys anything lives on its own, far from
+// anything you might be aiming at.
+function questionHasWork(q) {
+  return !!(q && (q.q || q.a || q.id || q.img || q.aimg || q.note || q.hint));
+}
+function rowHasWork(d, r) {
+  return d.textBoard.some(function (col) { return questionHasWork(col.questions[r]); });
+}
+function categoryWorkCount(col) {
+  if (!col) return 0;
+  return col.questions.filter(function (q) { return questionHasWork(q); }).length;
+}
+function builderBin() {
+  if (!state.builder) return [];
+  if (!state.builder.bin) state.builder.bin = [];
+  return state.builder.bin;
+}
+function builderRemoveRow(row) {
+  if (!state.builder) return;
+  var d = state.builder.draft;
+  var r = parseInt(row, 10);
+  if (isNaN(r) || boardRows(d) <= MIN_ROWS) return;
+  var kept = d.textBoard.map(function (col) { return JSON.parse(JSON.stringify(col.questions[r])); });
+  var value = d.textBoard[0].questions[r].value;
+  d.textBoard.forEach(function (col) { col.questions.splice(r, 1); });
+  builderBin().push({
+    kind: "row", at: r, value: value,
+    label: value + " row",
+    work: kept.filter(function (q) { return questionHasWork(q); }).length,
+    data: kept,
+  });
+  state.builder.editing = null;
+  hap("tap");
+  render();
+}
+function builderRemoveCategory(i) {
+  var bd = state.builder;
+  if (!bd || bd.draft.textBoard.length <= MIN_CATS) return;
+  var n = parseInt(i, 10);
+  if (isNaN(n) || n < 0 || n >= bd.draft.textBoard.length) return;
+  var col = JSON.parse(JSON.stringify(bd.draft.textBoard[n]));
+  bd.draft.textBoard.splice(n, 1);
+  builderBin().push({
+    kind: "cat", at: n,
+    label: col.category || "an untitled category",
+    work: categoryWorkCount(col),
+    data: col,
+  });
+  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
+  bd.editing = null;
+  bd.error = "";
+  hap("tap");
+  render();
+}
+// Bringing one back puts it where it was, with everything that was in it.
+function builderRestore(idx) {
+  var bd = state.builder;
+  if (!bd) return;
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  var it = bin[k];
+  var d = bd.draft;
+  if (it.kind === "cat") {
+    if (d.textBoard.length >= MAX_CATS) {
+      bd.error = "The board is already at " + MAX_CATS + " categories. Remove one before bringing this back.";
+      render();
+      return;
+    }
+    var col = JSON.parse(JSON.stringify(it.data));
+    // the board may be a different depth now than when this was removed
+    var rows = boardRows(d);
+    while (col.questions.length > rows) col.questions.pop();
+    while (col.questions.length < rows) col.questions.push(blankQuestion(d.textBoard[0].questions[col.questions.length].value));
+    d.textBoard.splice(Math.min(it.at, d.textBoard.length), 0, col);
+  } else {
+    if (boardRows(d) >= MAX_ROWS) {
+      bd.error = "The board is already " + MAX_ROWS + " rows deep. Remove one before bringing this back.";
+      render();
+      return;
+    }
+    var at = Math.min(it.at, boardRows(d));
+    d.textBoard.forEach(function (c, ci) {
+      var q = it.data[ci] ? JSON.parse(JSON.stringify(it.data[ci])) : blankQuestion(it.value);
+      c.questions.splice(at, 0, q);
+    });
+  }
+  bin.splice(k, 1);
+  bd.error = "";
+  hap("good");
+  render();
+}
+function confirmDiscardBin(idx) {
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  var it = bin[k];
+  if (!it.work) { builderDiscardBin(k); return; }
+  askConfirm("Erase " + it.label + " for good? " + it.work + " written question" +
+             (it.work === 1 ? "" : "s") + " will be gone, and this cannot be undone.",
+             "builderDiscardBin", k);
+}
+function builderDiscardBin(idx) {
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  bin.splice(k, 1);
+  render();
+}
+// The real delete. It lives in its own block at the bottom of the board, with
+// nothing else near it, and it says exactly what it is about to destroy.
+function confirmEraseCategory(i) {
+  if (!state.builder) return;
+  var d = state.builder.draft, c = parseInt(i, 10);
+  if (isNaN(c) || !d.textBoard[c]) return;
+  if (d.textBoard.length <= MIN_CATS) {
+    state.builder.error = "A board needs at least one category, so this one cannot be erased. Clear its questions instead.";
+    render();
+    return;
+  }
+  var col = d.textBoard[c];
+  var n = categoryWorkCount(col);
+  askConfirm("Erase " + (col.category ? '"' + col.category + '"' : "this category") +
+             " for good?" + (n ? " " + n + " written question" + (n === 1 ? "" : "s") + " will be gone." : "") +
+             " This cannot be undone.",
+             "eraseCategory", c);
+}
+function eraseCategory(i) {
+  var bd = state.builder;
+  if (!bd) return;
+  var c = parseInt(i, 10);
+  if (isNaN(c) || !bd.draft.textBoard[c] || bd.draft.textBoard.length <= MIN_CATS) return;
+  bd.draft.textBoard.splice(c, 1);          // no shelf: this one is meant to hurt
+  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
+  bd.editing = null;
+  hap("bad");
+  render();
+}
+// One question at a time is the deliberate way to empty a board out.
+function builderClearQuestion(row) {
+  var bd = state.builder;
+  if (!bd || !bd.editing) return;
+  var r = parseInt(row, 10);
+  var q = bd.draft.textBoard[bd.editing.ci] && bd.draft.textBoard[bd.editing.ci].questions[r];
+  if (!q) return;
+  var value = q.value;
+  ["q", "a", "note", "hint", "id", "img", "aimg", "clipStart", "clipLen"].forEach(function (f) { delete q[f]; });
+  q.q = ""; q.a = ""; q.note = ""; q.id = ""; q.img = ""; q.aimg = "";
+  q.value = value;
+  hap("tap");
   render();
 }
 function closeBuilder() {
@@ -4113,7 +4609,91 @@ function builderSetField(path, value) {
       } else it[f] = value;
     }
   }
-  // do not re-render on every keystroke (inputs keep focus); state is captured live
+  // Re-rendering on every keystroke would take the focus out of the box you
+  // are typing in, so nothing here calls render(). But the whole point of this
+  // screen is that it shows you the board as you make it, so the few things
+  // that changed get patched in place instead.
+  builderLiveUpdate(path);
+}
+// Surgical updates: the live card on the name step, and on the board step the
+// category heading, the tile's filled-in state and the progress count.
+function builderLiveUpdate(path) {
+  var bd = state.builder;
+  if (!bd) return;
+  var d = bd.draft;
+  var set = function (sel, text, ghostClass) {
+    var el = document.querySelector(sel);
+    if (!el) return;
+    el.textContent = text;
+    if (ghostClass) el.classList.toggle(ghostClass, !text || /^(Untitled board|A short description)$/.test(text));
+  };
+
+  if (bd.step === "name") {
+    if (path === "name") {
+      set(".bname-card-name", d.name || "Untitled board", "bname-ghost");
+      var icon = document.querySelector(".bname-card-icon");
+      if (icon) icon.textContent = (d.name || "?").trim().charAt(0).toUpperCase() || "?";
+    } else if (path === "tagline") {
+      set(".bname-card-tag", d.tagline || "A short description", "bname-ghost");
+    } else if (path === "accent") {
+      var bg = document.querySelector(".bname-bg");
+      if (bg && /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || ""))) bg.style.setProperty("--ba", d.accent);
+    }
+    return;
+  }
+
+  if (path === "accent") {
+    var bbg = document.querySelector(".bboard-bg");
+    if (bbg && /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || ""))) bbg.style.setProperty("--ba", d.accent);
+    return;
+  }
+  if (path === "catName") {
+    var head = document.querySelectorAll(".bgrid-head")[bd.catIndex];
+    var col = d.textBoard[bd.catIndex];
+    if (head && col) {
+      var txt = head.querySelector(".bgrid-head-text");
+      if (txt) txt.textContent = col.category || "Name it";
+      head.classList.toggle("bgrid-head-empty", !col.category);
+    }
+    var popTitle = document.querySelector(".bpop-title");
+    if (popTitle && bd.editing && bd.editing.kind === "cat") {
+      popTitle.textContent = col && col.category ? col.category : "Category " + (bd.catIndex + 1);
+    }
+  }
+  if (/^clue:/.test(path) || /^final/.test(path)) {
+    var ed = bd.editing;
+    if (/^clue:/.test(path) && ed) {
+      var q = d.textBoard[ed.ci] && d.textBoard[ed.ci].questions[ed.row];
+      var cols = d.textBoard.length;
+      var tile = document.querySelectorAll(".bgrid-tile")[ed.row * cols + ed.ci];
+      if (tile && q) {
+        var done = !!((q.q || q.id) && q.a);
+        tile.classList.toggle("bgrid-tile-done", done);
+        var badge = tile.querySelector(".bgrid-tick, .bgrid-plus");
+        if (badge) {
+          badge.className = done ? "bgrid-tick" : "bgrid-plus";
+          badge.innerHTML = done ? "&#10003;" : "+";
+        }
+      }
+    }
+    if (/^final/.test(path)) {
+      var fin = document.querySelector(".bfinal");
+      if (fin) {
+        var fdone = !!(d.final.category && d.final.q && d.final.a);
+        fin.classList.toggle("bfinal-done", fdone);
+        var fcat = fin.querySelector(".bfinal-cat"), fq = fin.querySelector(".bfinal-q"), fst = fin.querySelector(".bfinal-state");
+        if (fcat) fcat.textContent = d.final.category || "No category yet";
+        if (fq) fq.textContent = d.final.q || "The one everyone bets on. Tap to write it.";
+        if (fst) fst.innerHTML = fdone ? "&#10003; done" : "not written";
+      }
+    }
+    var prog = builderProgress(d);
+    var progEl = document.querySelector(".bboard-prog");
+    if (progEl) {
+      progEl.innerHTML = prog.done + " of " + prog.total + " written" +
+        (prog.ready ? ' &middot; <span class="bboard-ready">ready to save</span>' : "");
+    }
+  }
 }
 // Submitting does not add the board anywhere. It opens a GitHub issue on the
 // repo that serves fan-boards.json, so the owner -- the only person who can
@@ -4175,17 +4755,15 @@ function reportBoard(id) {
 function openExternal(url) {
   try { window.open(url, "_blank", "noopener"); } catch (e) {}
 }
-function builderSelectCat(i) {
-  if (!state.builder) return;
-  state.builder.catIndex = i;
-  state.builder.openRow = -1;
-  render();
-}
 // Jump from the mini board straight to one question, and put the cursor in it.
 // Play the draft where it stands, without saving it. Half-written tiles are
 // filled with a visible placeholder so the board is playable at any point, and
 // the whole thing is torn down again on the way out.
-function testBoard() {
+function testBoard() { enterTestBoard(false); }
+// The whole board as players first meet it -- the preview card with every
+// category on it -- without committing to a play-through.
+function showDraftBoard() { enterTestBoard(true); }
+function enterTestBoard(previewOnly) {
   if (!state.builder) return;
   var draft = JSON.parse(JSON.stringify(cleanDraft(state.builder.draft)));
   draft.id = "__testing__";
@@ -4203,9 +4781,9 @@ function testBoard() {
   if (!draft.final.q) draft.final.q = "(the final question is not written yet)";
   if (!draft.final.a) draft.final.a = "(no answer written yet)";
 
+  // remember where in the build you were, so coming back is seamless
   state.testingBoard = { draft: state.builder.draft, catIndex: state.builder.catIndex,
-                         openRow: state.builder.openRow, lastRow: state.builder.lastRow,
-                         side: state.builder.side, sideOpen: state.builder.sideOpen };
+                         step: state.builder.step, toolsOpen: state.builder.toolsOpen };
   BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; }).concat([draft]);
   if (!state.players.length) {
     state.players = [{ name: "You", score: 0, color: PLAYER_COLORS[0], shape: "circle",
@@ -4218,7 +4796,9 @@ function testBoard() {
   state.boardId = null;
   state.used = {};
   state.active = null;
-  state.previewBoardId = null;
+  // "See my whole board" opens straight onto the preview card -- every
+  // category and the Final, which is the whole-board view players get.
+  state.previewBoardId = previewOnly ? "__testing__" : null;
   state.searchQuery = "";
   state.boardsTab = "My Boards";
   state.phase = "boards";
@@ -4239,9 +4819,9 @@ function stopTestingBoard() {
   state.boardsTab = null;
   if (t && t.tempPlayers) state.players = [];
   if (t) {
-    state.builder = { draft: t.draft, catIndex: t.catIndex, error: "", shareUrl: "",
-                      openRow: t.openRow, lastRow: t.lastRow || 0,
-                      side: t.side || "example", sideOpen: t.sideOpen !== false };
+    state.builder = { draft: t.draft, catIndex: t.catIndex || 0, error: "", shareUrl: "",
+                      step: t.step || "board", editing: null, extrasOpen: false,
+                      toolsOpen: !!t.toolsOpen };
     state.phase = "builder";
   } else {
     state.phase = "players";
@@ -4261,33 +4841,6 @@ function closeExampleBoard() {
   state.previewBoardId = null;
   BOARDS = BOARDS.filter(function (b) { return b.id !== "example-board"; });
   state.phase = "builder";
-  render();
-}
-function builderJump(c, r) {
-  if (!state.builder) return;
-  state.builder.catIndex = c;
-  state.builder.openRow = -1;
-  state.builder.focusRow = r;
-  state.builder.lastRow = r;
-  hap("tap");
-  render();
-}
-function builderToggleRow(r) {
-  if (!state.builder) return;
-  state.builder.openRow = state.builder.openRow === r ? -1 : r;
-  state.builder.lastRow = r;
-  render();
-}
-function builderSideTab(tab) {
-  if (!state.builder) return;
-  state.builder.side = tab === "preview" ? "preview" : "example";
-  state.builder.sideOpen = true;
-  hap("tap");
-  render();
-}
-function builderSideFold() {
-  if (!state.builder) return;
-  state.builder.sideOpen = state.builder.sideOpen === false;
   render();
 }
 function builderClearMedia(r, field) {
@@ -4322,7 +4875,6 @@ function builderUploadImage(r, field, file) {
     if (!it) return;
     it[field] = String(e.target.result || "");
     state.builder.error = "";
-    state.builder.openRow = r;
     render();
   };
   reader.onerror = function () {
@@ -4335,20 +4887,15 @@ function builderUploadImage(r, field, file) {
 function builderAddCategory() {
   var bd = state.builder;
   if (!bd || bd.draft.textBoard.length >= MAX_CATS) return;
-  bd.draft.textBoard.push(blankCategory());
-  bd.catIndex = bd.draft.textBoard.length - 1;   // jump straight to the new one
+  // match the rows and values the board already has
+  var vals = bd.draft.textBoard[0].questions.map(function (q) { return q.value; });
+  bd.draft.textBoard.push(blankCategory(vals));
+  bd.catIndex = bd.draft.textBoard.length - 1;
   bd.error = "";
   hap("tap");
-  render();
-}
-function builderRemoveCategory(i) {
-  var bd = state.builder;
-  if (!bd || bd.draft.textBoard.length <= MIN_CATS) return;
-  if (i < 0 || i >= bd.draft.textBoard.length) return;
-  bd.draft.textBoard.splice(i, 1);
-  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
-  bd.error = "";
-  hap("tap");
+  // open the new column's title straight away: an untitled column is the
+  // first thing you would tap anyway
+  bd.editing = { kind: "cat", ci: bd.catIndex, row: 0 };
   render();
 }
 // Reordering: categories read left to right on the board, so the creator needs
@@ -4582,9 +5129,6 @@ function removePlayer(i) {
 }
 function continueToBoards() {
   if (!modeIsReady()) return; // the mode is scaffolding only
-  // In buzz mode the room has to exist before anyone can join, so opening it
-  // cannot wait on a roster that only fills up once it is open.
-  if (buzzModeOn() && !state.buzzer.on) { openHostRoom(); return; }
   if (!state.players.length) return;
   if (state.gameMode === "millionaire") { openMilPacks(); return; }
   if (state.gameMode === "feud") { openFeudTeams(); return; }
@@ -4854,6 +5398,9 @@ function jfSaveSettings() {
     juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit, gameMode: state.gameMode,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
     playStyle: state.playStyle, teamMode: state.teamMode,
+    // The timer is a house rule like any other: it was the one switch on that
+    // panel that forgot itself every time the tab was closed.
+    timerEnabled: state.timerEnabled, timerDuration: state.timerDuration,
   });
 }
 function loadSettings() {
@@ -4868,6 +5415,8 @@ function loadSettings() {
   if (s0.playStyle === "screen" || s0.playStyle === "buzzers") state.playStyle = s0.playStyle;
   state.teamMode = !!s0.teamMode;
   if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
+  if (typeof s0.timerEnabled === "boolean") state.timerEnabled = s0.timerEnabled;
+  if (typeof s0.timerDuration === "number") state.timerDuration = Math.max(5, Math.min(120, s0.timerDuration));
   if (typeof s0.gameMode === "string" && GAME_MODES.some(function (m) { return m.id === s0.gameMode; })) state.gameMode = s0.gameMode;
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
   if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
@@ -4887,7 +5436,17 @@ function applyClipVolume() {
 // One place for "a setting changed": repaint only what needs it.
 function settingsChanged() {
   if (state.phase === "players" && document.getElementById("settingsWrap")) updateSettingsPanel();
+  else if (state.phase === "boards" && document.getElementById("boardRulesWrap")) updateBoardRules();
   else { jfSaveSettings(); broadcastSync(); render(); }
+}
+function updateBoardRules() {
+  var wrap = document.getElementById("boardRulesWrap");
+  if (!wrap || state.phase !== "boards") { render(); return; }
+  wrap.innerHTML = state.rulesOpen ? boardRulesHtml() : "";
+  var btn = document.querySelector(".pbar-rules");
+  if (btn) btn.firstChild.textContent = activeRuleCount() + " rules";
+  jfSaveSettings();
+  broadcastSync();
 }
 function toggleSettings() { state.settingsOpen = !state.settingsOpen; render(); }
 function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; settingsChanged(); }
@@ -5573,6 +6132,25 @@ function markTabOverflow() {
   var max = strip.scrollWidth - strip.clientWidth;
   wrap.classList.toggle("tabs-more-left", strip.scrollLeft > 4);
   wrap.classList.toggle("tabs-more-right", strip.scrollLeft < max - 4);
+}
+// The roster is capped so it cannot push the start button off a small phone,
+// which means on a full house some names sit below the fold of their own box.
+// Say so, and fade the bottom edge, rather than quietly hiding people.
+function markRosterOverflow() {
+  var lists = document.querySelectorAll(".roster");
+  for (var i = 0; i < lists.length; i++) {
+    (function (el) {
+      var mark = function () {
+        var more = el.scrollHeight > el.clientHeight + 2;
+        el.classList.toggle("roster-more", more && el.scrollTop < el.scrollHeight - el.clientHeight - 4);
+      };
+      mark();
+      if (!el.dataset.rosterWatched) {
+        el.dataset.rosterWatched = "1";
+        el.addEventListener("scroll", mark, { passive: true });
+      }
+    })(lists[i]);
+  }
 }
 // ---- 18+ section: one-time verification gate, stored on this device ----
 // ---- game modes ----
@@ -6321,18 +6899,19 @@ function renderHelp() {
           "When every tile is gone, you finish with Final Jeopardy.",
         ]) +
         helpSection("Setting up", [
-          "Type in everyone's name, then choose how you are playing.",
+          "The first screen asks one thing: who is playing. Type a name, pick a token, tap <strong>Add</strong>.",
+          "Then <strong>Pick a Board</strong>. How you play is decided there, next to the boards.",
           "<strong>One screen</strong> means you all look at this device and the host says who answered first.",
           "<strong>Phone buzzers</strong> means everyone joins on their own phone and races to buzz in.",
-          "Then tap the big button to pick a board. Whoever's turn it is picks the next tile.",
+          "Whoever's turn it is picks the next tile.",
           "Playing alone works the same way &mdash; add just yourself and keep your own score.",
         ]) +
         helpSection("Phones as buzzers", [
-          "Choose <strong>Phone buzzers</strong> and the first thing you do is <strong>Open the Room</strong>.",
+          "On the board screen, under <strong>How you&rsquo;ll play</strong>, choose <strong>Phone buzzers</strong>.",
+          "Then tap <strong>Open the room</strong>. Nobody can join until the room exists.",
           "The room screen shows a QR code; the code and PIN stay covered until you tap <strong>Show code</strong>.",
-          "Everyone else opens the same link and taps <strong>JOIN SOMEONE ELSE&rsquo;S ROOM</strong>.",
-          "They type the code and their name, and appear on your list &mdash; you never type anyone in yourself.",
-          "Once people have joined, the start button turns into <strong>Everyone&rsquo;s In</strong>.",
+          "Everyone else opens the same link and taps <strong>JOIN A ROOM</strong>.",
+          "They type the code and their name, and appear on your list as they arrive.",
           "First phone to press wins the buzz. The host taps Right or Wrong.",
           "<strong>Watch on TV</strong> joins a screen that follows the game with no buzzer.",
         ]) +
@@ -6343,7 +6922,8 @@ function renderHelp() {
           "From there you can reveal, judge, score, start or stop the music, and run all of Final Jeopardy.",
         ]) +
         helpSection("Daily Double and Final", [
-          "One hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
+          "A hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
+          "How many are hidden is up to you &mdash; none, one, two or three, set with the rest of the rules at the board.",
           "Bet high and a right answer pays big; a wrong one costs the same.",
           "In <strong>Final Jeopardy</strong> everyone bets secretly, then answers one last question.",
           "The host screen shows who has their answer in, then reveals it and marks each person.",
@@ -6356,6 +6936,8 @@ function renderHelp() {
           "The video stays hidden while it plays, so the picture cannot give it away.",
         ]) +
         helpSection("House rules you can turn on", [
+          "They live on the board screen, behind the <strong>rules</strong> button &mdash; they belong to the game, not to your device.",
+          "The button counts how many are on, so you can see at a glance before you open it.",
           "<strong>Host Reads It Out</strong> hides the question until the host shows it, so buzzing first is a gamble rather than a reading race.",
           "<strong>No Minus Points</strong> and <strong>Never Below Zero</strong> keep scores from going backwards.",
           "<strong>Streak Bonus</strong> pays +100 for every three right in a row.",
@@ -6363,13 +6945,13 @@ function renderHelp() {
           "<strong>Correct Answer Picks Next</strong> hands the board to whoever just got it right.",
         ]) +
         helpSection("Playing in teams", [
-          "On the start screen, turn on <strong>Play in teams</strong> once two or more people are added.",
+          "On the board screen, once two or more people are added, switch on <strong>Teams</strong>.",
           "Teammates share one score, and the board passes to the other side rather than round the room.",
           "Tap a name to send it to the next team. Two to four teams.",
           "In Final Jeopardy each team bets and answers once, not each person.",
         ]) +
         helpSection("Millionaire", [
-          "Pick <strong>Millionaire</strong> at the top of the start screen for a different game.",
+          "Tap <strong>SWITCH</strong> on the game badge, then pick <strong>Millionaire</strong>.",
           "One player sits in the hot seat and climbs fifteen questions, four answers each.",
           "Two rungs are safe: reach them and that money is yours however it ends.",
           "Three lifelines, once each: <strong>50:50</strong>, <strong>Audience</strong> and <strong>Phone</strong>.",
@@ -6378,7 +6960,7 @@ function renderHelp() {
           "With several players everyone takes a turn and the winnings are compared at the end.",
         ]) +
         helpSection("Family Feud", [
-          "Pick <strong>Family Feud</strong> at the top of the start screen.",
+          "Tap <strong>SWITCH</strong> on the game badge, then pick <strong>Family Feud</strong>.",
           "Split everyone into two teams &mdash; tap a name to move it across.",
           "Each survey has its answers hidden. Read it out, and tap whichever answer someone actually says.",
           "Win the face-off and your team plays the board. Three strikes and the other team gets one guess to steal the whole bank.",
@@ -6387,16 +6969,29 @@ function renderHelp() {
         ]) +
         helpSection("Fan boards", [
           "The <strong>Fan Boards</strong> tab holds boards other people made and sent in.",
-          "Made one you are proud of? <strong>Submit to the Fan Boards</strong> in the board maker sends it to the site owner to look at.",
+          "Made one you are proud of? <strong>Submit to the Fan Boards</strong>, under the <strong>&#8942;</strong> button in the board maker, sends it to the site owner to look at.",
           "Only the owner can add a board to that tab, so nothing shows up there without being checked first.",
           "Spotted something wrong with a fan board? <strong>Report this board</strong> hides it on your device straight away and tells the owner.",
+        ]) +
+        helpSection("Making your own board", [
+          "<strong>Make your own board</strong> sits in the <strong>My Boards</strong> tab of the board picker.",
+          "It asks for a name first, and shows you the card people will tap as you type it.",
+          "Then you get the board itself. It starts as one column &mdash; tap <strong>+ CATEGORY</strong> for more, up to eight.",
+          "Tap a category heading to name it. Tap any tile to write its question and answer.",
+          "Everything you type happens in a popup over the board, so the board never leaves the screen.",
+          "<strong>Points</strong> in that popup sets the value for the whole row, so 100&ndash;500 is a starting point, not a rule.",
+          "<strong>+ Add a row of questions</strong> makes the board deeper.",
+          "Nothing you write is lost by one tap. <strong>Remove this category</strong> and <strong>Remove this row</strong> put it on a shelf above the board &mdash; <strong>Bring it back</strong> returns it with every question still in it.",
+          "<strong>Clear just this question</strong> empties one tile and leaves the rest alone. That is the way to empty a board out on purpose.",
+          "<strong>Erase for good</strong> is the only thing here that really destroys something. It sits on its own at the very bottom, names what it would take with it, and cannot be undone.",
+          "<strong>Play test</strong> plays it for real on this device. Nothing is scored and you come straight back.",
+          "The <strong>&#8942;</strong> button holds the tagline, cover art, 18+, sharing, download and import.",
         ]) +
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
           "First pick goes to a random player, so nobody gets it just for typing their name first.",
-          "<strong>More options</strong> on the start screen holds settings, the board maker, and your stats.",
-          "Settings has sound, motion, vibration, and the 18+ section, which is off until you turn it on.",
-          "<strong>Make or import a board</strong> is on the start screen under More options.",
+          "<strong>More options</strong> on the start screen holds Settings, the board maker, the guide and your stats.",
+          "Settings is sound, motion, vibration and the 18+ section &mdash; the things that belong to this device rather than to one game. The rules of the game itself are at the board.",
         ]) +
       '</div>' +
     '</div>' +
@@ -6571,6 +7166,8 @@ function confirmYes() {
   else if (action === "quitFeud") quitFeud();
   else if (action === "deleteFeudPack") deleteFeudPack(payload);
   else if (action === "reportBoard") reportBoard(payload);
+  else if (action === "builderDiscardBin") builderDiscardBin(payload);
+  else if (action === "eraseCategory") eraseCategory(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -6692,9 +7289,21 @@ function boardsPanelHtml() {
     }
     return card;
   }).join("");
+  // The board maker belongs where your own boards live, not only on the main
+  // menu -- this tab is where you come looking for it.
+  if (isMyBoards) {
+    cards += '<button class="board-card board-card-create" data-action="openBuilder" style="--accent:#ffd166">' +
+      '<div class="board-card-icon">+</div>' +
+      '<div class="board-card-body">' +
+        '<div class="board-card-title">Make your own board</div>' +
+        '<div class="board-card-tagline">Start from a blank grid, or import a board file. ' +
+          'Try it out as you build it.</div>' +
+      '</div>' +
+    '</button>';
+  }
   if (isMyBoards && !tabBoards.length) {
-    cards += '<p class="muted" style="grid-column:1/-1;text-align:center">' +
-      'No boards of your own yet. Make one from the main menu.</p>';
+    cards = '<p class="muted" style="grid-column:1/-1;text-align:center;margin:0 0 4px">' +
+      'No boards of your own yet &mdash; this is where they land.</p>' + cards;
   }
   if (isAdultTab) {
     cards += '<button class="board-card board-card-create" data-action="adultExample" style="--accent:#ff5470">' +
@@ -6771,6 +7380,7 @@ function viewBoards() {
       '<div class="search-results-title">SEARCH RESULTS &middot; BOARD TITLES</div>' +
       '<div id="searchResults">' + searchResultsHtml() + '</div>' +
     '</div>' +
+    playSetupBarHtml() +
     recentRowHtml() +
     '<div class="boards-tabs-wrap"><div class="boards-tabs" id="boardsTabs">' + tabs + '</div></div>' +
     '<div id="boardsPanel">' + boardsPanelHtml() + '</div>' +
@@ -6804,7 +7414,7 @@ function viewBoardPreview() {
       '<div style="display:flex;flex-wrap:wrap;gap:8px">' + '<div class="preview-chip" style="border-color:#ffd166;color:#ffd166">' + esc(b.final.category) + '</div>' + '</div>' +
       (state.exampleOpen && b.id === "example-board" ?
         '<p class="muted" style="margin-top:18px;text-align:left">This is what a finished board looks like: every category titled, all ' +
-        (b.textBoard.length * ROWS_PER_CAT) + ' questions written with an answer, and a Final Jeopardy at the end.</p>'
+        (b.textBoard.length * boardRows(b)) + ' questions written with an answer, and a Final Jeopardy at the end.</p>'
       : state.matchPending ?
         '<div style="display:flex;gap:10px;margin-top:22px">' +
           '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
@@ -6832,10 +7442,11 @@ function viewBoardPreview() {
 
 function viewPlayers() {
   var m = gameMode();
-  var modeChips = '<button class="mode-badge" data-action="openModePicker">' +
+  var modeChips = '<button class="mode-badge" data-action="openModePicker" aria-haspopup="dialog" ' +
+      'title="Switch to another game">' +
       '<span class="mode-badge-lbl">GAME</span>' +
       '<span class="mode-badge-name">' + esc(m.short) + '</span>' +
-      '<span class="mode-badge-arrow">&#9662;</span>' +
+      '<span class="mode-badge-go">SWITCH<span class="mode-badge-arrow">&#9662;</span></span>' +
     '</button>';
   // The board builder lives on the main menu now, one entry per game mode,
   // rather than being buried inside the board picker.
@@ -6866,7 +7477,7 @@ function viewPlayers() {
       '<p style="margin:0 0 4px;font-weight:900;color:#ffd166;font-size:14px;letter-spacing:1px">GAME IN PROGRESS</p>' +
       '<p style="margin:0;color:#aab0d8;font-size:13px">' + esc(saveBoard ? saveBoard.name : save.boardId) +
         (save.match ? ' &middot; round ' + save.match.round + ' of 2' : '') +
-        ' &middot; ' + doneTiles + '/' + (saveBoard ? saveBoard.textBoard.length * ROWS_PER_CAT : 25) + ' tiles &middot; ' +
+        ' &middot; ' + doneTiles + '/' + (saveBoard ? saveBoard.textBoard.length * boardRows(saveBoard) : 25) + ' tiles &middot; ' +
         save.players.map(function (p) { return esc(p.name) + ' ' + p.score; }).join(', ') + '</p>' +
       '<div style="display:flex;gap:10px;margin-top:12px">' +
         '<button class="confirm-btn-cancel" style="flex:1" data-action="discardSave">Discard</button>' +
@@ -6874,11 +7485,11 @@ function viewPlayers() {
       '</div>' +
     '</div>';
   }
-  return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
+  return '<div class="wrap setup-wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
-'<div style="text-align:center">' + modeChips + '</div>' +
-    (m.status === "ready" ? resumeCard : "") +
+    modeChips +
+    (m.status === "ready" && m.id === "jeopardy" ? resumeCard : "") +
     (m.status === "ready" ? "" :
       '<div class="card wip-card">' +
         '<p class="wip-tag">WORK IN PROGRESS</p>' +
@@ -6887,32 +7498,40 @@ function viewPlayers() {
         '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="setGameMode" data-mode="jeopardy">Back to Jeopardy</button>' +
       '</div>') +
     (m.status === "ready" ? '<div class="card">' : '<div class="card" hidden>') +
-      playStyleHtml() +
-      (buzzModeOn() ? buzzRosterHtml() : '') +
-      '<div' + (buzzModeOn() ? ' hidden' : '') + '>' +
-      '<label class="lbl">Player name</label>' +
+      // How you'll play -- buzzers, teams -- is decided at the board, next to
+      // the game itself. This screen is only ever "who is playing".
+      '<div>' +
+      // One label for the pair: the tokens sit right under the name box and
+      // the chosen one is lit, so a second heading was only costing height.
+      '<div class="lbl-row">' +
+        '<label class="lbl" for="nameInput">Player name and token</label>' +
+        (state.players.length
+          ? '<span class="lbl-count">' + state.players.length + ' OF ' + MAX_PLAYERS + ' ADDED</span>'
+          : '') +
+      '</div>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
         '<input class="input" id="nameInput" placeholder="Type a name..." value="' + esc(state.nameInput) + '" />' +
         '<button class="btn-gold" data-action="add">Add</button>' +
       '</div>' +
-      '<label class="lbl" style="display:block;margin-top:12px">Pick a token</label>' +
-      '<div class="shape-row">' + AVATAR_SHAPES.map(function (sh) {
+      '<div class="shape-row" role="group" aria-label="Pick a token">' + AVATAR_SHAPES.map(function (sh) {
         var sel = (state.nextShape || AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length]) === sh;
         return '<button class="shape-pick' + (sel ? ' shape-pick-sel' : '') + '" data-action="pickShape" data-shape="' + sh + '" aria-label="' + sh + '">' +
           avatarHtml({ shape: sh, color: sel ? '#ffd166' : '#8b92c0' }, 16) + '</button>';
       }).join('') + '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
-      '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
+      '<div class="roster' + (state.players.length >= 4 ? ' roster-2' : '') + '">' + playerRows + '</div>' +
       '</div>' +
-      teamSetupHtml() +
       startButtonHtml(m) +
-      '<button class="big-gold" style="margin-top:10px;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN SOMEONE ELSE&rsquo;S ROOM</button>' +
-      // Everything below is a one-off: it stays folded away so the first screen
-      // is just "who is playing" and "go".
-      '<button class="more-toggle" data-action="toggleSetupMore">' +
-        '<span>More options</span>' +
-        '<span class="more-caret">' + (state.setupMoreOpen ? "▲" : "▼") + '</span>' +
-      '</button>' +
+      // Joining someone else's room and the folded-away one-offs share a row:
+      // both are secondary to "who is playing" and "go", and stacking them as
+      // full-width buttons pushed the start button off a phone screen.
+      '<div class="setup-foot">' +
+        '<button class="setup-join" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
+        '<button class="more-toggle" data-action="toggleSetupMore">' +
+          '<span>More options</span>' +
+          '<span class="more-caret">' + (state.setupMoreOpen ? "▲" : "▼") + '</span>' +
+        '</button>' +
+      '</div>' +
       (state.setupMoreOpen
         ? '<div class="more-panel">' +
             '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
@@ -6962,7 +7581,7 @@ function buzzRosterHtml() {
   return '<div class="buzz-roster">' +
     '<p class="buzz-roster-head">' + status + '</p>' +
     (state.players.length
-      ? '<div class="buzz-roster-list">' + rows + '</div>'
+      ? '<div class="roster' + (state.players.length >= 4 ? ' roster-2' : '') + '">' + rows + '</div>'
       : '<p class="buzz-roster-sub">Waiting for the first phone to join&hellip;</p>') +
     '<div class="buzz-roster-actions">' +
       '<button class="builder-cat-move" data-action="openHostRoom">Show the code</button>' +
@@ -6971,30 +7590,29 @@ function buzzRosterHtml() {
   '</div>';
 }
 function startButtonHtml(m) {
-  var label, ready;
-  if (m.id === "millionaire") { label = "Pick a Question Pack"; ready = state.players.length > 0; }
-  else if (m.id === "feud") { label = "Set Up the Teams"; ready = state.players.length > 0; }
-  else if (buzzModeOn()) {
-    if (!state.buzzer.on) return "";          // the roster block already offers Open the Room
-    label = state.players.length ? "Everyone&rsquo;s In &mdash; Pick a Board" : "Waiting for players to join";
-    ready = state.players.length > 0;
-  } else { label = "Pick a Board"; ready = state.players.length > 0; }
+  var label, ready = state.players.length > 0;
+  if (m.id === "millionaire") label = "Pick a Question Pack";
+  else if (m.id === "feud") label = "Set Up the Teams";
+  else label = "Pick a Board";
   return '<button class="' + (ready ? "big-gold" : "big-disabled") + '" data-action="continueToBoards"' +
     (ready ? '' : ' disabled') + '>' + label + '</button>';
 }
 
 // Teams share a score. Off by default, because most games are free-for-all.
-function teamSetupHtml() {
+function teamSetupHtml(bare) {
   if (state.players.length < 2) return "";   // teams need at least two people
   var on = !!state.teamMode;
-  var head = '<button class="team-toggle' + (on ? ' team-toggle-on' : '') + '" data-action="toggleTeamMode">' +
+  // "bare" is the board-screen bar, which carries its own Teams switch and
+  // only wants the roster splitter underneath it.
+  var head = bare ? "" :
+    '<button class="team-toggle' + (on ? ' team-toggle-on' : '') + '" data-action="toggleTeamMode">' +
       '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
       '<span class="play-opt-text">' +
         '<span class="play-opt-title">Play in teams</span>' +
         '<span class="play-opt-sub">Teammates share one score and take turns as a side.</span>' +
       '</span>' +
     '</button>';
-  if (!on) return '<div class="team-setup">' + head + '</div>';
+  if (!on) return bare ? "" : '<div class="team-setup">' + head + '</div>';
   reconcileTeams();
   var count = state.teams.length;
   var maxTeams = Math.min(4, state.players.length);
@@ -7027,26 +7645,88 @@ function teamSetupHtml() {
   '</div>';
 }
 
+// How you'll play lives on the board screen, a step away from the game rather
+// than buried on the screen where you type names. Buzzers, teams, and the room
+// itself all sit in one bar above the boards.
+function playSetupBarHtml() {
+  if (state.gameMode !== "jeopardy") return "";
+  var buzz = state.playStyle === "buzzers";
+  var b = state.buzzer;
+  var room = "";
+  if (buzz) {
+    room = b.on
+      ? '<div class="pbar-room">' +
+          '<span class="pbar-room-live">' +
+            (b.status === "open" ? "Room open" : b.status === "starting" ? "Opening&hellip;" : "Room trouble") +
+            ' &middot; ' + state.players.length + (state.players.length === 1 ? ' player' : ' players') +
+          '</span>' +
+          '<button class="pbar-btn" data-action="openHostRoom">Show the code</button>' +
+          '<button class="pbar-btn pbar-btn-off" data-action="confirmStopRoom">Close</button>' +
+        '</div>'
+      : '<div class="pbar-room">' +
+          '<span class="pbar-room-hint">Everyone needs the room code before they can buzz.</span>' +
+          '<button class="pbar-btn pbar-btn-go" data-action="openHostRoom">Open the room</button>' +
+        '</div>';
+  }
+  return '<div class="pbar">' +
+    '<div class="pbar-row">' +
+      '<span class="pbar-head">HOW YOU&rsquo;LL PLAY</span>' +
+      '<div class="pbar-seg">' +
+        '<button class="pbar-opt' + (buzz ? '' : ' pbar-opt-on') + '" data-action="setPlayStyle" data-style="screen">One screen</button>' +
+        '<button class="pbar-opt' + (buzz ? ' pbar-opt-on' : '') + '" data-action="setPlayStyle" data-style="buzzers">Phone buzzers</button>' +
+      '</div>' +
+      (state.players.length >= 2
+        ? '<button class="pbar-team' + (state.teamMode ? ' pbar-team-on' : '') + '" data-action="toggleTeamMode">' +
+            '<span class="play-opt-tick">' + (state.teamMode ? '&#10003;' : '') + '</span>Teams</button>'
+        : '') +
+      '<button class="pbar-rules' + (state.rulesOpen ? ' pbar-rules-on' : '') + '" data-action="toggleBoardRules" ' +
+        'aria-expanded="' + (state.rulesOpen ? 'true' : 'false') + '">' +
+        activeRuleCount() + ' rules<span class="pbar-caret">' + (state.rulesOpen ? '▲' : '▼') + '</span>' +
+      '</button>' +
+    '</div>' +
+    room +
+    (state.teamMode && state.players.length >= 2 ? '<div class="pbar-teams">' + teamSetupHtml(true) + '</div>' : '') +
+    '<div id="boardRulesWrap">' + (state.rulesOpen ? boardRulesHtml() : '') + '</div>' +
+  '</div>';
+}
+// How many rules are actually on, so the button says something before you
+// open it -- "3 rules" beats a chevron you have to tap to learn anything.
+function activeRuleCount() {
+  var r = state.roomRules, n = 0;
+  if (state.timerEnabled) n++;
+  if (r.ddCount) n++;
+  ["streakBonus", "noMinus", "floorZero", "keepTurn", "readAloud"].forEach(function (k) { if (r[k]) n++; });
+  if (buzzModeOn() && r.oneBuzz) n++;
+  if (state.wheelOfChaosEnabled) n++;
+  if (state.phoneMirror) n++;
+  return n;
+}
+function boardRulesHtml() {
+  return '<div class="pbar-rules-panel">' + settingsPanelHtml("rules") + '</div>';
+}
+function toggleBoardRules() { state.rulesOpen = !state.rulesOpen; render(); }
 // One decision up front: are people buzzing in on their phones, or is everyone
 // crowded round one screen? It changes what the start button does.
 function playStyleHtml() {
   if (state.gameMode !== "jeopardy") return "";
   var opts = [
-    { id: "screen", title: "One screen", sub: "Everyone looks at this device. The host calls who answered first." },
-    { id: "buzzers", title: "Phone buzzers", sub: "Everyone plays from their own phone. They join with a code &mdash; you do not type anyone in." },
+    { id: "screen", title: "One screen", sub: "Everyone round this device." },
+    { id: "buzzers", title: "Phone buzzers", sub: "Everyone joins on their own phone." },
   ];
   return '<div class="play-style">' +
     '<p class="play-style-head">HOW ARE YOU PLAYING?</p>' +
+    '<div class="play-style-row">' +
     opts.map(function (o) {
       var on = state.playStyle === o.id;
       return '<button class="play-opt' + (on ? ' play-opt-on' : '') + '" data-action="setPlayStyle" data-style="' + o.id + '">' +
-          '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
-          '<span class="play-opt-text">' +
+          '<span class="play-opt-top">' +
+            '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
             '<span class="play-opt-title">' + o.title + '</span>' +
-            '<span class="play-opt-sub">' + o.sub + '</span>' +
           '</span>' +
+          '<span class="play-opt-sub">' + o.sub + '</span>' +
         '</button>';
     }).join('') +
+    '</div>' +
   '</div>';
 }
 
@@ -7174,130 +7854,13 @@ function builderExtrasHtml(q, r) {
   '</div>';
 }
 
-// A reference column that sits beside the form: the same slot from a finished
-// board, or your own question drawn the way a player will meet it. Docked on a
-// wide screen, stacked underneath on a phone.
-function builderSideHtml(d, ci, row) {
-  var tab = (state.builder && state.builder.side) || "example";
-  var open = !state.builder || state.builder.sideOpen !== false;
-  var r = Math.max(0, Math.min(ROWS_PER_CAT - 1, row || 0));
-  var head = '<div class="bside-head">' +
-      '<button class="bside-tab' + (tab === "example" ? " bside-tab-on" : "") + '" data-action="builderSideTab" data-tab="example">Example</button>' +
-      '<button class="bside-tab' + (tab === "preview" ? " bside-tab-on" : "") + '" data-action="builderSideTab" data-tab="preview">Preview</button>' +
-      '<button class="bside-fold" data-action="builderSideFold" aria-label="' + (open ? "Hide" : "Show") + ' the reference panel">' +
-        (open ? "&times;" : "&#9776;") + '</button>' +
-    '</div>';
-  if (!open) {
-    return '<aside class="bside bside-shut">' +
-      '<button class="bside-peek" data-action="builderSideFold">' +
-        'Show an example, or preview your question' +
-      '</button>' + head + '</aside>';
-  }
 
-  var body;
-  if (tab === "example") {
-    var ex = exampleBoard();
-    var exCat = ex.textBoard[ci % ex.textBoard.length];
-    var exQ = exCat.questions[r];
-    body = '<p class="bside-note">A finished board at the same slot you are writing. ' +
-        'Yours does not have to match &mdash; it is here to show the shape.</p>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Category</p>' +
-        '<p class="bside-strong">' + esc(exCat.category) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">' + exQ.value + ' point question</p>' +
-        '<p class="bside-text">' + esc(exQ.q) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Answer</p>' +
-        '<p class="bside-answer">' + esc(exQ.a) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Its Final Jeopardy</p>' +
-        '<p class="bside-text">' + esc(ex.final.q) + '</p>' +
-        '<p class="bside-answer">' + esc(ex.final.a) + '</p>' +
-      '</div>' +
-      '<button class="bside-btn" data-action="viewExampleBoard">See the whole example board</button>';
-  } else {
-    var col = d.textBoard[ci];
-    var mine = col.questions[r];
-    var hasQ = !!(mine.q || mine.id), hasA = !!mine.a;
-    body = '<p class="bside-note">Your ' + mine.value + ' point question, drawn the way a player meets it.</p>' +
-      '<div class="bside-stage">' +
-        '<p class="bside-stage-cat">' + esc((col.category || "Category").toUpperCase()) + '</p>' +
-        '<p class="bside-stage-val">' + mine.value + '</p>' +
-        '<div class="bside-stage-q' + (hasQ ? "" : " bside-empty") + '">' +
-          (hasQ ? esc(mine.q || "(a clip plays here)") : "Nothing written here yet") + '</div>' +
-        (mine.img ? '<img class="bside-stage-img" src="' + esc(mine.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
-        '<div class="bside-stage-a' + (hasA ? "" : " bside-empty") + '">' +
-          (hasA ? esc(mine.a) : "No answer yet") + '</div>' +
-        (mine.note ? '<p class="bside-stage-note">' + esc(mine.note) + '</p>' : '') +
-      '</div>' +
-      (mine.hint ? '<p class="bside-note">Host hint: ' + esc(mine.hint) + '</p>' : '') +
-      '<button class="bside-btn" data-action="testBoard">Play the whole board</button>';
-  }
-  return '<aside class="bside">' + head + '<div class="bside-body">' + body + '</div></aside>';
-}
 
 // Board builder: edit one category at a time, with live tab switching.
 // How much of the board is actually written, as a number and a bar. Building a
 // 40-question board is a long sit, and "17 of 40" is the difference between
 // progress and an endless form.
-function builderProgress(d) {
-  var total = d.textBoard.length * ROWS_PER_CAT, done = 0;
-  d.textBoard.forEach(function (c) {
-    c.questions.forEach(function (q) { if ((q.q || q.id) && q.a) done++; });
-  });
-  var missing = [];
-  d.textBoard.forEach(function (c, i) { if (!c.category) missing.push("category " + (i + 1) + " has no title"); });
-  if (!d.name) missing.push("the board has no name");
-  if (!d.final.category || !d.final.q || !d.final.a) missing.push("Final Jeopardy is not finished");
-  return { done: done, total: total, missing: missing,
-           ready: done === total && missing.length === 0 };
-}
-function builderProgressHtml(d) {
-  var p = builderProgress(d);
-  var pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
-  return '<div class="builder-progress">' +
-    '<div class="builder-progress-top">' +
-      '<span class="builder-progress-num">' + p.done + ' of ' + p.total + ' questions written</span>' +
-      '<span class="builder-progress-pct">' + pct + '%</span>' +
-    '</div>' +
-    '<div class="builder-bar"><div class="builder-bar-fill" style="width:' + pct + '%"></div></div>' +
-    (p.ready
-      ? '<p class="builder-progress-note builder-ready">Ready to save.</p>'
-      : (p.missing.length
-          ? '<p class="builder-progress-note">Still to do: ' + esc(p.missing.slice(0, 2).join(", ")) +
-            (p.missing.length > 2 ? ", and " + (p.missing.length - 2) + " more" : "") + '.</p>'
-          : '')) +
-  '</div>';
-}
-// The board as players will meet it. Tapping a tile jumps to that question,
-// which beats hunting through tabs for the one row you left blank.
-function builderMiniBoardHtml(d, ci) {
-  var n = d.textBoard.length;
-  var heads = d.textBoard.map(function (c, i) {
-    return '<div class="mini-head' + (i === ci ? ' mini-head-on' : '') + '">' +
-      esc(c.category || "Category " + (i + 1)) + '</div>';
-  }).join("");
-  var cells = "";
-  for (var r = 0; r < ROWS_PER_CAT; r++) {
-    for (var c = 0; c < n; c++) {
-      var q = d.textBoard[c].questions[r];
-      var full = (q.q || q.id) && q.a;
-      var media = q.id ? "&#9834;" : q.img ? "&#9635;" : "";
-      cells += '<button class="mini-tile' + (full ? ' mini-tile-done' : '') +
-        (c === ci ? ' mini-tile-col' : '') + '" data-action="builderJump" data-c="' + c + '" data-r="' + r + '"' +
-        ' aria-label="' + (full ? "Edit" : "Write") + ' the ' + q.value + ' point question in ' +
-          esc(d.textBoard[c].category || "category " + (c + 1)) + '">' +
-        '<span class="mini-val">' + q.value + '</span>' +
-        (media ? '<span class="mini-media">' + media + '</span>' : '') +
-      '</button>';
-    }
-  }
-  return '<div class="mini-board" style="--mini-cols:' + n + '">' + heads + cells + '</div>';
-}
+// A numbered section heading, shared by the Millionaire and Feud creators.
 function builderSectionHtml(num, title, body, sub) {
   return '<div class="builder-section">' +
     '<div class="builder-sec-head">' +
@@ -7308,148 +7871,308 @@ function builderSectionHtml(num, title, body, sub) {
     body +
   '</div>';
 }
-function viewBuilder() {
-  var bd = state.builder;
-  var d = bd.draft;
-  var ci = bd.catIndex;
-  var col = d.textBoard[ci];
+function builderProgress(d) {
+  var total = d.textBoard.length * boardRows(d), done = 0;
+  d.textBoard.forEach(function (c) {
+    c.questions.forEach(function (q) { if ((q.q || q.id) && q.a) done++; });
+  });
+  var missing = [];
+  d.textBoard.forEach(function (c, i) { if (!c.category) missing.push("category " + (i + 1) + " has no title"); });
+  if (!d.name) missing.push("the board has no name");
+  if (!d.final.category || !d.final.q || !d.final.a) missing.push("Final Jeopardy is not finished");
+  return { done: done, total: total, missing: missing,
+           ready: done === total && missing.length === 0 };
+}
+// ---- The board maker ----
+// Two steps. The first asks one question: what is it called. The second is the
+// board itself -- not a form describing a board, the actual grid, which fills
+// in under your hands as you tap tiles. Everything you type lands in a popup
+// over the board, so the board never leaves the screen.
 
-  var nCats = d.textBoard.length;
-  // Tabs carry the category's own name once it has one, so a board with eight
-  // columns is still navigable.
-  var catTabs = d.textBoard.map(function (c, i) {
-    var done = c.questions.filter(function (q) { return (q.q || q.id) && q.a; }).length;
-    var filled = c.category && done === ROWS_PER_CAT;
-    var label = c.category ? esc(c.category) : "Category " + (i + 1);
-    return '<button class="builder-cat-tab' + (i === ci ? " builder-cat-tab-active" : "") + '" data-action="builderSelectCat" data-i="' + i + '">' +
-      '<span class="builder-tab-name">' + label + '</span>' +
-      '<span class="builder-tab-count">' + (filled ? "&#10003;" : done + "/" + ROWS_PER_CAT) + '</span>' +
-    '</button>';
-  }).join("") +
-  (nCats < MAX_CATS
-    ? '<button class="builder-cat-tab builder-cat-add" data-action="builderAddCategory" aria-label="Add a category">+</button>'
-    : '');
+function builderAccent(d) {
+  return /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || "")) ? d.accent : DEFAULT_ACCENT;
+}
 
-  var clueFields = col.questions.map(function (q, r) {
-    var open = state.builder.openRow === r;
-    var has = [];
-    if (q.img) has.push("picture");
-    if (q.aimg) has.push("answer art");
-    if (q.id) has.push("clip");
-    if (q.hint) has.push("hint");
-    if (q.note) has.push("note");
-    var done = (q.q || q.id) && q.a;
-    return '<div class="builder-clue' + (done ? ' builder-clue-done' : '') + '">' +
-      '<div class="builder-clue-head">' +
-        '<span>' + q.value + ' pts</span>' +
-        '<span class="builder-clue-tags">' + (has.length ? esc(has.join(" &middot; ")) : '') + '</span>' +
-      '</div>' +
-      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="' + esc(builderHint(r).q) + '" value="' + esc(q.q) + '" />' +
-      '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="' + esc(builderHint(r).a) + '" value="' + esc(q.a) + '" />' +
-      '<button class="builder-more" data-action="builderToggleRow" data-i="' + r + '">' +
-        (open ? '&#9650; Hide extras' : '&#9660; Picture, clip, hint&hellip;') +
-      '</button>' +
-      (open ? builderExtrasHtml(q, r) : '') +
-    '</div>';
-  }).join("");
-
-  var accent = /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || "")) ? d.accent : DEFAULT_ACCENT;
-  var detailsBody =
-      '<label class="lbl">Board name</label>' +
-      '<input class="input builder-input" data-bind="name" placeholder="e.g. Studio Ghibli Jeopardy" value="' + esc(d.name) + '" />' +
-      '<label class="lbl" style="display:block;margin-top:10px">Tagline</label>' +
-      '<input class="input builder-input" data-bind="tagline" placeholder="A short description" value="' + esc(d.tagline) + '" />' +
-      '<div class="builder-two">' +
-        '<div><label class="lbl">Accent colour</label>' +
-          '<div class="builder-swatch-row">' +
-            '<input type="color" class="builder-wheel" id="builderAccentWheel" value="' + esc(accent) + '" aria-label="Pick the board colour" />' +
-            '<input class="input builder-input" style="margin-top:0" id="builderAccentHex" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" />' +
-          '</div></div>' +
-        '<div><label class="lbl">Cover image link</label>' +
-          '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" /></div>' +
-      '</div>' +
-      '<label class="builder-adult">' +
-        '<input type="checkbox" id="builderAdult"' + (d.adult ? ' checked' : '') + ' />' +
-        '<span>18+ board &mdash; it will live in the After Dark tab, and by entering it players are warned they may see dark humor or images not suited for all ages.</span>' +
-      '</label>';
-
-  var prog = builderProgress(d);
-  var focusRow = state.builder.openRow >= 0 ? state.builder.openRow : (state.builder.lastRow || 0);
-  return '<div class="builder-bg" style="--ba:' + esc(accent) + '"><div class="builder-inner">' +
-    '<div class="builder-cols">' +
-    '<div class="builder-main">' +
-    // A live cover of the board being made, so what is on screen is the thing
-    // you are building rather than a form about it.
-    '<div class="builder-hero">' +
-      (d.art ? '<img class="builder-hero-art" src="' + esc(d.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
-      '<div class="builder-hero-body">' +
-        '<span class="builder-hero-badge">' + esc((d.name || "?").trim().charAt(0).toUpperCase() || "?") + '</span>' +
-        '<div class="builder-hero-text">' +
-          '<p class="builder-hero-name">' + (d.name ? esc(d.name) : "Untitled board") + '</p>' +
-          '<p class="builder-hero-tag">' + (d.tagline ? esc(d.tagline) : "Give it a tagline") + '</p>' +
+// Step one: the name, and a live copy of the card players will pick.
+function viewBuilderName() {
+  var d = state.builder.draft;
+  var accent = builderAccent(d);
+  var letter = (d.name || "?").trim().charAt(0).toUpperCase() || "?";
+  return '<div class="builder-bg bname-bg" style="--ba:' + esc(accent) + '">' +
+    '<div class="bname-wrap">' +
+      '<p class="bname-step">STEP 1 OF 2</p>' +
+      '<h1 class="bname-title">What are you calling it?</h1>' +
+      '<p class="bname-sub">Just the name for now. You build the questions next, and nothing here is locked in.</p>' +
+      // the board card, drawn exactly as it appears in the picker
+      '<div class="bname-card">' +
+        (d.art ? '<img class="bname-card-art" src="' + esc(d.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
+        '<div class="bname-card-icon">' + esc(letter) + '</div>' +
+        '<div class="bname-card-text">' +
+          '<p class="bname-card-name' + (d.name ? '' : ' bname-ghost') + '">' + esc(d.name || "Untitled board") + '</p>' +
+          '<p class="bname-card-tag' + (d.tagline ? '' : ' bname-ghost') + '">' + esc(d.tagline || "A short description") + '</p>' +
         '</div>' +
+        '<span class="bname-card-cta">PREVIEW &rarr;</span>' +
+      '</div>' +
+      '<p class="bname-caption">This is the card people tap to play it.</p>' +
+
+      '<label class="lbl" for="bnameInput">Board name</label>' +
+      '<input class="input builder-input bname-input" id="bnameInput" data-bind="name" ' +
+        'placeholder="e.g. Studio Ghibli Jeopardy" value="' + esc(d.name) + '" />' +
+      '<label class="lbl" style="display:block;margin-top:12px">Tagline <span class="bname-opt">optional</span></label>' +
+      '<input class="input builder-input" data-bind="tagline" placeholder="What is it about?" value="' + esc(d.tagline) + '" />' +
+      '<label class="lbl" style="display:block;margin-top:12px">Colour</label>' +
+      '<div class="builder-swatch-row">' +
+        '<input type="color" class="builder-wheel" id="builderAccentWheel" value="' + esc(accent) + '" aria-label="Pick the board colour" />' +
+        '<input class="input builder-input" style="margin-top:0" id="builderAccentHex" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" />' +
+      '</div>' +
+      (state.builder.error ? '<p class="err">' + esc(state.builder.error) + '</p>' : '') +
+      '<button class="big-gold bname-go" data-action="builderStep" data-step="board">Start building &rarr;</button>' +
+      '<div class="bname-foot">' +
+        '<button class="my-import-link" data-action="viewExampleBoard">See a finished board first</button>' +
+        '<button class="my-import-link" data-action="closeBuilder">Cancel</button>' +
       '</div>' +
     '</div>' +
-    builderProgressHtml(d) +
-    '<div class="card builder-card">' +
-      builderSectionHtml(1, "The board itself", detailsBody) +
-      builderSectionHtml(2, "Your board so far",
-        builderMiniBoardHtml(d, ci),
-        "Tap any tile to jump straight to that question.") +
-      builderSectionHtml(3, "Categories",
-        '<div class="builder-cat-tabs">' + catTabs + '</div>',
-        nCats + ' column' + (nCats === 1 ? '' : 's') + ' on the board.') +
-      '<div class="builder-cat-bar">' +
-        '<button class="builder-cat-move" data-action="builderMoveCategory" data-i="' + ci + '" data-dir="-1"' +
-          (ci === 0 ? ' disabled' : '') + ' aria-label="Move this category left">&larr;</button>' +
-        '<span class="builder-cat-pos">Category ' + (ci + 1) + ' of ' + nCats + '</span>' +
-        '<button class="builder-cat-move" data-action="builderMoveCategory" data-i="' + ci + '" data-dir="1"' +
-          (ci === nCats - 1 ? ' disabled' : '') + ' aria-label="Move this category right">&rarr;</button>' +
-        '<button class="builder-cat-del" data-action="builderRemoveCategory" data-i="' + ci + '"' +
-          (nCats <= MIN_CATS ? ' disabled title="A board needs at least ' + MIN_CATS + ' categories"' : '') +
-          '>Remove</button>' +
-      '</div>' +
-      '<input class="input builder-input" style="margin-top:10px" data-bind="catName" placeholder="' + esc(builderHint(ci).cat) + '" value="' + esc(col.category) + '" />' +
-      '<div class="builder-rows">' + clueFields + '</div>' +
+  '</div>';
+}
 
-      builderSectionHtml(4, "Final Jeopardy",
-        '<input class="input builder-input" data-bind="finalCategory" placeholder="Last Words" value="' + esc(d.final.category) + '" />' +
-        '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="The hardest one you have &mdash; everyone bets on it." value="' + esc(d.final.q) + '" />' +
-        '<input class="input builder-input" style="margin-top:8px" data-bind="finalA" placeholder="What is the answer?" value="' + esc(d.final.a) + '" />',
-        "One last question everyone bets on.") +
+// Step two: the board. Category heads across the top, a tile per question, a
+// column of "+" to grow it sideways and a row of "+" to grow it down.
+function viewBuilderBoard() {
+  var bd = state.builder;
+  var d = bd.draft;
+  var accent = builderAccent(d);
+  var nCats = d.textBoard.length;
+  var nRows = boardRows(d);
+  var prog = builderProgress(d);
+
+  var heads = d.textBoard.map(function (c, i) {
+    return '<button class="bgrid-head' + (c.category ? '' : ' bgrid-head-empty') + '" ' +
+      'data-action="builderEdit" data-kind="cat" data-ci="' + i + '">' +
+      '<span class="bgrid-head-text">' + esc(c.category || "Name it") + '</span>' +
+    '</button>';
+  }).join("");
+  if (nCats < MAX_CATS) {
+    heads += '<button class="bgrid-head bgrid-add-col" data-action="builderAddCategory" ' +
+      'aria-label="Add a category">+<span class="bgrid-add-lbl">CATEGORY</span></button>';
+  }
+
+  var rows = "";
+  for (var r = 0; r < nRows; r++) {
+    for (var c = 0; c < nCats; c++) {
+      var q = d.textBoard[c].questions[r];
+      var done = (q.q || q.id) && q.a;
+      var media = q.id ? '<span class="bgrid-mark">&#9834;</span>' : q.img ? '<span class="bgrid-mark">&#9635;</span>' : '';
+      rows += '<button class="bgrid-tile' + (done ? ' bgrid-tile-done' : '') + '" ' +
+        'data-action="builderEdit" data-kind="tile" data-ci="' + c + '" data-row="' + r + '" ' +
+        'aria-label="' + (done ? 'Edit' : 'Write') + ' the ' + q.value + ' question in ' +
+          esc(d.textBoard[c].category || ("category " + (c + 1))) + '">' +
+        '<span class="bgrid-val">' + q.value + '</span>' + media +
+        (done ? '<span class="bgrid-tick">&#10003;</span>' : '<span class="bgrid-plus">+</span>') +
+      '</button>';
+    }
+    if (nCats < MAX_CATS) rows += '<div class="bgrid-spacer"></div>';
+  }
+
+  var gridCols = nCats + (nCats < MAX_CATS ? 1 : 0);
+  var finalDone = d.final.category && d.final.q && d.final.a;
+
+  return '<div class="builder-bg bboard-bg" style="--ba:' + esc(accent) + '">' +
+    '<div class="bboard-top">' +
+      '<button class="bboard-back" data-action="builderStep" data-step="name" aria-label="Back to the name">&larr;</button>' +
+      '<div class="bboard-title">' +
+        '<p class="bboard-name">' + esc(d.name || "Untitled board") + '</p>' +
+        '<p class="bboard-prog">' + prog.done + ' of ' + prog.total + ' written' +
+          (prog.ready ? ' &middot; <span class="bboard-ready">ready to save</span>' : '') + '</p>' +
+      '</div>' +
+      '<button class="bboard-tools" data-action="builderToggleTools" aria-label="More board options">&#8942;</button>' +
+    '</div>' +
+
+    '<div class="bboard-scroll">' +
+      builderBinHtml() +
+      '<div class="bgrid" style="--cols:' + gridCols + '">' + heads + rows + '</div>' +
+      (nRows < MAX_ROWS
+        ? '<button class="bgrid-add-row" data-action="builderAddRow">+ Add a row of questions</button>'
+        : '<p class="bgrid-cap">That is the most rows a board can have.</p>') +
+
+      '<button class="bfinal' + (finalDone ? ' bfinal-done' : '') + '" data-action="builderEdit" data-kind="final">' +
+        '<span class="bfinal-tag">FINAL JEOPARDY</span>' +
+        '<span class="bfinal-cat">' + esc(d.final.category || "No category yet") + '</span>' +
+        '<span class="bfinal-q">' + esc(d.final.q || "The one everyone bets on. Tap to write it.") + '</span>' +
+        '<span class="bfinal-state">' + (finalDone ? '&#10003; done' : 'not written') + '</span>' +
+      '</button>' +
 
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
-      (bd.shareUrl ?
-        '<div style="margin-top:14px"><label class="lbl">Share link (copy and send it)</label>' +
+      (bd.toolsOpen ? builderToolsHtml(d, bd) : '') +
+      builderDangerHtml(d) +
+    '</div>' +
+
+    '<div class="bboard-bar">' +
+      '<button class="bbar-test" data-action="testBoard">Play test</button>' +
+      '<button class="bbar-save" data-action="saveBuilder">Save board</button>' +
+    '</div>' +
+    (bd.editing ? builderPopupHtml(d, bd.editing) : '') +
+  '</div>';
+}
+
+// What you removed, still here until you say otherwise. It sits above the
+// board because it is about the board, and it goes away on its own the moment
+// you bring the last thing back.
+function builderBinHtml() {
+  var bin = builderBin();
+  if (!bin.length) return "";
+  var rows = bin.map(function (it, i) {
+    return '<div class="bbin-row">' +
+      '<span class="bbin-what">' +
+        '<span class="bbin-label">' + esc(it.label) + '</span>' +
+        '<span class="bbin-sub">' +
+          (it.work ? it.work + ' written question' + (it.work === 1 ? '' : 's') + ' waiting'
+                   : 'nothing was written in it') +
+        '</span>' +
+      '</span>' +
+      '<button class="bbin-back" data-action="builderRestore" data-i="' + i + '">Bring it back</button>' +
+      '<button class="bbin-drop" data-action="confirmDiscardBin" data-i="' + i + '" ' +
+        'aria-label="Erase ' + esc(it.label) + ' for good">&times;</button>' +
+    '</div>';
+  }).join("");
+  return '<div class="bbin">' +
+    '<p class="bbin-head">REMOVED &mdash; NOTHING IS LOST YET</p>' + rows +
+  '</div>';
+}
+// The only control in the maker that destroys anything outright. It is at the
+// very bottom, behind its own heading, with a gap above it, so it can only be
+// reached on purpose.
+function builderDangerHtml(d) {
+  if (d.textBoard.length <= MIN_CATS) return "";
+  var rows = d.textBoard.map(function (col, i) {
+    var n = categoryWorkCount(col);
+    return '<button class="bdanger-btn" data-action="confirmEraseCategory" data-i="' + i + '">' +
+      '<span class="bdanger-name">' + esc(col.category || "Category " + (i + 1)) + '</span>' +
+      '<span class="bdanger-sub">erase this column and its ' + n + ' written question' + (n === 1 ? '' : 's') + '</span>' +
+    '</button>';
+  }).join("");
+  return '<div class="bdanger">' +
+    '<p class="bdanger-head">ERASE FOR GOOD</p>' +
+    '<p class="bdanger-note">Everything else in the maker can be undone. These cannot. ' +
+      'To empty a category without erasing it, open its questions and clear them one at a time.</p>' +
+    rows +
+  '</div>';
+}
+// The one-off stuff: tagline, cover art, 18+, share, export, import, submit.
+// Folded away because none of it is part of making a board.
+function builderToolsHtml(d, bd) {
+  return '<div class="btools">' +
+    '<label class="lbl">Tagline</label>' +
+    '<input class="input builder-input" data-bind="tagline" placeholder="What is it about?" value="' + esc(d.tagline) + '" />' +
+    '<label class="lbl" style="display:block;margin-top:10px">Cover image link</label>' +
+    '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" />' +
+    '<label class="builder-adult">' +
+      '<input type="checkbox" id="builderAdult"' + (d.adult ? ' checked' : '') + ' />' +
+      '<span>18+ board &mdash; it lives in the After Dark tab, and players are warned before they enter.</span>' +
+    '</label>' +
+    (bd.shareUrl
+      ? '<div style="margin-top:12px"><label class="lbl">Share link</label>' +
           '<div style="display:flex;gap:8px;align-items:stretch">' +
             '<input class="input" id="shareUrlInput" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px;flex:1;min-width:0" />' +
             '<button class="confirm-btn-cancel" style="white-space:nowrap;padding:0 14px" data-action="copyShareUrl">' + (bd.copied ? "Copied!" : "Copy") + '</button>' +
-          '</div>' +
-          '<p class="muted" style="text-align:left;margin-top:6px">Anyone with this link can play your board straight away.</p></div>'
+          '</div></div>'
       : '') +
-
-      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="testBoard">' +
-        'Try this board out' + (prog.ready ? '' : ' (as far as it goes)') + '</button>' +
-      '<p class="muted" style="margin-top:6px;font-size:12px">Plays it for real on this device. Nothing is scored, and you come straight back here.</p>' +
-      '<button class="my-import-link" data-action="viewExampleBoard">See a finished board as an example</button>' +
-      '<div class="builder-actions">' +
-        '<button class="confirm-btn-cancel" data-action="closeBuilder">Cancel</button>' +
-        '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="shareBuilder">Share</button>' +
-        '<button class="big-gold" data-action="saveBuilder">Save</button>' +
-      '</div>' +
-      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitBoardForReview">Submit to the Fan Boards</button>' +
-      '<p class="muted" style="margin-top:6px;font-size:12px">Opens a GitHub issue with your board attached. The site owner reviews every submission before it becomes one of the Fan Boards.</p>' +
-      (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
-      '<button class="my-import-link" data-action="exportBuilderJson">Download this board as a JSON backup</button>' +
-      '<label class="my-import-link" style="display:block">Import a board from a JSON backup' +
+    '<div class="btools-row">' +
+      '<button class="pbar-btn" data-action="shareBuilder">Share link</button>' +
+      '<button class="pbar-btn" data-action="exportBuilderJson">Download</button>' +
+      '<label class="pbar-btn" style="text-align:center">Import' +
         '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
       '</label>' +
-      (state.importFileMsg ? '<p class="muted" style="margin-top:6px;text-align:center">' + esc(state.importFileMsg) + '</p>' : '') +
     '</div>' +
-    '</div>' +
-    builderSideHtml(d, ci, focusRow) +
-    '</div>' +
-  '</div></div>';
+    '<button class="pbar-btn" style="width:100%;margin-top:8px" data-action="submitBoardForReview">Submit to the Fan Boards</button>' +
+    '<p class="muted" style="margin-top:6px;font-size:11.5px">Opens a GitHub issue with the board attached. Every submission is reviewed before it becomes a Fan Board.</p>' +
+    (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
+    (state.importFileMsg ? '<p class="muted" style="margin-top:6px">' + esc(state.importFileMsg) + '</p>' : '') +
+    '<button class="my-import-link" data-action="closeBuilder">Close without saving</button>' +
+  '</div>';
+}
+
+// The popup. It sits over the board rather than replacing it, so closing it
+// puts you back exactly where you were with the tile now filled in.
+function builderPopupHtml(d, ed) {
+  var body, title, sub, del = "";
+
+  if (ed.kind === "cat") {
+    var col = d.textBoard[ed.ci];
+    if (!col) return "";
+    title = "Category " + (ed.ci + 1);
+    sub = "The heading players read above the column.";
+    body = '<input class="input builder-input bpop-first" data-bind="catName" ' +
+        'placeholder="' + esc(builderHint(ed.ci).cat) + '" value="' + esc(col.category) + '" />' +
+      '<div class="bpop-move">' +
+        '<button class="pbar-btn" data-action="builderMoveCategory" data-i="' + ed.ci + '" data-dir="-1"' +
+          (ed.ci === 0 ? ' disabled' : '') + '>&larr; Move left</button>' +
+        '<button class="pbar-btn" data-action="builderMoveCategory" data-i="' + ed.ci + '" data-dir="1"' +
+          (ed.ci === d.textBoard.length - 1 ? ' disabled' : '') + '>Move right &rarr;</button>' +
+      '</div>';
+    if (d.textBoard.length > MIN_CATS) {
+      del = '<button class="bpop-del" data-action="builderRemoveCategory" data-i="' + ed.ci + '">Remove this category</button>' +
+        '<p class="bpop-del-note">It goes to the shelf above the board with everything in it, and you can bring it back.</p>';
+    }
+
+  } else if (ed.kind === "final") {
+    title = "Final Jeopardy";
+    sub = "Everyone wagers before they see it.";
+    body = '<label class="lbl">Category</label>' +
+      '<input class="input builder-input bpop-first" data-bind="finalCategory" placeholder="Last Words" value="' + esc(d.final.category) + '" />' +
+      '<label class="lbl" style="display:block;margin-top:10px">Question</label>' +
+      '<textarea class="input builder-input bpop-area" data-bind="finalQ" rows="3" ' +
+        'placeholder="The hardest one you have.">' + esc(d.final.q) + '</textarea>' +
+      '<label class="lbl" style="display:block;margin-top:10px">Answer</label>' +
+      '<input class="input builder-input" data-bind="finalA" placeholder="What is the answer?" value="' + esc(d.final.a) + '" />';
+
+  } else {
+    var c2 = d.textBoard[ed.ci];
+    if (!c2) return "";
+    var q = c2.questions[ed.row];
+    if (!q) return "";
+    title = esc(c2.category || ("Category " + (ed.ci + 1)));
+    sub = "Question " + (ed.row + 1) + " of " + boardRows(d);
+    body = '<div class="bpop-value">' +
+        '<label class="lbl" for="bpopVal">Points</label>' +
+        '<input class="input builder-input bpop-val" id="bpopVal" type="number" min="0" step="50" ' +
+          'data-rowvalue="' + ed.row + '" value="' + (+q.value || 0) + '" />' +
+        '<span class="bpop-value-note">every question in this row is worth this</span>' +
+      '</div>' +
+      '<label class="lbl" style="display:block;margin-top:10px">Question</label>' +
+      '<textarea class="input builder-input bpop-area bpop-first" data-bind="clue:' + ed.row + ':q" rows="3" ' +
+        'placeholder="' + esc(builderHint(ed.row).q) + '">' + esc(q.q) + '</textarea>' +
+      '<label class="lbl" style="display:block;margin-top:10px">Answer</label>' +
+      '<input class="input builder-input" data-bind="clue:' + ed.row + ':a" ' +
+        'placeholder="' + esc(builderHint(ed.row).a) + '" value="' + esc(q.a) + '" />' +
+      '<button class="builder-more" data-action="builderToggleExtras">' +
+        (state.builder.extrasOpen ? '&#9650; Hide extras' : '&#9660; Picture, clip, hint&hellip;') +
+      '</button>' +
+      (state.builder.extrasOpen ? builderExtrasHtml(q, ed.row) : '');
+    del = (questionHasWork(q)
+        ? '<button class="bpop-del bpop-clear" data-action="builderClearQuestion" data-row="' + ed.row + '">Clear just this question</button>'
+        : '') +
+      (boardRows(d) > MIN_ROWS
+        ? '<button class="bpop-del" data-action="builderRemoveRow" data-row="' + ed.row + '">Remove this row</button>' +
+          '<p class="bpop-del-note">The whole row goes to the shelf above the board, and you can bring it back.</p>'
+        : '');
+  }
+
+  return '<div class="bpop-scrim" data-action="builderCloseEdit"></div>' +
+    '<div class="bpop" role="dialog" aria-modal="true" aria-label="' + title + '">' +
+      '<div class="bpop-head">' +
+        '<div class="bpop-head-text">' +
+          '<p class="bpop-title">' + title + '</p>' +
+          '<p class="bpop-sub">' + sub + '</p>' +
+        '</div>' +
+        '<button class="bpop-x" data-action="builderCloseEdit" aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="bpop-body">' + body + del + '</div>' +
+      '<button class="bpop-done" data-action="builderCloseEdit">Done</button>' +
+    '</div>';
+}
+
+function viewBuilder() {
+  return state.builder.step === "name" ? viewBuilderName() : viewBuilderBoard();
 }
 
 // ---- Millionaire: the screen ----
@@ -8879,7 +9602,7 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
     setToggleRow("togglePhoneMirror", "Mirror Questions to Phones", "Players see the question and art on their phone", state.phoneMirror));
 }
-function settingsPanelHtml() {
+function settingsPanelHtml(which) {
   var r = state.roomRules;
   var vol = Math.round(state.volume * 100);
   var mode = gameMode();
@@ -8949,14 +9672,27 @@ function settingsPanelHtml() {
           '<span class="switch"></span>' +
         '</div>');
 
+  // Two different kinds of thing were living in one panel. How THIS GAME
+  // plays -- timers, daily doubles, house rules -- belongs next to the board
+  // you are about to play, so it lives on the board screen. How this DEVICE
+  // behaves -- sound, motion, the 18+ section -- is a preference and stays
+  // here, where you set it once and forget it.
+  if (which === "rules") {
+    if (mode.id !== "jeopardy") return modeNote ? '<div class="settings-panel">' + modeNote + '</div>' : "";
+    return '<div class="settings-panel">' +
+      setGroup("GAMEPLAY", gameplay) +
+      setGroup("PHONE ROOM", room) +
+    '</div>';
+  }
   return '<div class="settings-panel">' +
     modeNote +
     setGroup("AUDIO", audio) +
     setGroup("FEEL", feel) +
-    // Jeopardy's board rules mean nothing in the other two modes.
-    (mode.id === "jeopardy" ? setGroup("GAMEPLAY", gameplay) : "") +
-    (mode.id === "jeopardy" ? setGroup("PHONE ROOM", room) : "") +
     setGroup("CONTENT", content) +
+    (mode.id === "jeopardy"
+      ? '<p class="set-mode-note">Timers, Daily Doubles and the house rules are set where you pick the board, ' +
+        'so they belong to the game rather than to this device.</p>'
+      : '') +
   '</div>';
 }
 function ddCountAdj(d) {
@@ -9443,7 +10179,7 @@ function viewBoard() {
   }).join("");
 
   var tiles = "";
-  for (var row = 0; row < 5; row++) {
+  for (var row = 0, nRows = boardRows(categories); row < nRows; row++) {
     for (var ci = 0; ci < categories.length; ci++) {
       var col = categories[ci];
       var isVideoTile = !!col.questions[row].id;
@@ -9483,7 +10219,7 @@ function viewBoard() {
         '<button class="btn-gold" style="padding:10px 22px;border-radius:999px" data-action="openWheel">Spin the Wheel of Chaos</button>' +
       '</div>'
     : "") +
-    '<div class="board-grid" style="grid-template-columns:repeat(' + categories.length + ',minmax(0,1fr))">' + heads + tiles + '</div>' +
+    '<div class="board-grid" style="--rows:' + boardRows(categories) + ';grid-template-columns:repeat(' + categories.length + ',minmax(0,1fr))">' + heads + tiles + '</div>' +
   '</div></div>';
 }
 
@@ -9875,14 +10611,16 @@ function render() {
     buzzNameField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.name = e.target.value; });
     buzzNameField.addEventListener("keydown", function (e) { if (e.key === "Enter") submitBuzzerJoin(); });
   }
-  if (state.builder && state.builder.focusRow != null && state.builder.focusRow >= 0) {
-    var jumped = document.querySelector('[data-bind="clue:' + state.builder.focusRow + ':q"]');
-    state.builder.focusRow = null;
-    if (jumped) {
-      try { jumped.focus({ preventScroll: true }); } catch (e) { jumped.focus(); }
-      if (jumped.scrollIntoView) jumped.scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
+  // A popup that has just opened should be ready to type into -- you tapped
+  // the tile because you have the question in your head.
+  if (state.builder && state.builder.editing) {
+    var pop = document.querySelector(".bpop");
+    var first = pop && pop.querySelector(".bpop-first");
+    if (first && document.activeElement !== first && !pop.contains(document.activeElement)) {
+      try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); }
     }
   }
+  markRosterOverflow();
   var tabStrip = document.getElementById("boardsTabs");
   if (tabStrip) {
     markTabOverflow();
@@ -9942,6 +10680,19 @@ document.getElementById("root").addEventListener("input", function (e) {
     return;
   }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+  if (t && t.getAttribute && t.getAttribute("data-rowvalue") != null) {
+    builderSetRowValue(t.getAttribute("data-rowvalue"), t.value);
+    var gridNow = document.querySelector(".bgrid");
+    if (gridNow) {
+      // repaint the values behind the popup without stealing focus from the box
+      var vals = gridNow.querySelectorAll(".bgrid-val");
+      var cols = state.builder.draft.textBoard.length;
+      var rowN = parseInt(t.getAttribute("data-rowvalue"), 10);
+      for (var vi = 0; vi < vals.length; vi++) {
+        if (Math.floor(vi / cols) === rowN) vals[vi].textContent = state.builder.draft.textBoard[0].questions[rowN].value;
+      }
+    }
+  }
   if (t && t.getAttribute && t.getAttribute("data-milbind")) milBuilderSetField(t.getAttribute("data-milbind"), t.value);
   if (t && t.getAttribute && t.getAttribute("data-feudbind")) feudBuilderSetField(t.getAttribute("data-feudbind"), t.value);
   if (t && t.id === "volumeSlider") {
@@ -10115,18 +10866,26 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "closeStats") closeStats();
   else if (action === "openBuilder") openBuilder(t.getAttribute("data-id"));
   else if (action === "closeBuilder") closeBuilder();
-  else if (action === "builderSelectCat") builderSelectCat(+t.getAttribute("data-i"));
-  else if (action === "builderToggleRow") builderToggleRow(+t.getAttribute("data-i"));
-  else if (action === "builderJump") builderJump(+t.getAttribute("data-c"), +t.getAttribute("data-r"));
+  else if (action === "builderStep") builderStep(t.getAttribute("data-step"));
+  else if (action === "builderEdit") builderEdit(t.getAttribute("data-kind"), t.getAttribute("data-ci"), t.getAttribute("data-row"));
+  else if (action === "builderCloseEdit") builderCloseEdit();
+  else if (action === "builderToggleExtras") builderToggleExtras();
+  else if (action === "builderToggleTools") builderToggleTools();
+  else if (action === "toggleBoardRules") toggleBoardRules();
+  else if (action === "builderAddRow") builderAddRow();
+  else if (action === "builderRestore") builderRestore(t.getAttribute("data-i"));
+  else if (action === "confirmDiscardBin") confirmDiscardBin(t.getAttribute("data-i"));
+  else if (action === "confirmEraseCategory") confirmEraseCategory(t.getAttribute("data-i"));
+  else if (action === "builderClearQuestion") builderClearQuestion(t.getAttribute("data-row"));
   else if (action === "testBoard") testBoard();
+  else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "stopTestingBoard") stopTestingBoard();
   else if (action === "viewExampleBoard") viewExampleBoard();
-  else if (action === "builderSideTab") builderSideTab(t.getAttribute("data-tab"));
-  else if (action === "builderSideFold") builderSideFold();
   else if (action === "closeExampleBoard") closeExampleBoard();
   else if (action === "builderClearMedia") builderClearMedia(+t.getAttribute("data-i"), t.getAttribute("data-field"));
   else if (action === "builderAddCategory") builderAddCategory();
-  else if (action === "builderRemoveCategory") builderRemoveCategory(+t.getAttribute("data-i"));
+  else if (action === "builderRemoveCategory") builderRemoveCategory(t.getAttribute("data-i"));
+  else if (action === "builderRemoveRow") builderRemoveRow(t.getAttribute("data-row"));
   else if (action === "builderMoveCategory") builderMoveCategory(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
   else if (action === "saveBuilder") saveBuilder();
   else if (action === "shareBuilder") shareBuilder();
