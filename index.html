@@ -4353,6 +4353,29 @@ function builderAddRow() {
   hap("tap");
   render();
 }
+// Deleting a row takes a question out of EVERY category, so it is the one
+// control in the popup that can throw away work you cannot get back. It asks
+// first, but only when there is something to lose -- confirming an empty row
+// would just be a dialog for its own sake.
+function rowHasWork(d, r) {
+  return d.textBoard.some(function (col) {
+    var q = col.questions[r];
+    return !!(q && (q.q || q.a || q.id || q.img || q.note || q.hint));
+  });
+}
+function confirmRemoveRow(row) {
+  if (!state.builder) return;
+  var d = state.builder.draft, r = parseInt(row, 10);
+  if (isNaN(r) || boardRows(d) <= MIN_ROWS) return;
+  if (!rowHasWork(d, r)) { builderRemoveRow(r); return; }
+  var n = d.textBoard.filter(function (col) {
+    var q = col.questions[r];
+    return !!(q && (q.q || q.a || q.id));
+  }).length;
+  askConfirm("Delete the " + d.textBoard[0].questions[r].value + " row? That removes it from every category, " +
+             "including " + n + " question" + (n === 1 ? "" : "s") + " you have written.",
+             "builderRemoveRow", r);
+}
 function builderRemoveRow(row) {
   if (!state.builder) return;
   var d = state.builder.draft;
@@ -4362,6 +4385,17 @@ function builderRemoveRow(row) {
   state.builder.editing = null;
   hap("tap");
   render();
+}
+function confirmRemoveCategory(i) {
+  if (!state.builder) return;
+  var d = state.builder.draft, c = parseInt(i, 10);
+  if (isNaN(c) || !d.textBoard[c] || d.textBoard.length <= MIN_CATS) return;
+  var col = d.textBoard[c];
+  var n = col.questions.filter(function (q) { return q.q || q.a || q.id; }).length;
+  if (!n && !col.category) { builderRemoveCategory(c); return; }
+  askConfirm("Delete " + (col.category ? '"' + col.category + '"' : "this category") +
+             (n ? " and the " + n + " question" + (n === 1 ? "" : "s") + " in it?" : "?"),
+             "builderRemoveCategory", c);
 }
 function closeBuilder() {
   state.builder = null;
@@ -6940,6 +6974,8 @@ function confirmYes() {
   else if (action === "quitFeud") quitFeud();
   else if (action === "deleteFeudPack") deleteFeudPack(payload);
   else if (action === "reportBoard") reportBoard(payload);
+  else if (action === "builderRemoveRow") builderRemoveRow(payload);
+  else if (action === "builderRemoveCategory") builderRemoveCategory(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -7816,7 +7852,7 @@ function builderPopupHtml(d, ed) {
           (ed.ci === d.textBoard.length - 1 ? ' disabled' : '') + '>Move right &rarr;</button>' +
       '</div>';
     if (d.textBoard.length > MIN_CATS) {
-      del = '<button class="bpop-del" data-action="builderRemoveCategory" data-i="' + ed.ci + '">Delete this category</button>';
+      del = '<button class="bpop-del" data-action="confirmRemoveCategory" data-i="' + ed.ci + '">Delete this category</button>';
     }
 
   } else if (ed.kind === "final") {
@@ -7854,7 +7890,7 @@ function builderPopupHtml(d, ed) {
       '</button>' +
       (state.builder.extrasOpen ? builderExtrasHtml(q, ed.row) : '');
     if (boardRows(d) > MIN_ROWS) {
-      del = '<button class="bpop-del" data-action="builderRemoveRow" data-row="' + ed.row + '">Delete this whole row</button>';
+      del = '<button class="bpop-del" data-action="confirmRemoveRow" data-row="' + ed.row + '">Delete this whole row</button>';
     }
   }
 
@@ -10560,7 +10596,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderToggleExtras") builderToggleExtras();
   else if (action === "builderToggleTools") builderToggleTools();
   else if (action === "builderAddRow") builderAddRow();
-  else if (action === "builderRemoveRow") builderRemoveRow(t.getAttribute("data-row"));
+  else if (action === "confirmRemoveRow") confirmRemoveRow(t.getAttribute("data-row"));
+  else if (action === "confirmRemoveCategory") confirmRemoveCategory(t.getAttribute("data-i"));
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "stopTestingBoard") stopTestingBoard();
