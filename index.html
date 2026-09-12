@@ -233,10 +233,31 @@
   .boards-subtitle { margin: 8px 0 0; color: #aab0d8; font-size: 15px; font-weight: 600; }
 
   /* genre tabs: segmented control with a pop on the active pill */
+  /* With a handful of genres these fit; with many they scroll, and the fades
+     say so rather than leaving the last one hidden off the end. */
+  .boards-tabs-wrap { position: relative; margin-bottom: 20px; }
+  .boards-tabs-wrap::before, .boards-tabs-wrap::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 34px;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s ease; z-index: 2;
+  }
+  .boards-tabs-wrap::before {
+    left: 0; border-radius: 999px 0 0 999px;
+    background: linear-gradient(90deg, var(--mode-deep), transparent);
+  }
+  .boards-tabs-wrap::after {
+    right: 0; border-radius: 0 999px 999px 0;
+    background: linear-gradient(270deg, var(--mode-deep), transparent);
+  }
+  .boards-tabs-wrap.tabs-more-left::before, .boards-tabs-wrap.tabs-more-right::after { opacity: 1; }
   .boards-tabs {
     display: flex; gap: 6px; background: #10142e; border: 1px solid #2a2f55;
-    border-radius: 999px; padding: 5px; margin-bottom: 20px;
+    border-radius: 999px; padding: 5px; margin-bottom: 0;
+    overflow-x: auto; scroll-snap-type: x proximity;
+    scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
+  .boards-tabs::-webkit-scrollbar { display: none; }
+  .boards-tab { scroll-snap-align: center; }
   .boards-tab {
     flex: 1; border: none; border-radius: 999px; padding: 11px 6px;
     font-weight: 800; font-size: 12px; letter-spacing: 1px; cursor: pointer;
@@ -1637,6 +1658,84 @@
   .feud-b-mul { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .feud-b-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
+  /* the mode badge, and the panel it opens */
+  .mode-badge {
+    display: inline-flex; align-items: center; gap: 10px; margin: 0 auto 18px;
+    background: #10142e; border: 1px solid var(--mode-accent); border-radius: 999px;
+    padding: 9px 16px; cursor: pointer; font-family: inherit;
+    box-shadow: 0 0 24px -8px var(--mode-accent);
+  }
+  .mode-badge-lbl { font-size: 9.5px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .mode-badge-name {
+    font-family: var(--mode-font); font-weight: var(--mode-weight);
+    letter-spacing: var(--mode-track); text-transform: var(--mode-caps);
+    font-size: 16px; color: var(--mode-accent);
+  }
+  .mode-badge-arrow { font-size: 11px; color: #8b92c0; }
+  .mp-scrim { position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72); z-index: 84; animation: tk-in 0.18s ease both; }
+  .mp-panel {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 85; width: min(340px, 86vw);
+    background: #0b0f24; border-right: 1px solid #2a2f55; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
+    animation: mp-slide 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes mp-slide { from { transform: translateX(-100%); } to { transform: none; } }
+  .mp-head { display: flex; align-items: center; justify-content: space-between; }
+  .mp-title { font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #6a72a8; }
+  .mp-close { background: none; border: none; color: #aab0d8; font-size: 26px; line-height: 1; cursor: pointer; min-width: 40px; min-height: 40px; }
+  .mp-card {
+    display: flex; flex-direction: column; gap: 5px; text-align: left; cursor: pointer;
+    background: #10142e; border: 1px solid #23284b; border-left: 4px solid var(--mc);
+    border-radius: 13px; padding: 15px 15px; font-family: inherit;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.14s ease;
+  }
+  .mp-card:hover { background: #161b3d; transform: translateX(3px); }
+  .mp-card-on { background: #161b3d; border-color: var(--mc); box-shadow: 0 0 26px -10px var(--mc); }
+  .mp-name { font-size: 21px; color: var(--mc); line-height: 1.1; }
+  /* Each mode's own face. Kept here rather than inlined, because a stack like
+     "Arial Black", Impact carries double quotes that would close a style
+     attribute halfway through. */
+  .mp-card[data-mode="jeopardy"] .mp-name,
+  body[data-mode="jeopardy"] .mode-wipe-name {
+    font-family: "Arial Black", "Arial Bold", Impact, system-ui, sans-serif;
+    font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .mp-card[data-mode="millionaire"] .mp-name,
+  body[data-mode="millionaire"] .mode-wipe-name {
+    font-family: Georgia, "Times New Roman", "Iowan Old Style", serif;
+    font-weight: 700; letter-spacing: 0.5px;
+  }
+  .mp-card[data-mode="feud"] .mp-name,
+  body[data-mode="feud"] .mode-wipe-name {
+    font-family: "Trebuchet MS", "Segoe UI", Verdana, system-ui, sans-serif;
+    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .mode-wipe[data-mode="jeopardy"] .mode-wipe-name {
+    font-family: "Arial Black", "Arial Bold", Impact, system-ui, sans-serif;
+    font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .mode-wipe[data-mode="millionaire"] .mode-wipe-name {
+    font-family: Georgia, "Times New Roman", "Iowan Old Style", serif;
+    font-weight: 700; letter-spacing: 0.5px;
+  }
+  .mode-wipe[data-mode="feud"] .mode-wipe-name {
+    font-family: "Trebuchet MS", "Segoe UI", Verdana, system-ui, sans-serif;
+    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .mp-blurb { font-size: 12.5px; color: #9aa2cc; line-height: 1.45; font-family: system-ui, sans-serif; }
+  .mp-now { font-size: 9.5px; font-weight: 900; letter-spacing: 1.5px; color: var(--mc); font-family: system-ui, sans-serif; }
+  .mode-wipe {
+    position: fixed; inset: 0; z-index: 96; display: flex; align-items: center; justify-content: center;
+    animation: wipe-in 0.2s ease both;
+  }
+  .mode-wipe-name { font-size: clamp(26px, 9vw, 52px); }
+  .mode-wipe-out { animation: wipe-out 0.3s ease both; }
+  @keyframes wipe-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+
+  /* titles take the mode's own face */
+  .title, .boards-title { font-family: var(--mode-font); letter-spacing: var(--mode-track); }
+
   /* game mode picker on the main menu */
   .mode-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 18px; }
   .mode-chip {
@@ -2539,6 +2638,7 @@ var state = {
   milBuilder: null,       // {draft, index, error, submitMsg}
   testingBoard: null,     // the builder draft parked while its board is test-played
   exampleOpen: false,     // showing the worked example from inside the builder
+  modePickerOpen: false,  // the slide-in panel for choosing a game
   feud: null,             // Family Feud game in progress
   feudPackId: null,
   feudTeams: null,        // the two teams, kept between games
@@ -2854,7 +2954,7 @@ function flipPlay() {
 // shake running under an open sheet drags it sideways and scrolls the page.
 // Overlays and the shake simply never need to happen at the same time.
 function modalOpen() {
-  return !!(state.helpOpen || state.menuOpen || state.confirm || state.adultGate);
+  return !!(state.helpOpen || state.menuOpen || state.confirm || state.adultGate || state.modePickerOpen);
 }
 function stopShake() {
   var root = document.getElementById("root");
@@ -5437,7 +5537,42 @@ function setBoardsTab(genre) {
   sndSelect();
   state.boardsTab = genre;
   state.importFileMsg = "";
-  render();
+  // Re-rendering the whole screen for a tab change threw the page back to the
+  // top every time, because replacing the content clamps the scroll position.
+  // Swap only the tab states and the cards underneath them.
+  var tabsEl = document.getElementById("boardsTabs");
+  var panel = document.getElementById("boardsPanel");
+  if (!tabsEl || !panel || state.phase !== "boards" || state.previewBoardId) { render(); return; }
+  tabsEl.querySelectorAll("[data-action='setBoardsTab']").forEach(function (el) {
+    el.classList.toggle("boards-tab-active", el.getAttribute("data-genre") === genre);
+  });
+  panel.innerHTML = boardsPanelHtml();
+  keepActiveTabInView();
+}
+// Scroll the strip itself so the chosen tab is centred, without touching the
+// page scroll. With a lot of genres the active one would otherwise sit off the
+// end of the strip with nothing to say so.
+function keepActiveTabInView() {
+  var strip = document.getElementById("boardsTabs");
+  if (!strip) return;
+  var on = strip.querySelector(".boards-tab-active");
+  if (!on) return;
+  var want = on.offsetLeft - (strip.clientWidth - on.offsetWidth) / 2;
+  var max = strip.scrollWidth - strip.clientWidth;
+  var to = Math.max(0, Math.min(want, max));
+  if (typeof strip.scrollTo === "function") {
+    strip.scrollTo({ left: to, behavior: reducedMotion() ? "auto" : "smooth" });
+  } else { strip.scrollLeft = to; }
+  markTabOverflow();
+}
+// Fade the edges only while there is actually more strip to reach.
+function markTabOverflow() {
+  var strip = document.getElementById("boardsTabs");
+  var wrap = strip && strip.parentElement;
+  if (!strip || !wrap) return;
+  var max = strip.scrollWidth - strip.clientWidth;
+  wrap.classList.toggle("tabs-more-left", strip.scrollLeft > 4);
+  wrap.classList.toggle("tabs-more-right", strip.scrollLeft < max - 4);
 }
 // ---- 18+ section: one-time verification gate, stored on this device ----
 // ---- game modes ----
@@ -6015,10 +6150,29 @@ function gameMode(id) {
 function modeIsReady() { return gameMode().status === "ready"; }
 // Each mode paints the whole app, not just a chip: background wash, accent and
 // the colour a title takes. Set once on <html> so every screen inherits it.
+// Each mode gets a voice, not just a colour: a different face, a different
+// weight, a different rhythm in the letter-spacing. No web fonts -- this is one
+// offline file -- so these are system stacks chosen to look genuinely unlike
+// each other, with a fallback that is safe everywhere.
 var MODE_THEMES = {
-  jeopardy:    { accent: "#ffd166", wash: "rgba(255, 209, 102, 0.07)", deep: "#0b0f24", glow: "#2a2f55" },
-  millionaire: { accent: "#3da9fc", wash: "rgba(61, 169, 252, 0.10)",  deep: "#070d20", glow: "#22345e" },
-  feud:        { accent: "#2cb67d", wash: "rgba(44, 182, 125, 0.10)",  deep: "#07140f", glow: "#1d4536" },
+  jeopardy: {
+    accent: "#ffd166", wash: "rgba(255, 209, 102, 0.07)", deep: "#0b0f24", glow: "#2a2f55",
+    font: '"Arial Black", "Arial Bold", Impact, system-ui, sans-serif',
+    track: "2px", caps: "uppercase", weight: "900", scale: "1",
+    blurb: "Pick a tile, answer, and hold your nerve on the Daily Double.",
+  },
+  millionaire: {
+    accent: "#3da9fc", wash: "rgba(61, 169, 252, 0.10)", deep: "#070d20", glow: "#22345e",
+    font: 'Georgia, "Times New Roman", "Iowan Old Style", serif',
+    track: "0.5px", caps: "none", weight: "700", scale: "1.05",
+    blurb: "Fifteen questions, two safe rungs, three lifelines.",
+  },
+  feud: {
+    accent: "#2cb67d", wash: "rgba(44, 182, 125, 0.10)", deep: "#07140f", glow: "#1d4536",
+    font: '"Trebuchet MS", "Segoe UI", Verdana, system-ui, sans-serif',
+    track: "1px", caps: "uppercase", weight: "800", scale: "0.96",
+    blurb: "Two teams, one survey board, three strikes.",
+  },
 };
 function modeTheme(id) { return MODE_THEMES[id || state.gameMode] || MODE_THEMES.jeopardy; }
 function applyModeTheme() {
@@ -6029,6 +6183,12 @@ function applyModeTheme() {
   r.style.setProperty("--mode-wash", t.wash);
   r.style.setProperty("--mode-deep", t.deep);
   r.style.setProperty("--mode-glow", t.glow);
+  r.style.setProperty("--mode-font", t.font);
+  r.style.setProperty("--mode-track", t.track);
+  r.style.setProperty("--mode-caps", t.caps);
+  r.style.setProperty("--mode-weight", t.weight);
+  r.style.setProperty("--mode-scale", t.scale);
+  if (document.body) document.body.setAttribute("data-mode", state.gameMode);
 }
 // Is a game of any mode actually running right now?
 function gameInProgress() {
@@ -6036,6 +6196,55 @@ function gameInProgress() {
   if (state.feud && state.feud.stage !== "done") return true;
   return state.phase === "board" || state.phase === "question" ||
          state.phase === "final" || state.phase === "interlude";
+}
+function openModePicker() { state.modePickerOpen = true; state.menuOpen = false; render(); }
+function closeModePicker() { state.modePickerOpen = false; render(); }
+// A short wipe in the new mode's colour, so switching reads as arriving
+// somewhere rather than a control changing value.
+function modeWipe(id, then) {
+  if (reducedMotion() || !document.body) { then(); return; }
+  var t = modeTheme(id);
+  var el = document.createElement("div");
+  el.className = "mode-wipe";
+  el.style.background = t.deep;
+  el.setAttribute("data-mode", id);
+  el.innerHTML = '<span class="mode-wipe-name" style="color:' + t.accent + '">' +
+    esc(gameMode(id).name) + '</span>';
+  document.body.appendChild(el);
+  setTimeout(function () { then(); }, 210);
+  setTimeout(function () { el.classList.add("mode-wipe-out"); }, 340);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 640);
+}
+function pickGameMode(id) {
+  state.modePickerOpen = false;
+  if (state.gameMode === id) { render(); return; }
+  if (gameInProgress()) {
+    askConfirm("Leave this game and switch to " + gameMode(id).short + "? The scores will not be recorded.",
+               "switchGameMode", id);
+    return;
+  }
+  modeWipe(id, function () { applyGameMode(id); });
+}
+function modePickerHtml() {
+  if (!state.modePickerOpen) return "";
+  var rows = GAME_MODES.map(function (g) {
+    var t = MODE_THEMES[g.id] || MODE_THEMES.jeopardy;
+    var on = g.id === state.gameMode;
+    return '<button class="mp-card' + (on ? " mp-card-on" : "") + '" data-action="pickGameMode" data-mode="' + g.id + '"' +
+        ' style="--mc:' + t.accent + '">' +
+      '<span class="mp-name">' + esc(g.name) + '</span>' +
+      '<span class="mp-blurb">' + esc(t.blurb) + '</span>' +
+      (on ? '<span class="mp-now">Playing now</span>' : '') +
+    '</button>';
+  }).join("");
+  return '<div class="mp-scrim" data-action="closeModePicker"></div>' +
+    '<div class="mp-panel" role="dialog" aria-label="Choose a game">' +
+      '<div class="mp-head">' +
+        '<span class="mp-title">CHOOSE A GAME</span>' +
+        '<button class="mp-close" data-action="closeModePicker" aria-label="Close">&times;</button>' +
+      '</div>' +
+      rows +
+    '</div>';
 }
 function setGameMode(id) {
   if (state.gameMode === id) return;
@@ -6095,6 +6304,7 @@ function helpSection(title, lines) {
     '<ul class="help-list">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>' +
   '</div>';
 }
+function renderModePicker() { return modePickerHtml(); }
 function renderHelp() {
   if (!state.helpOpen) return "";
   return '<div class="help-overlay" data-action="closeHelp">' +
@@ -6459,6 +6669,43 @@ function boardGenres() {
   if (state.adultEnabled) order.push(ADULT_TAB);
   return order;
 }
+// Just the cards for whichever tab is showing. Kept apart from the rest of the
+// screen so switching tabs can swap this alone.
+function boardsPanelHtml() {
+  var activeTab = activeBoardsTab();
+  var isMyBoards = activeTab === "My Boards";
+  var isAdultTab = activeTab === ADULT_TAB;
+  var tabBoards = BOARDS.filter(function (b) {
+    if (activeTab === ADULT_TAB) return !!b.adult;
+    return (b.genre || "Other") === activeTab && !b.adult;
+  });
+  var cards = tabBoards.map(function (b, i) {
+    var card = boardCardHtml(b, i);
+    // The board being test-played is not a saved board: Edit would open the
+    // builder looking for something that does not exist and lose the draft.
+    if (b.id !== "__testing__" && (isMyBoards || (isAdultTab && /^custom-/.test(b.id)))) {
+      card = '<div class="my-board-wrap">' + card +
+        '<div class="my-board-controls">' +
+          '<button data-action="openBuilder" data-id="' + esc(b.id) + '">Edit</button>' +
+          '<button data-action="deleteCustomBoard" data-id="' + esc(b.id) + '" style="color:#ff8aa0">Delete</button>' +
+        '</div></div>';
+    }
+    return card;
+  }).join("");
+  if (isMyBoards && !tabBoards.length) {
+    cards += '<p class="muted" style="grid-column:1/-1;text-align:center">' +
+      'No boards of your own yet. Make one from the main menu.</p>';
+  }
+  if (isAdultTab) {
+    cards += '<button class="board-card board-card-create" data-action="adultExample" style="--accent:#ff5470">' +
+      '<div class="board-card-icon" style="background:rgba(255,84,112,0.16);color:#ff8aa0">18+</div>' +
+      '<div class="board-card-body"><div class="board-card-title">Example After Dark Board</div>' +
+      '<div class="board-card-tagline">Placeholder only &mdash; not playable yet. Adults only when it arrives.</div></div>' +
+    '</button>';
+  }
+  return (isAdultTab ? '<p class="adult-banner">18+ ONLY: boards here can contain dark humor or imagery not suited for all ages.</p>' : '') +
+    '<div class="boards-grid">' + cards + '</div>';
+}
 function activeBoardsTab() {
   var genres = boardGenres();
   return genres.indexOf(state.boardsTab) !== -1 ? state.boardsTab : genres[0];
@@ -6491,38 +6738,8 @@ function viewBoards() {
     '</button>';
   }).join("");
 
-  var tabBoards = boardsInTab(activeTab);
   var isMyBoards = activeTab === "My Boards";
   var isAdultTab = activeTab === ADULT_TAB;
-  var cards = tabBoards.map(function (b, i) {
-    var card = boardCardHtml(b, i);
-    // The board being test-played is not a saved board: Edit would open the
-    // builder looking for something that does not exist and lose the draft.
-    if (b.id !== "__testing__" && (isMyBoards || (isAdultTab && /^custom-/.test(b.id)))) {
-      // custom boards get edit/delete controls under the card
-      card = '<div class="my-board-wrap">' + card +
-        '<div class="my-board-controls">' +
-          '<button data-action="openBuilder" data-id="' + esc(b.id) + '">Edit</button>' +
-          '<button data-action="deleteCustomBoard" data-id="' + esc(b.id) + '" style="color:#ff8aa0">Delete</button>' +
-        '</div></div>';
-    }
-    return card;
-  }).join("");
-  // the create card always closes out the My Boards tab
-  if (isMyBoards) {
-    if (!tabBoards.length) {
-      cards += '<p class="muted" style="grid-column:1/-1;text-align:center">' +
-        'No boards of your own yet. Make one from the main menu.</p>';
-    }
-  }
-  // the 18+ tab keeps a non-playable example card that repeats the warning
-  if (isAdultTab) {
-    cards += '<button class="board-card board-card-create" data-action="adultExample" style="--accent:#ff5470">' +
-      '<div class="board-card-icon" style="background:rgba(255,84,112,0.16);color:#ff8aa0">18+</div>' +
-      '<div class="board-card-body"><div class="board-card-title">Example After Dark Board</div>' +
-      '<div class="board-card-tagline">Placeholder only &mdash; not playable yet. Adults only when it arrives.</div></div>' +
-    '</button>';
-  }
 
   var menu = renderMenu([
     { label: "Create a Board", action: "openBuilder" },
@@ -6555,9 +6772,8 @@ function viewBoards() {
       '<div id="searchResults">' + searchResultsHtml() + '</div>' +
     '</div>' +
     recentRowHtml() +
-    '<div class="boards-tabs">' + tabs + '</div>' +
-    (isAdultTab ? '<p class="adult-banner">18+ ONLY: boards here can contain dark humor or imagery not suited for all ages.</p>' : '') +
-    '<div class="boards-grid">' + cards + '</div>' +
+    '<div class="boards-tabs-wrap"><div class="boards-tabs" id="boardsTabs">' + tabs + '</div></div>' +
+    '<div id="boardsPanel">' + boardsPanelHtml() + '</div>' +
     (isMyBoards && state.importFileMsg ? '<p class="muted" style="text-align:center;margin-top:12px">' + esc(state.importFileMsg) + '</p>' : '') +
   '</div></div>';
 }
@@ -6616,12 +6832,11 @@ function viewBoardPreview() {
 
 function viewPlayers() {
   var m = gameMode();
-  var modeChips = '<div class="mode-chips">' + GAME_MODES.map(function (g) {
-    var on = g.id === m.id;
-    return '<button class="mode-chip' + (on ? ' mode-chip-on' : '') + '" data-action="setGameMode" data-mode="' + g.id + '" style="--mc:' + g.accent + '">' +
-      esc(g.short) + (g.status === "ready" ? '' : '<span class="mode-soon">SOON</span>') +
+  var modeChips = '<button class="mode-badge" data-action="openModePicker">' +
+      '<span class="mode-badge-lbl">GAME</span>' +
+      '<span class="mode-badge-name">' + esc(m.short) + '</span>' +
+      '<span class="mode-badge-arrow">&#9662;</span>' +
     '</button>';
-  }).join('') + '</div>';
   // The board builder lives on the main menu now, one entry per game mode,
   // rather than being buried inside the board picker.
   var packButton = m.status !== "ready"
@@ -6662,7 +6877,7 @@ function viewPlayers() {
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
-    modeChips +
+'<div style="text-align:center">' + modeChips + '</div>' +
     (m.status === "ready" ? resumeCard : "") +
     (m.status === "ready" ? "" :
       '<div class="card wip-card">' +
@@ -9621,7 +9836,7 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp();
+  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker();
   flipPlay(); // slide anything that moved from where it used to be
   saveGameSnapshot();
   broadcastSync();
@@ -9667,6 +9882,13 @@ function render() {
       try { jumped.focus({ preventScroll: true }); } catch (e) { jumped.focus(); }
       if (jumped.scrollIntoView) jumped.scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
     }
+  }
+  var tabStrip = document.getElementById("boardsTabs");
+  if (tabStrip) {
+    markTabOverflow();
+    tabStrip.addEventListener("scroll", markTabOverflow, { passive: true });
+    // land on the chosen tab without dragging for it
+    keepActiveTabInView();
   }
   var searchField = document.getElementById("searchInput");
   if (searchField) {
@@ -9944,6 +10166,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleSettings") toggleSettings();
   else if (action === "toggleSetupMore") { state.setupMoreOpen = !state.setupMoreOpen; render(); }
   else if (action === "setPlayStyle") setPlayStyle(t.getAttribute("data-style"));
+  else if (action === "openModePicker") openModePicker();
+  else if (action === "closeModePicker") closeModePicker();
+  else if (action === "pickGameMode") pickGameMode(t.getAttribute("data-mode"));
   else if (action === "confirmStopRoom") askConfirm("Close the room? Everyone on a phone is dropped, and the players who joined stay on the list.", "stopRoom");
   else if (action === "toggleTeamMode") toggleTeamMode();
   else if (action === "setTeamCount") setTeamCount(+t.getAttribute("data-n"));
