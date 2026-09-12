@@ -1228,6 +1228,19 @@
   .play-opt-title { font-weight: 800; font-size: 14px; }
   .play-opt-sub { font-size: 12px; color: #8b92c0; line-height: 1.35; }
 
+  /* team setup on the start screen */
+  .team-setup { margin-top: 14px; }
+  .team-toggle {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    background: #0d1230; border: 1px solid #2a2f55; border-radius: 12px;
+    padding: 11px 12px; color: #fff; cursor: pointer; font-family: inherit;
+  }
+  .team-toggle-on { border-color: #2cb67d; background: #12291f; }
+  .team-toggle-on .play-opt-tick { background: #2cb67d; border-color: #2cb67d; }
+  .team-count { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .team-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  @media (min-width: 560px) { .team-cols { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
+
   /* the fold-away half of the start screen */
   .more-toggle {
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -2340,6 +2353,8 @@ var state = {
   feud: null,             // Family Feud game in progress
   feudPackId: null,
   feudTeams: null,        // the two teams, kept between games
+  teamMode: false,        // Jeopardy: teammates share one score
+  teams: null,            // [{name, members:[playerIndex]}]
   feudBuilder: null,      // {draft, index, error, submitMsg}
   statsMsg: "",           // one-line confirmation on the stats screen
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
@@ -3214,9 +3229,10 @@ function buzzerSyncPayload() {
       p.final.q = fin.q; // the question is public once wagers are locked
       if (state.finalStage === "answer" && state.phoneMirror) {
         p.final.a = fin.a; // the host has revealed it, so it is public now
-        p.final.board = state.players.map(function (pl, i) {
+        p.final.board = state.players.filter(function (pl, i) { return isCaptain(i); }).map(function (pl) {
+          var i = state.players.indexOf(pl);
           var r = state.finalResults[i];
-          return { name: pl.name, score: pl.score, wager: state.finalWagers[i] || 0,
+          return { name: teamModeOn() ? teamLabel(teamOf(i)) : pl.name, score: pl.score, wager: state.finalWagers[i] || 0,
                    wrote: state.finalAnswers[i] || "",
                    result: r === "correct" ? "right" : r === "incorrect" ? "wrong" : "skip" };
         });
@@ -3277,15 +3293,16 @@ function extendHostPayload(p) {
     p.final.q = currentBoard().final.q;
     p.final.a = currentBoard().final.a;
     // Everything the host needs to judge Final from their own phone.
-    p.final.board = state.players.map(function (pl, i) {
+    p.final.board = state.players.filter(function (pl, i) { return isCaptain(i); }).map(function (pl) {
+      var i = state.players.indexOf(pl);
       var r = state.finalResults[i];
-      return { name: pl.name, color: pl.color, shape: pl.shape, score: pl.score,
+      return { name: teamModeOn() ? teamLabel(teamOf(i)) : pl.name, color: pl.color, shape: pl.shape, score: pl.score,
                wager: state.finalWagers[i] || 0,
                wagerSet: state.finalWagers[i] != null,
                wrote: state.finalAnswers[i] || "",
                result: r === "correct" ? "right" : r === "incorrect" ? "wrong" : r === "skipped" ? "skip" : "" };
     });
-    p.final.allMarked = state.players.every(function (pl, i) { return !!state.finalResults[i]; });
+    p.final.allMarked = state.players.every(function (pl, i) { return !isCaptain(i) || !!state.finalResults[i]; });
     p.final.canUndo = !!state.lastScoreChange;
   }
   p.hostControl = true;
@@ -4235,6 +4252,7 @@ function selectBoard(id) {
   state.boardId = id;
   state.used = {};
   state.turn = randomStartTurn();
+  if (state.teamMode) reconcileTeams();
   state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
@@ -4267,6 +4285,7 @@ function selectRound2(id) {
   state.boardId = round1;
   state.used = {};
   state.turn = randomStartTurn();
+  if (state.teamMode) reconcileTeams();
   state.players.forEach(function (p) { p.score = 0; p.streak = 0; p.immune = false; p.skipNextTurn = false; });
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   assignDailyDoubles();
@@ -4368,7 +4387,7 @@ function jfSaveSettings() {
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
     juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit, gameMode: state.gameMode,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
-    playStyle: state.playStyle,
+    playStyle: state.playStyle, teamMode: state.teamMode,
   });
 }
 function loadSettings() {
@@ -4381,6 +4400,7 @@ function loadSettings() {
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
   if (s0.playStyle === "screen" || s0.playStyle === "buzzers") state.playStyle = s0.playStyle;
+  state.teamMode = !!s0.teamMode;
   if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
   if (typeof s0.gameMode === "string" && GAME_MODES.some(function (m) { return m.id === s0.gameMode; })) state.gameMode = s0.gameMode;
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
@@ -4781,6 +4801,85 @@ function recordScoreSnapshot() {
   if (state.scoreHistory.length > 10) state.scoreHistory.shift();
   state.lastScoreChange = state.scoreHistory[state.scoreHistory.length - 1];
 }
+// ---- team mode ----
+// Teammates keep one shared score. Rather than a parallel score model that
+// every screen would have to learn, each teammate holds the same number and
+// every change is applied to all of them at once -- so anything that reads a
+// player's score is already reading the team's.
+function teamModeOn() { return !!state.teamMode && state.teams && state.teams.length > 1; }
+function teamOf(i) {
+  if (!teamModeOn()) return i;
+  for (var t = 0; t < state.teams.length; t++) {
+    if (state.teams[t].members.indexOf(i) !== -1) return t;
+  }
+  return 0;
+}
+function teamMates(i) {
+  if (!teamModeOn()) return [i];
+  var t = state.teams[teamOf(i)];
+  return (t && t.members.length) ? t.members.filter(function (n) { return !!state.players[n]; }) : [i];
+}
+// One member speaks for the team where a screen needs a single row: Final
+// Jeopardy wagers, answers and marks.
+function isCaptain(i) {
+  if (!teamModeOn()) return true;
+  var mates = teamMates(i);
+  return mates.length ? mates[0] === i : true;
+}
+function teamLabel(t) {
+  var team = state.teams && state.teams[t];
+  if (!team) return "";
+  var names = team.members.map(function (i) { return state.players[i] ? state.players[i].name : ""; }).filter(Boolean);
+  return names.length ? names.join(" & ") : team.name;
+}
+function defaultTeams(count) {
+  var n = Math.max(2, Math.min(4, count || 2));
+  var teams = [];
+  for (var t = 0; t < n; t++) teams.push({ name: "Team " + (t + 1), members: [] });
+  state.players.forEach(function (p, i) { teams[i % n].members.push(i); });
+  return teams;
+}
+// Players come and go between games, so never trust stored indexes.
+function reconcileTeams() {
+  if (!state.teams || !state.teams.length) { state.teams = defaultTeams(2); return; }
+  var seen = {};
+  state.teams.forEach(function (t) {
+    t.members = t.members.filter(function (i) {
+      if (!state.players[i] || seen[i]) return false;
+      seen[i] = true; return true;
+    });
+  });
+  state.players.forEach(function (p, i) {
+    if (seen[i]) return;
+    // drop each stray into the smallest team so sides stay even
+    var smallest = 0;
+    state.teams.forEach(function (t, n) {
+      if (t.members.length < state.teams[smallest].members.length) smallest = n;
+    });
+    state.teams[smallest].members.push(i);
+  });
+}
+function toggleTeamMode() {
+  state.teamMode = !state.teamMode;
+  if (state.teamMode) reconcileTeams();
+  settingsChanged();
+}
+function setTeamCount(n) {
+  state.teams = defaultTeams(n);
+  settingsChanged();
+}
+function moveToTeam(i, t) {
+  if (!state.teams || !state.teams[t]) return;
+  state.teams.forEach(function (team) {
+    team.members = team.members.filter(function (x) { return x !== i; });
+  });
+  state.teams[t].members.push(i);
+  // teammates share a score, so a mover takes on their new side's total
+  var mates = state.teams[t].members.filter(function (n) { return n !== i && state.players[n]; });
+  if (mates.length && state.players[i]) state.players[i].score = state.players[mates[0]].score;
+  hap("tap");
+  settingsChanged();
+}
 function scoreQuestion(i, correct) {
   var pl = state.players[i];
   if (!pl) return;
@@ -4800,6 +4899,8 @@ function scoreQuestion(i, correct) {
   if (state.roomRules.floorZero && next < 0) next = 0;
   delta = next - old;
   pl.score = next;
+  // Everyone on the team carries the same number, so they move together.
+  teamMates(i).forEach(function (n) { if (n !== i && state.players[n]) state.players[n].score = next; });
   if (correct) state.lastCorrectIndex = i;
   recordScore(i, delta);
   if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
@@ -4822,6 +4923,9 @@ function undoLastScore() {
   var old = state.players[last.playerIndex].score;
   var next = old - last.delta;
   state.players[last.playerIndex].score = next;
+  teamMates(last.playerIndex).forEach(function (n) {
+    if (state.players[n]) state.players[n].score = next;
+  });
   if (last.finalReset) delete state.finalResults[last.playerIndex];
   renderOrUpdateClue();
   tickScoreDisplay("score-disp-" + last.playerIndex, old, next);
@@ -4834,6 +4938,15 @@ function randomStartTurn() {
 function advanceTurn() {
   if (!state.players.length) { state.turn = 0; return; }
   var next = (state.turn + 1) % state.players.length;
+  // With teams, the board passes to the other side rather than to the next
+  // person on the same one.
+  if (teamModeOn()) {
+    var here = teamOf(state.turn), hops = 0;
+    while (teamOf(next) === here && hops < state.players.length) {
+      next = (next + 1) % state.players.length;
+      hops++;
+    }
+  }
   var loops = 0;
   while (state.players[next].skipNextTurn && loops < state.players.length) {
     state.players[next].skipNextTurn = false;
@@ -5627,6 +5740,12 @@ function renderHelp() {
           "<strong>One Buzz Per Question</strong> gives each player a single shot.",
           "<strong>Correct Answer Picks Next</strong> hands the board to whoever just got it right.",
         ]) +
+        helpSection("Playing in teams", [
+          "On the start screen, turn on <strong>Play in teams</strong> once two or more people are added.",
+          "Teammates share one score, and the board passes to the other side rather than round the room.",
+          "Tap a name to send it to the next team. Two to four teams.",
+          "In Final Jeopardy each team bets and answers once, not each person.",
+        ]) +
         helpSection("Millionaire", [
           "Pick <strong>Millionaire</strong> at the top of the start screen for a different game.",
           "One player sits in the hot seat and climbs fifteen questions, four answers each.",
@@ -5738,6 +5857,7 @@ function closeQuestion() {
     state.phase = "interlude";
   } else if (isAllUsed() && board.final && !state.finalDone) {
     state.finalStage = "wager";
+    while (state.finalPlayerIndex < state.players.length && !isCaptain(state.finalPlayerIndex)) state.finalPlayerIndex++;
     state.finalPlayerIndex = 0;
     state.finalWagers = {};
   state.finalAnswers = {};
@@ -5777,16 +5897,23 @@ function submitFinalWager() {
   state.finalWagers[i] = amt;
   state.finalWagerInput = "";
   state.finalPlayerIndex++;
+  while (state.finalPlayerIndex < state.players.length && !isCaptain(state.finalPlayerIndex)) {
+    state.finalPlayerIndex++;   // teammates ride on their captain's wager
+  }
   if (state.finalPlayerIndex >= state.players.length) state.finalStage = "clue";
   render();
 }
 function revealFinalAnswer() { sndReveal(); state.finalStage = "answer"; render(); }
 function markFinal(i, correct) {
+  // In team mode only the captain is marked, and the whole side moves with it.
   var wager = state.finalWagers[i] || 0;
   var old = state.players[i].score;
   var delta = correct ? wager : -wager;
   var next = old + delta;
   state.players[i].score = next;
+  teamMates(i).forEach(function (n) {
+    if (state.players[n]) { state.players[n].score = next; state.finalResults[n] = correct ? "correct" : "incorrect"; }
+  });
   state.finalResults[i] = correct ? "correct" : "incorrect";
   recordScore(i, delta, true);
   if (correct) sndCorrect(); else sndIncorrect();
@@ -6126,6 +6253,7 @@ function viewPlayers() {
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
       playStyleHtml() +
+      teamSetupHtml() +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">' +
         (m.id === "millionaire" ? 'Pick a Question Pack'
           : m.id === "feud" ? 'Set Up the Teams'
@@ -6153,6 +6281,50 @@ function viewPlayers() {
         : '<div id="settingsWrap"></div>') +
     '</div>' +
   '</div></div>';
+}
+
+// Teams share a score. Off by default, because most games are free-for-all.
+function teamSetupHtml() {
+  if (state.players.length < 2) return "";   // teams need at least two people
+  var on = !!state.teamMode;
+  var head = '<button class="team-toggle' + (on ? ' team-toggle-on' : '') + '" data-action="toggleTeamMode">' +
+      '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
+      '<span class="play-opt-text">' +
+        '<span class="play-opt-title">Play in teams</span>' +
+        '<span class="play-opt-sub">Teammates share one score and take turns as a side.</span>' +
+      '</span>' +
+    '</button>';
+  if (!on) return '<div class="team-setup">' + head + '</div>';
+  reconcileTeams();
+  var count = state.teams.length;
+  var maxTeams = Math.min(4, state.players.length);
+  var sizer = '<div class="team-count">' +
+    '<span class="builder-cat-pos">' + count + ' teams</span>' +
+    '<button class="builder-cat-move" data-action="setTeamCount" data-n="' + (count - 1) + '"' +
+      (count <= 2 ? ' disabled' : '') + ' aria-label="Fewer teams">&minus;</button>' +
+    '<button class="builder-cat-move" data-action="setTeamCount" data-n="' + (count + 1) + '"' +
+      (count >= maxTeams ? ' disabled' : '') + ' aria-label="More teams">+</button>' +
+  '</div>';
+  var cols = state.teams.map(function (team, t) {
+    var chips = team.members.map(function (i) {
+      var p = state.players[i];
+      if (!p) return "";
+      return '<button class="feud-chip" data-action="moveToTeam" data-i="' + i + '" data-t="' + ((t + 1) % count) + '">' +
+        avatarHtml(p, 12) + '<span class="feud-chip-name">' + esc(p.name) + '</span>' +
+        '<span class="feud-chip-move">&rarr;</span>' +
+      '</button>';
+    }).join("");
+    if (!team.members.length) chips = '<p class="muted" style="margin:6px 0;font-size:12px">Nobody yet</p>';
+    return '<div class="feud-team-col">' +
+      '<p class="feud-team-head">' + esc(team.name) + '</p>' + chips +
+    '</div>';
+  }).join("");
+  var empty = state.teams.some(function (t) { return !t.members.length; });
+  return '<div class="team-setup">' + head + sizer +
+    '<div class="team-cols">' + cols + '</div>' +
+    (empty ? '<p class="err">Every team needs at least one player.</p>' : '') +
+    '<p class="builder-hint-note">Tap a name to send it to the next team.</p>' +
+  '</div>';
 }
 
 // One decision up front: are people buzzing in on their phones, or is everyone
@@ -8306,9 +8478,13 @@ function viewClueFooter() {
   var scoreBlock = "";
   if (state.revealed && !state.answerHidden) {
     var rows = state.players.map(function (p, i) {
-      return '<div class="row-item' + (state.buzzer.on && i === state.buzzer.winnerIndex ? " row-buzzed" : "") + '" data-key="clue-score-' + esc(p.name) + '">' +
+      if (teamModeOn() && !isCaptain(i)) return "";
+      var label = teamModeOn() ? teamLabel(teamOf(i)) : p.name;
+      var buzzedHere = state.buzzer.on && state.buzzer.winnerIndex != null &&
+        (teamModeOn() ? teamOf(state.buzzer.winnerIndex) === teamOf(i) : i === state.buzzer.winnerIndex);
+      return '<div class="row-item' + (buzzedHere ? " row-buzzed" : "") + '" data-key="clue-score-' + esc(label) + '">' +
         '<span class="dot" style="background:' + p.color + '"></span>' +
-        '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
+        '<span style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(label) + '</span>' +
         '<span class="score-num" id="score-disp-' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
         '<button class="plus-btn" data-action="plus" data-i="' + i + '">+' + value + '</button>' +
         '<button class="minus-btn" data-action="minus" data-i="' + i + '">&minus;' + value + '</button>' +
@@ -8403,7 +8579,12 @@ function updateClueFooter() {
 }
 
 function viewWin() {
-  var ranked = state.players.slice().sort(function (a, b) { return b.score - a.score; });
+  var ranked = state.players.filter(function (p, i) { return isCaptain(i); })
+    .map(function (p) {
+      var i = state.players.indexOf(p);
+      return { name: teamModeOn() ? teamLabel(teamOf(i)) : p.name, score: p.score, color: p.color, shape: p.shape };
+    })
+    .sort(function (a, b) { return b.score - a.score; });
   var topScore = ranked.length ? ranked[0].score : 0;
   var medals = ["🥇", "🥈", "🥉"];
   var rows = ranked.map(function (p, idx) {
@@ -8435,12 +8616,14 @@ function viewBoard() {
   state.cascadeBoard = false; // one shot, so re-renders do not replay it
 
   var chips = state.players.map(function (p, i) {
-    var on = i === state.turn;
+    // One chip per side when teams are on, carried by the captain.
+    if (teamModeOn() && !isCaptain(i)) return "";
+    var on = teamModeOn() ? teamOf(i) === teamOf(state.turn) : i === state.turn;
     var st = p.streak || 0;
     var charge = state.roomRules.streakBonus && st > 0 && st < 3 ? ' chip-charge chip-charge-' + st : '';
-    return '<div class="chip' + (on ? ' chip-turn' : '') + charge + '" data-key="chip-' + esc(p.name) + '" style="--pc:' + p.color + ';background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
+    return '<div class="chip' + (on ? ' chip-turn' : '') + charge + '" data-key="chip-' + esc(teamModeOn() ? teamLabel(teamOf(i)) : p.name) + '" style="--pc:' + p.color + ';background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
-      '<span class="chip-name">' + esc(p.name) + '</span>: ' + p.score +
+      '<span class="chip-name">' + esc(teamModeOn() ? teamLabel(teamOf(i)) : p.name) + '</span>: ' + p.score +
       (state.roomRules.streakBonus && (p.streak || 0) >= 3 ? '<span class="chip-fx chip-fx-good" title="On a streak">STREAK ' + p.streak + '</span>' : '') +
       (p.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
       (p.skipNextTurn ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '') +
@@ -8474,7 +8657,7 @@ function viewBoard() {
   return menu + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
     '<div class="board-chiprow">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
-      esc(state.players[state.turn].name) + "'s pick" +
+      esc(teamModeOn() ? teamLabel(teamOf(state.turn)) : state.players[state.turn].name) + "'s pick" +
     '</div>' +
     (state.match ?
       '<div style="text-align:center;margin-bottom:10px"><span class="buzz-room-chip" style="border-color:#ffd166;color:#ffd166;font-weight:900">' +
@@ -8549,6 +8732,7 @@ function viewFinalClue(fin) {
 
 function viewFinalAnswerStage(fin) {
   var rows = state.players.map(function (p, i) {
+    if (!isCaptain(i)) return "";   // a teammate is marked with their captain
     var wager = state.finalWagers[i] || 0;
     var result = state.finalResults[i];
     var status = result
@@ -8568,7 +8752,7 @@ function viewFinalAnswerStage(fin) {
       status +
     '</div>';
   }).join("");
-  var allMarked = state.players.every(function (p, i) { return !!state.finalResults[i]; });
+  var allMarked = state.players.every(function (p, i) { return !isCaptain(i) || !!state.finalResults[i]; });
   return '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div style="text-align:center;color:#aab0d8;font-weight:700;font-size:14px;letter-spacing:1px">FINAL JEOPARDY</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:900;font-size:18px;margin-bottom:10px">' + esc(fin.category) + '</div>' +
@@ -9128,6 +9312,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleSettings") toggleSettings();
   else if (action === "toggleSetupMore") { state.setupMoreOpen = !state.setupMoreOpen; render(); }
   else if (action === "setPlayStyle") { state.playStyle = t.getAttribute("data-style"); hap("tap"); render(); }
+  else if (action === "toggleTeamMode") toggleTeamMode();
+  else if (action === "setTeamCount") setTeamCount(+t.getAttribute("data-n"));
+  else if (action === "moveToTeam") moveToTeam(+t.getAttribute("data-i"), +t.getAttribute("data-t"));
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
