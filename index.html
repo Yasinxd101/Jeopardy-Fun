@@ -633,6 +633,22 @@
   .bname-input { font-size: 17px; }
   .bname-opt { font-weight: 600; color: #6a72a8; font-size: 11px; }
   .bname-go { margin-top: 18px; }
+  .bname-or {
+    margin: 16px 0 10px; text-align: center; font-size: 11px; font-weight: 900;
+    letter-spacing: 2px; color: #6a72a8; position: relative;
+  }
+  .bname-or::before, .bname-or::after {
+    content: ""; position: absolute; top: 50%; width: calc(50% - 26px); height: 1px; background: #262c52;
+  }
+  .bname-or::before { left: 0; }
+  .bname-or::after { right: 0; }
+  .bname-import {
+    display: block; width: 100%; text-align: center; background: #20264d;
+    border: 1px solid #343b6b; border-radius: 12px; color: #dfe3ff;
+    font-family: inherit; font-weight: 800; font-size: 14px;
+    padding: 13px; min-height: 46px; cursor: pointer;
+  }
+  .bname-import:hover { background: #272e5c; }
   .bname-foot { display: flex; gap: 12px; justify-content: center; margin-top: 6px; }
   .bname-foot .my-import-link { width: auto; }
 
@@ -4341,6 +4357,10 @@ function openBuilder(existingId) {
   }
   state.builder = {
     draft: draft || blankDraft(),
+    // Cancel should put you back where you opened this from. It used to
+    // always land on the board picker, so opening the maker from the start
+    // screen and changing your mind moved you somewhere you had not been.
+    returnTo: state.phase === "players" ? "players" : "boards",
     // Two steps, and the first one asks a single question. An existing board
     // already has a name, so editing one goes straight to the grid.
     step: draft ? "board" : "name",
@@ -4580,9 +4600,20 @@ function builderClearQuestion(row) {
   hap("tap");
   render();
 }
+// Is this draft still exactly as it was handed out? Used to decide whether
+// something can be replaced without asking.
+function draftIsUntouched(d) {
+  if (!d) return true;
+  if (d.name || d.tagline || d.art) return false;
+  if (d.textBoard.length !== MIN_CATS) return false;
+  return d.textBoard.every(function (col) {
+    return !col.category && col.questions.every(function (q) { return !questionHasWork(q); });
+  }) && !d.final.category && !d.final.q && !d.final.a;
+}
 function closeBuilder() {
+  var back = (state.builder && state.builder.returnTo) || "boards";
   state.builder = null;
-  state.phase = "boards";
+  state.phase = back;
   render();
 }
 function builderSetField(path, value) {
@@ -4783,7 +4814,8 @@ function enterTestBoard(previewOnly) {
 
   // remember where in the build you were, so coming back is seamless
   state.testingBoard = { draft: state.builder.draft, catIndex: state.builder.catIndex,
-                         step: state.builder.step, toolsOpen: state.builder.toolsOpen };
+                         step: state.builder.step, toolsOpen: state.builder.toolsOpen,
+                         returnTo: state.builder.returnTo };
   BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; }).concat([draft]);
   if (!state.players.length) {
     state.players = [{ name: "You", score: 0, color: PLAYER_COLORS[0], shape: "circle",
@@ -4821,7 +4853,7 @@ function stopTestingBoard() {
   if (t) {
     state.builder = { draft: t.draft, catIndex: t.catIndex || 0, error: "", shareUrl: "",
                       step: t.step || "board", editing: null, extrasOpen: false,
-                      toolsOpen: !!t.toolsOpen };
+                      toolsOpen: !!t.toolsOpen, returnTo: t.returnTo || "boards" };
     state.phase = "builder";
   } else {
     state.phase = "players";
@@ -5010,7 +5042,7 @@ var importMsgTimer = null;
 function importBoardFile(file) {
   var reader = new FileReader();
   reader.onload = function () {
-    var msg;
+    var msg, ok = false;
     try {
       var b = normalizeBoard(JSON.parse(reader.result));
       // Assign id/icon before validating so a board file without an id (the
@@ -5027,6 +5059,7 @@ function importBoardFile(file) {
         if (at === -1) list.push(b); else list[at] = b;
         jfWrite(JF_MYBOARDS_KEY, list);
         rebuildBoards();
+        ok = true;
         msg = 'Imported "' + b.name + '".';
       } else {
         msg = "Could not import that board: " + err;
@@ -5034,6 +5067,15 @@ function importBoardFile(file) {
     } catch (e) { msg = "Could not read that file as board JSON. Make sure it is valid JSON."; }
     state.importFileMsg = msg;
     state.boardsTab = "My Boards";
+    // Importing from the first screen of the maker used to leave you sitting
+    // on "what are you calling it" with a success message and an empty draft.
+    // If there is nothing to lose, go and look at what you just imported.
+    // `ok`, not `!err`: a file that failed to parse never reaches the line
+    // that sets err, so err would be undefined and read as success.
+    if (ok && state.builder && draftIsUntouched(state.builder.draft)) {
+      state.builder = null;
+      state.phase = "boards";
+    }
     render();
     if (importMsgTimer) clearTimeout(importMsgTimer);
     importMsgTimer = setTimeout(function () {
@@ -6974,7 +7016,8 @@ function renderHelp() {
           "Spotted something wrong with a fan board? <strong>Report this board</strong> hides it on your device straight away and tells the owner.",
         ]) +
         helpSection("Making your own board", [
-          "<strong>Make your own board</strong> sits in the <strong>My Boards</strong> tab of the board picker.",
+          "<strong>Make your own board</strong> sits in the <strong>My Boards</strong> tab of the board picker, and under <strong>More options</strong> on the start screen.",
+          "The first screen also has <strong>Import a board from a file</strong>, for a board someone sent you.",
           "It asks for a name first, and shows you the card people will tap as you type it.",
           "Then you get the board itself. It starts as one column &mdash; tap <strong>+ CATEGORY</strong> for more, up to eight.",
           "Tap a category heading to name it. Tap any tile to write its question and answer.",
@@ -7927,6 +7970,11 @@ function viewBuilderName() {
       '</div>' +
       (state.builder.error ? '<p class="err">' + esc(state.builder.error) + '</p>' : '') +
       '<button class="big-gold bname-go" data-action="builderStep" data-step="board">Start building &rarr;</button>' +
+      '<p class="bname-or">or</p>' +
+      '<label class="bname-import">Import a board from a file' +
+        '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
+      '</label>' +
+      (state.importFileMsg ? '<p class="muted" style="margin-top:8px;text-align:center">' + esc(state.importFileMsg) + '</p>' : '') +
       '<div class="bname-foot">' +
         '<button class="my-import-link" data-action="viewExampleBoard">See a finished board first</button>' +
         '<button class="my-import-link" data-action="closeBuilder">Cancel</button>' +
