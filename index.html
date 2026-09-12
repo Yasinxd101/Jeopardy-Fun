@@ -663,6 +663,46 @@
   }
   .bside-empty { background: #11152f; border: 1px dashed #3a4070; color: #6a72a8; font-weight: 600; font-style: italic; }
   .bside-stage-note { margin: 8px 0 0; font-size: 11.5px; color: #8b92c0; line-height: 1.4; text-align: center; }
+  /* the three-step walkthrough shared by Example and Preview */
+  .bside-steps { display: flex; gap: 4px; margin-bottom: 10px; }
+  .bside-step {
+    flex: 1 1 0; min-width: 0; background: #11152f; border: 1px solid #23284b;
+    border-radius: 8px; color: #8b92c0; font-family: inherit; font-weight: 800;
+    font-size: 10px; letter-spacing: 0.2px; padding: 7px 3px; cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  }
+  .bside-step-on { color: #0b0f24; background: var(--ba); border-color: var(--ba); }
+  .bside-step-note {
+    margin: 10px 0 12px; font-size: 12px; line-height: 1.5; color: #9aa2cc;
+    border-left: 2px solid var(--ba); padding-left: 10px;
+  }
+  .bside-next {
+    width: 100%; margin-bottom: 14px; background: var(--ba); border: none; border-radius: 10px;
+    color: #0b0f24; font-family: inherit; font-weight: 900; font-size: 13px;
+    padding: 11px; min-height: 42px; cursor: pointer;
+  }
+  .bside-next:active { transform: scale(0.98); }
+  .bside-btn-go { margin-bottom: 8px; }
+  /* step one: the column of tiles, with the one you are writing lit up */
+  .bside-col { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .bside-tile {
+    border-radius: 7px; background: #1d2455; color: #8b92c0; text-align: center;
+    font-weight: 900; font-size: 15px; padding: 9px 6px;
+  }
+  .bside-tile-on { background: var(--ba); color: #0b0f24; box-shadow: 0 0 18px -6px var(--ba); }
+  .bside-cat-empty { color: #6a72a8; font-style: italic; }
+  .bside-final {
+    background: #11152f; border: 1px solid #23284b; border-radius: 11px;
+    padding: 11px; margin-bottom: 12px;
+  }
+  .bside-final-todo { border-color: #5a4a1e; background: #1b1708; }
+  .bside-todo { color: #8b92c0 !important; font-style: italic; font-weight: 600; }
+  .bside-stage-hidden {
+    margin-top: 8px; border: 1px dashed #3a4070; border-radius: 9px; padding: 9px;
+    text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+    text-transform: uppercase; color: #6a72a8;
+  }
   /* the board being made, shown as the card players will pick */
   .builder-hero {
     position: relative; overflow: hidden; border-radius: 18px; margin-bottom: 16px;
@@ -950,10 +990,15 @@
   .av-star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   .av-ring { border-radius: 50%; }
   .av-cross { clip-path: polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%); }
-  .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  /* One line rather than two: the second row cost more height than the tokens
+     on it were worth. They share the width instead of scrolling, so every
+     token stays visible down to a 320px screen -- a token you have to scroll
+     sideways to find may as well not be there. */
+  .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: nowrap; }
   .shape-pick {
+    flex: 1 1 0; min-width: 0; max-width: 44px;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 8px;
-    padding: 7px 9px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    padding: 7px 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
   .shape-pick-sel { border-color: #ffd166; background: rgba(255, 209, 102, 0.12); }
   @media (prefers-reduced-motion: reduce) { .tile-zoom { transition: none; } }
@@ -1375,24 +1420,30 @@
   .final-phone-right .final-phone-wager { color: #2cb67d; }
 
   /* "how are you playing" picker on the start screen */
-  .play-style { margin-top: 18px; }
-  .play-style-head { margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .play-style { margin-top: 2px; }
+  .play-style-head { margin: 0 0 7px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  /* Side by side rather than stacked: the two choices are a pair, and the
+     start screen has no vertical room to spend on a paragraph each. */
+  .play-style-row { display: flex; gap: 8px; }
   .play-opt {
-    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 12px;
-    padding: 11px 12px; margin-bottom: 8px; color: #fff; cursor: pointer;
+    padding: 9px 10px; color: #fff; cursor: pointer;
     font-family: inherit; transition: border-color 0.18s ease, background 0.18s ease;
   }
   .play-opt-on { border-color: #ffd166; background: #191f44; }
   .play-opt-tick {
-    flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%;
+    flex: none; width: 16px; height: 16px; border-radius: 50%;
     border: 2px solid #3a4070; display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 900; color: #0b0f24;
+    font-size: 10px; font-weight: 900; color: #0b0f24;
   }
   .play-opt-on .play-opt-tick { background: #ffd166; border-color: #ffd166; }
+  .play-opt-top { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; }
+  /* still used by the team toggle, which stays a full-width row */
   .play-opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .play-opt-title { font-weight: 800; font-size: 14px; }
-  .play-opt-sub { font-size: 12px; color: #8b92c0; line-height: 1.35; }
+  .play-opt-title { font-weight: 800; font-size: 13.5px; }
+  .play-opt-sub { font-size: 11.5px; color: #8b92c0; line-height: 1.3; }
 
   /* buzz-mode roster: names arrive from phones, not from a keyboard */
   .buzz-roster {
@@ -1404,7 +1455,6 @@
     color: var(--mode-accent); text-align: center;
   }
   .buzz-roster-sub { margin: 8px 0 0; font-size: 13px; color: #9aa2cc; line-height: 1.45; text-align: center; }
-  .buzz-roster-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
   .buzz-roster-actions { display: flex; gap: 8px; margin-top: 12px; }
   .buzz-roster-actions button { flex: 1; }
   .set-mode-note {
@@ -1455,6 +1505,69 @@
   }
   .more-caret { font-size: 11px; }
   .more-panel { margin-top: 4px; animation: mirror-fade 0.2s ease both; }
+
+  /* The start screen has one job: show everything you need to get going
+     without a scroll. Everything below is that budget being kept -- the
+     folded-away half is allowed to push past the fold, nothing above it is.
+     Scoped to .setup-wrap so no other screen inherits the squeeze. */
+  .setup-wrap { padding: 22px 16px 18px; }
+  .setup-wrap .title { font-size: 34px; margin: 0 0 2px; }
+  .setup-wrap .sub { margin: 0 0 12px; font-size: 13px; }
+  .setup-wrap .card { padding: 15px; }
+  .setup-wrap .lbl { font-size: 12px; }
+  .setup-wrap .big-gold, .setup-wrap .big-disabled { margin-top: 14px; padding: 13px; }
+  .setup-wrap .shape-row { margin-top: 6px; }
+  .setup-wrap .more-toggle { margin-top: 0; }
+  /* The roster is the one part of this screen with no ceiling, so it is the
+     part that scrolls -- two columns once there are enough names to warrant
+     them, and a hard cap past that, rather than letting eight players push
+     the start button off the bottom of the phone. */
+  .roster {
+    margin-top: 12px; display: grid; gap: 6px; grid-template-columns: 1fr;
+    max-height: 32vh; overflow-y: auto; scrollbar-width: thin;
+  }
+  .roster-2 { grid-template-columns: 1fr 1fr; }
+  .roster .row-item { padding: 7px 9px; gap: 8px; font-size: 13.5px; }
+  .roster .x-btn { min-width: 26px; min-height: 26px; font-size: 16px; }
+  .roster-more {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
+    mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
+  }
+  .lbl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .lbl-count { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #8b92c0; flex: none; }
+  .setup-foot { display: flex; align-items: stretch; gap: 8px; margin-top: 12px; }
+  .setup-foot > * { flex: 1 1 0; margin-top: 0 !important; }
+  .setup-join {
+    background: #20264d; border: 1px solid #343b6b; border-radius: 11px;
+    color: #dfe3ff; font-family: inherit; font-weight: 800; font-size: 12.5px;
+    letter-spacing: 0.6px; cursor: pointer; padding: 10px 8px;
+  }
+  .setup-join:hover { background: #272e5c; }
+  /* Shorter phones (SE-sized, or anything in landscape) get a second pass. */
+  @media (max-height: 760px) {
+    .setup-wrap { padding: 12px 14px 12px; }
+    .setup-wrap .title { font-size: 27px; }
+    .setup-wrap .sub { font-size: 12px; margin-bottom: 8px; }
+    .setup-wrap .card { padding: 12px; }
+    .setup-wrap .mode-badge { margin-bottom: 9px; padding-top: 6px; padding-bottom: 6px; }
+    .setup-wrap .play-style-head { margin-bottom: 5px; }
+    .setup-wrap .big-gold, .setup-wrap .big-disabled { margin-top: 11px; padding: 11px; font-size: 16px; }
+    .setup-wrap .roster { max-height: 21vh; }
+    .setup-wrap .team-toggle { padding: 8px 10px; }
+    .setup-wrap .play-opt-sub, .setup-wrap .team-toggle .play-opt-sub { font-size: 11px; }
+  }
+  /* A full house on the smallest phones. The roster gives up the last of the
+     room before anything else does -- it is the only part that reads fine
+     half-shown, because it scrolls. */
+  @media (max-height: 700px) {
+    .setup-wrap .roster { max-height: 17vh; }
+    .setup-wrap .title { font-size: 25px; }
+    .setup-wrap .shape-pick { padding: 5px 0; }
+  }
+  @media (max-height: 660px) {
+    .setup-wrap .roster { max-height: 14vh; }
+    .setup-wrap .setup-foot { margin-top: 8px; }
+  }
 
   /* ---- Millionaire ---- */
   .mil-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1200px 700px at 50% -10%, #10224a 0%, #070b1c 60%); }
@@ -1659,19 +1772,44 @@
   .feud-b-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
   /* the mode badge, and the panel it opens */
+  /* This is a control, not a caption. It is a full-width bar with a filled
+     action chip pinned to the right, so the thing you press is unmistakable
+     even before you read it. */
   .mode-badge {
-    display: inline-flex; align-items: center; gap: 10px; margin: 0 auto 18px;
-    background: #10142e; border: 1px solid var(--mode-accent); border-radius: 999px;
-    padding: 9px 16px; cursor: pointer; font-family: inherit;
-    box-shadow: 0 0 24px -8px var(--mode-accent);
+    display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 12px;
+    background: linear-gradient(180deg, #141a3c, #10142e);
+    border: 1px solid var(--mode-accent); border-radius: 14px;
+    padding: 8px 8px 8px 14px; cursor: pointer; font-family: inherit; text-align: left;
+    box-shadow: 0 0 24px -10px var(--mode-accent), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
   }
-  .mode-badge-lbl { font-size: 9.5px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .mode-badge:hover { background: linear-gradient(180deg, #1a2149, #141937); box-shadow: 0 0 30px -8px var(--mode-accent), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+  .mode-badge:active { transform: scale(0.985); }
+  .mode-badge-lbl { font-size: 9px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; flex: none; }
   .mode-badge-name {
     font-family: var(--mode-font); font-weight: var(--mode-weight);
     letter-spacing: var(--mode-track); text-transform: var(--mode-caps);
-    font-size: 16px; color: var(--mode-accent);
+    font-size: 16px; color: var(--mode-accent); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .mode-badge-arrow { font-size: 11px; color: #8b92c0; }
+  .mode-badge-go {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--mode-accent); color: #0b0f24; border-radius: 10px;
+    padding: 7px 11px; font-size: 10.5px; font-weight: 900; letter-spacing: 1.4px;
+    font-family: system-ui, sans-serif;
+  }
+  .mode-badge-arrow { font-size: 10px; }
+  /* A couple of nudges on arrival: enough to catch the eye once, not a
+     permanently animated page. */
+  .mode-badge-go { animation: badge-nudge 1.5s ease 0.5s 2 both; }
+  @keyframes badge-nudge {
+    0%, 55%, 100% { transform: none; }
+    62% { transform: translateY(-3px); }
+    72% { transform: translateY(0); }
+    80% { transform: translateY(-2px); }
+    88% { transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mode-badge-go { animation: none; } }
   .mp-scrim { position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72); z-index: 84; animation: tk-in 0.18s ease both; }
   .mp-panel {
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 85; width: min(340px, 86vw);
@@ -4077,7 +4215,7 @@ function openBuilder(existingId) {
     if (found) draft = JSON.parse(JSON.stringify(found));
   }
   state.builder = { draft: draft || blankDraft(), catIndex: 0, error: "", shareUrl: "",
-                    openRow: -1, lastRow: 0, side: "example",
+                    openRow: -1, lastRow: 0, side: "example", sideStep: 0,
                     // docked open on a wide screen; a shut drawer on a phone,
                     // where an open panel would sit on top of the form
                     sideOpen: typeof window !== "undefined" && window.innerWidth >= 900 };
@@ -4185,7 +4323,11 @@ function builderSelectCat(i) {
 // Play the draft where it stands, without saving it. Half-written tiles are
 // filled with a visible placeholder so the board is playable at any point, and
 // the whole thing is torn down again on the way out.
-function testBoard() {
+function testBoard() { enterTestBoard(false); }
+// The whole board as players first meet it -- the preview card with every
+// category on it -- without committing to a play-through.
+function showDraftBoard() { enterTestBoard(true); }
+function enterTestBoard(previewOnly) {
   if (!state.builder) return;
   var draft = JSON.parse(JSON.stringify(cleanDraft(state.builder.draft)));
   draft.id = "__testing__";
@@ -4205,7 +4347,8 @@ function testBoard() {
 
   state.testingBoard = { draft: state.builder.draft, catIndex: state.builder.catIndex,
                          openRow: state.builder.openRow, lastRow: state.builder.lastRow,
-                         side: state.builder.side, sideOpen: state.builder.sideOpen };
+                         side: state.builder.side, sideOpen: state.builder.sideOpen,
+                         sideStep: state.builder.sideStep };
   BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; }).concat([draft]);
   if (!state.players.length) {
     state.players = [{ name: "You", score: 0, color: PLAYER_COLORS[0], shape: "circle",
@@ -4218,7 +4361,9 @@ function testBoard() {
   state.boardId = null;
   state.used = {};
   state.active = null;
-  state.previewBoardId = null;
+  // "See my whole board" opens straight onto the preview card -- every
+  // category and the Final, which is the whole-board view players get.
+  state.previewBoardId = previewOnly ? "__testing__" : null;
   state.searchQuery = "";
   state.boardsTab = "My Boards";
   state.phase = "boards";
@@ -4241,7 +4386,8 @@ function stopTestingBoard() {
   if (t) {
     state.builder = { draft: t.draft, catIndex: t.catIndex, error: "", shareUrl: "",
                       openRow: t.openRow, lastRow: t.lastRow || 0,
-                      side: t.side || "example", sideOpen: t.sideOpen !== false };
+                      side: t.side || "example", sideOpen: t.sideOpen !== false,
+                      sideStep: t.sideStep || 0 };
     state.phase = "builder";
   } else {
     state.phase = "players";
@@ -4282,12 +4428,25 @@ function builderSideTab(tab) {
   if (!state.builder) return;
   state.builder.side = tab === "preview" ? "preview" : "example";
   state.builder.sideOpen = true;
+  // The two tabs are asked different questions. Example is "how does this go?",
+  // so it starts at the top of the walkthrough. Preview is "what did I just
+  // write?", so it starts at the reveal, where the question, the answer and
+  // the note are all on screen at once.
+  state.builder.sideStep = state.builder.side === "preview" ? SIDE_STEPS.length - 1 : 0;
   hap("tap");
   render();
 }
 function builderSideFold() {
   if (!state.builder) return;
   state.builder.sideOpen = state.builder.sideOpen === false;
+  render();
+}
+function builderSideStep(n) {
+  if (!state.builder) return;
+  var i = parseInt(n, 10);
+  if (isNaN(i)) return;
+  state.builder.sideStep = Math.max(0, Math.min(SIDE_STEPS.length - 1, i));
+  hap("tap");
   render();
 }
 function builderClearMedia(r, field) {
@@ -5574,6 +5733,25 @@ function markTabOverflow() {
   wrap.classList.toggle("tabs-more-left", strip.scrollLeft > 4);
   wrap.classList.toggle("tabs-more-right", strip.scrollLeft < max - 4);
 }
+// The roster is capped so it cannot push the start button off a small phone,
+// which means on a full house some names sit below the fold of their own box.
+// Say so, and fade the bottom edge, rather than quietly hiding people.
+function markRosterOverflow() {
+  var lists = document.querySelectorAll(".roster");
+  for (var i = 0; i < lists.length; i++) {
+    (function (el) {
+      var mark = function () {
+        var more = el.scrollHeight > el.clientHeight + 2;
+        el.classList.toggle("roster-more", more && el.scrollTop < el.scrollHeight - el.clientHeight - 4);
+      };
+      mark();
+      if (!el.dataset.rosterWatched) {
+        el.dataset.rosterWatched = "1";
+        el.addEventListener("scroll", mark, { passive: true });
+      }
+    })(lists[i]);
+  }
+}
 // ---- 18+ section: one-time verification gate, stored on this device ----
 // ---- game modes ----
 // Only Jeopardy is playable today. The others are scaffolding: they own a name,
@@ -6330,7 +6508,7 @@ function renderHelp() {
         helpSection("Phones as buzzers", [
           "Choose <strong>Phone buzzers</strong> and the first thing you do is <strong>Open the Room</strong>.",
           "The room screen shows a QR code; the code and PIN stay covered until you tap <strong>Show code</strong>.",
-          "Everyone else opens the same link and taps <strong>JOIN SOMEONE ELSE&rsquo;S ROOM</strong>.",
+          "Everyone else opens the same link and taps <strong>JOIN A ROOM</strong>.",
           "They type the code and their name, and appear on your list &mdash; you never type anyone in yourself.",
           "Once people have joined, the start button turns into <strong>Everyone&rsquo;s In</strong>.",
           "First phone to press wins the buzz. The host taps Right or Wrong.",
@@ -6692,9 +6870,21 @@ function boardsPanelHtml() {
     }
     return card;
   }).join("");
+  // The board maker belongs where your own boards live, not only on the main
+  // menu -- this tab is where you come looking for it.
+  if (isMyBoards) {
+    cards += '<button class="board-card board-card-create" data-action="openBuilder" style="--accent:#ffd166">' +
+      '<div class="board-card-icon">+</div>' +
+      '<div class="board-card-body">' +
+        '<div class="board-card-title">Make your own board</div>' +
+        '<div class="board-card-tagline">Start from a blank grid, or import a board file. ' +
+          'Try it out as you build it.</div>' +
+      '</div>' +
+    '</button>';
+  }
   if (isMyBoards && !tabBoards.length) {
-    cards += '<p class="muted" style="grid-column:1/-1;text-align:center">' +
-      'No boards of your own yet. Make one from the main menu.</p>';
+    cards = '<p class="muted" style="grid-column:1/-1;text-align:center;margin:0 0 4px">' +
+      'No boards of your own yet &mdash; this is where they land.</p>' + cards;
   }
   if (isAdultTab) {
     cards += '<button class="board-card board-card-create" data-action="adultExample" style="--accent:#ff5470">' +
@@ -6832,10 +7022,11 @@ function viewBoardPreview() {
 
 function viewPlayers() {
   var m = gameMode();
-  var modeChips = '<button class="mode-badge" data-action="openModePicker">' +
+  var modeChips = '<button class="mode-badge" data-action="openModePicker" aria-haspopup="dialog" ' +
+      'title="Switch to another game">' +
       '<span class="mode-badge-lbl">GAME</span>' +
       '<span class="mode-badge-name">' + esc(m.short) + '</span>' +
-      '<span class="mode-badge-arrow">&#9662;</span>' +
+      '<span class="mode-badge-go">SWITCH<span class="mode-badge-arrow">&#9662;</span></span>' +
     '</button>';
   // The board builder lives on the main menu now, one entry per game mode,
   // rather than being buried inside the board picker.
@@ -6874,10 +7065,10 @@ function viewPlayers() {
       '</div>' +
     '</div>';
   }
-  return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
+  return '<div class="wrap setup-wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
-'<div style="text-align:center">' + modeChips + '</div>' +
+    modeChips +
     (m.status === "ready" ? resumeCard : "") +
     (m.status === "ready" ? "" :
       '<div class="card wip-card">' +
@@ -6890,29 +7081,38 @@ function viewPlayers() {
       playStyleHtml() +
       (buzzModeOn() ? buzzRosterHtml() : '') +
       '<div' + (buzzModeOn() ? ' hidden' : '') + '>' +
-      '<label class="lbl">Player name</label>' +
+      // One label for the pair: the tokens sit right under the name box and
+      // the chosen one is lit, so a second heading was only costing height.
+      '<div class="lbl-row">' +
+        '<label class="lbl" for="nameInput">Player name and token</label>' +
+        (state.players.length
+          ? '<span class="lbl-count">' + state.players.length + ' OF ' + MAX_PLAYERS + ' ADDED</span>'
+          : '') +
+      '</div>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
         '<input class="input" id="nameInput" placeholder="Type a name..." value="' + esc(state.nameInput) + '" />' +
         '<button class="btn-gold" data-action="add">Add</button>' +
       '</div>' +
-      '<label class="lbl" style="display:block;margin-top:12px">Pick a token</label>' +
-      '<div class="shape-row">' + AVATAR_SHAPES.map(function (sh) {
+      '<div class="shape-row" role="group" aria-label="Pick a token">' + AVATAR_SHAPES.map(function (sh) {
         var sel = (state.nextShape || AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length]) === sh;
         return '<button class="shape-pick' + (sel ? ' shape-pick-sel' : '') + '" data-action="pickShape" data-shape="' + sh + '" aria-label="' + sh + '">' +
           avatarHtml({ shape: sh, color: sel ? '#ffd166' : '#8b92c0' }, 16) + '</button>';
       }).join('') + '</div>' +
       (state.nameError ? '<p class="err">' + esc(state.nameError) + '</p>' : '') +
-      '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
+      '<div class="roster' + (state.players.length >= 4 ? ' roster-2' : '') + '">' + playerRows + '</div>' +
       '</div>' +
       teamSetupHtml() +
       startButtonHtml(m) +
-      '<button class="big-gold" style="margin-top:10px;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN SOMEONE ELSE&rsquo;S ROOM</button>' +
-      // Everything below is a one-off: it stays folded away so the first screen
-      // is just "who is playing" and "go".
-      '<button class="more-toggle" data-action="toggleSetupMore">' +
-        '<span>More options</span>' +
-        '<span class="more-caret">' + (state.setupMoreOpen ? "▲" : "▼") + '</span>' +
-      '</button>' +
+      // Joining someone else's room and the folded-away one-offs share a row:
+      // both are secondary to "who is playing" and "go", and stacking them as
+      // full-width buttons pushed the start button off a phone screen.
+      '<div class="setup-foot">' +
+        '<button class="setup-join" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
+        '<button class="more-toggle" data-action="toggleSetupMore">' +
+          '<span>More options</span>' +
+          '<span class="more-caret">' + (state.setupMoreOpen ? "▲" : "▼") + '</span>' +
+        '</button>' +
+      '</div>' +
       (state.setupMoreOpen
         ? '<div class="more-panel">' +
             '<button data-action="toggleSettings" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:#0d1230;border:none;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer">' +
@@ -6962,7 +7162,7 @@ function buzzRosterHtml() {
   return '<div class="buzz-roster">' +
     '<p class="buzz-roster-head">' + status + '</p>' +
     (state.players.length
-      ? '<div class="buzz-roster-list">' + rows + '</div>'
+      ? '<div class="roster' + (state.players.length >= 4 ? ' roster-2' : '') + '">' + rows + '</div>'
       : '<p class="buzz-roster-sub">Waiting for the first phone to join&hellip;</p>') +
     '<div class="buzz-roster-actions">' +
       '<button class="builder-cat-move" data-action="openHostRoom">Show the code</button>' +
@@ -7032,21 +7232,23 @@ function teamSetupHtml() {
 function playStyleHtml() {
   if (state.gameMode !== "jeopardy") return "";
   var opts = [
-    { id: "screen", title: "One screen", sub: "Everyone looks at this device. The host calls who answered first." },
-    { id: "buzzers", title: "Phone buzzers", sub: "Everyone plays from their own phone. They join with a code &mdash; you do not type anyone in." },
+    { id: "screen", title: "One screen", sub: "Everyone round this device." },
+    { id: "buzzers", title: "Phone buzzers", sub: "Everyone joins on their own phone." },
   ];
   return '<div class="play-style">' +
     '<p class="play-style-head">HOW ARE YOU PLAYING?</p>' +
+    '<div class="play-style-row">' +
     opts.map(function (o) {
       var on = state.playStyle === o.id;
       return '<button class="play-opt' + (on ? ' play-opt-on' : '') + '" data-action="setPlayStyle" data-style="' + o.id + '">' +
-          '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
-          '<span class="play-opt-text">' +
+          '<span class="play-opt-top">' +
+            '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
             '<span class="play-opt-title">' + o.title + '</span>' +
-            '<span class="play-opt-sub">' + o.sub + '</span>' +
           '</span>' +
+          '<span class="play-opt-sub">' + o.sub + '</span>' +
         '</button>';
     }).join('') +
+    '</div>' +
   '</div>';
 }
 
@@ -7194,50 +7396,100 @@ function builderSideHtml(d, ci, row) {
       '</button>' + head + '</aside>';
   }
 
+  var step = Math.max(0, Math.min(SIDE_STEPS.length - 1, (state.builder && state.builder.sideStep) || 0));
   var body;
   if (tab === "example") {
     var ex = exampleBoard();
     var exCat = ex.textBoard[ci % ex.textBoard.length];
-    var exQ = exCat.questions[r];
-    body = '<p class="bside-note">A finished board at the same slot you are writing. ' +
-        'Yours does not have to match &mdash; it is here to show the shape.</p>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Category</p>' +
-        '<p class="bside-strong">' + esc(exCat.category) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">' + exQ.value + ' point question</p>' +
-        '<p class="bside-text">' + esc(exQ.q) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Answer</p>' +
-        '<p class="bside-answer">' + esc(exQ.a) + '</p>' +
-      '</div>' +
-      '<div class="bside-block">' +
-        '<p class="bside-label">Its Final Jeopardy</p>' +
-        '<p class="bside-text">' + esc(ex.final.q) + '</p>' +
-        '<p class="bside-answer">' + esc(ex.final.a) + '</p>' +
-      '</div>' +
-      '<button class="bside-btn" data-action="viewExampleBoard">See the whole example board</button>';
+    body = '<p class="bside-note">A finished question from a finished board, played out ' +
+        'a step at a time. Yours does not have to match &mdash; this is the shape.</p>' +
+      sideWalkHtml(exCat.category, exCat.questions, r, step, false) +
+      sideFinalHtml(ex.final, false) +
+      '<button class="bside-btn bside-btn-go" data-action="viewExampleBoard">See the whole example board</button>';
   } else {
     var col = d.textBoard[ci];
-    var mine = col.questions[r];
-    var hasQ = !!(mine.q || mine.id), hasA = !!mine.a;
-    body = '<p class="bside-note">Your ' + mine.value + ' point question, drawn the way a player meets it.</p>' +
-      '<div class="bside-stage">' +
-        '<p class="bside-stage-cat">' + esc((col.category || "Category").toUpperCase()) + '</p>' +
-        '<p class="bside-stage-val">' + mine.value + '</p>' +
-        '<div class="bside-stage-q' + (hasQ ? "" : " bside-empty") + '">' +
-          (hasQ ? esc(mine.q || "(a clip plays here)") : "Nothing written here yet") + '</div>' +
-        (mine.img ? '<img class="bside-stage-img" src="' + esc(mine.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
-        '<div class="bside-stage-a' + (hasA ? "" : " bside-empty") + '">' +
-          (hasA ? esc(mine.a) : "No answer yet") + '</div>' +
-        (mine.note ? '<p class="bside-stage-note">' + esc(mine.note) + '</p>' : '') +
-      '</div>' +
-      (mine.hint ? '<p class="bside-note">Host hint: ' + esc(mine.hint) + '</p>' : '') +
-      '<button class="bside-btn" data-action="testBoard">Play the whole board</button>';
+    body = '<p class="bside-note">Your own question, played out the same way. ' +
+        'Blank slots show as blanks, so you can see what is still missing.</p>' +
+      sideWalkHtml(col.category, col.questions, r, step, true) +
+      sideFinalHtml(d.final, true) +
+      '<button class="bside-btn bside-btn-go" data-action="showDraftBoard">See my whole board</button>' +
+      '<button class="bside-btn" data-action="testBoard">Play it from the start</button>';
   }
   return '<aside class="bside">' + head + '<div class="bside-body">' + body + '</div></aside>';
+}
+
+// The three beats of a question, in order. Reading "write a clue and an answer"
+// tells you less than watching one tile turn into a question and then a reveal.
+var SIDE_STEPS = [
+  { label: "1 Board",
+    note: "On the board a question is only its value. This is everything players see before they pick it." },
+  { label: "2 Asked",
+    note: "Picking the tile fills the screen with the question. The answer stays hidden until the host reveals it." },
+  { label: "3 Answer",
+    note: "The answer lands, along with the note you wrote &mdash; if you wrote one." },
+];
+function sideWalkHtml(category, questions, r, step, own) {
+  var q = questions[r] || {};
+  var catText = (category || (own ? "" : "Category")).toUpperCase();
+  var hasQ = !!(q.q || q.id), hasA = !!q.a;
+  var chips = SIDE_STEPS.map(function (s, i) {
+    return '<button class="bside-step' + (i === step ? " bside-step-on" : "") + '" ' +
+      'data-action="builderSideStep" data-step="' + i + '"' +
+      (i === step ? ' aria-current="step"' : '') + '>' + s.label + '</button>';
+  }).join("");
+
+  var stage;
+  if (step === 0) {
+    // The whole column, so the value you are writing is seen in its place.
+    var col = questions.map(function (qq, i) {
+      return '<div class="bside-tile' + (i === r ? " bside-tile-on" : "") + '">' + qq.value + '</div>';
+    }).join("");
+    stage = '<div class="bside-stage">' +
+        '<p class="bside-stage-cat' + (category ? "" : " bside-cat-empty") + '">' +
+          esc(catText || "NO CATEGORY TITLE YET") + '</p>' +
+        '<div class="bside-col">' + col + '</div>' +
+      '</div>';
+  } else {
+    var revealed = step === 2;
+    stage = '<div class="bside-stage">' +
+        '<p class="bside-stage-cat' + (category ? "" : " bside-cat-empty") + '">' +
+          esc(catText || "NO CATEGORY TITLE YET") + '</p>' +
+        '<p class="bside-stage-val">' + q.value + '</p>' +
+        '<div class="bside-stage-q' + (hasQ ? "" : " bside-empty") + '">' +
+          (hasQ ? esc(q.q || "♪ a clip plays here") : "Nothing written here yet") + '</div>' +
+        (q.img ? '<img class="bside-stage-img" src="' + esc(q.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
+        (revealed
+          ? '<div class="bside-stage-a' + (hasA ? "" : " bside-empty") + '">' +
+              (hasA ? esc(q.a) : "No answer yet") + '</div>' +
+            (q.note ? '<p class="bside-stage-note">' + esc(q.note) + '</p>' : '')
+          : '<div class="bside-stage-hidden">answer hidden</div>') +
+      '</div>' +
+      (revealed && q.hint ? '<p class="bside-note" style="margin-top:-4px">Host hint: ' + esc(q.hint) + '</p>' : '');
+  }
+
+  return '<div class="bside-steps">' + chips + '</div>' +
+    stage +
+    '<p class="bside-step-note">' + SIDE_STEPS[step].note + '</p>' +
+    '<button class="bside-next" data-action="builderSideStep" data-step="' + ((step + 1) % SIDE_STEPS.length) + '">' +
+      (step === SIDE_STEPS.length - 1 ? "Start over" : "Next &rarr;") +
+    '</button>';
+}
+// The Final is the one question that is not on the grid, so it is the one
+// people forget to write. It gets its own line in both panels.
+function sideFinalHtml(f, own) {
+  f = f || {};
+  var done = !!(f.category && f.q && f.a);
+  // A missing field must not be dressed in the colour of a filled one --
+  // green "No answer written yet" reads as done at a glance.
+  var todo = function (v) { return v ? "" : " bside-todo"; };
+  return '<div class="bside-final' + (own && !done ? " bside-final-todo" : "") + '">' +
+    '<p class="bside-label">Final Jeopardy' + (own && !done ? " &mdash; unfinished" : "") + '</p>' +
+    '<p class="bside-strong' + todo(f.category) + '">' + esc(f.category || "No category yet") + '</p>' +
+    '<p class="bside-text' + todo(f.q) + '" style="margin-top:5px">' + esc(f.q || "No question written yet") + '</p>' +
+    '<p class="bside-answer' + todo(f.a) + '">' + esc(f.a || "No answer written yet") + '</p>' +
+    '<p class="bside-stage-note" style="text-align:left;margin-top:7px">' +
+      'Everyone wagers first, then sees this one.</p>' +
+  '</div>';
 }
 
 // Board builder: edit one category at a time, with live tab switching.
@@ -9883,6 +10135,7 @@ function render() {
       if (jumped.scrollIntoView) jumped.scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
     }
   }
+  markRosterOverflow();
   var tabStrip = document.getElementById("boardsTabs");
   if (tabStrip) {
     markTabOverflow();
@@ -10119,10 +10372,12 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderToggleRow") builderToggleRow(+t.getAttribute("data-i"));
   else if (action === "builderJump") builderJump(+t.getAttribute("data-c"), +t.getAttribute("data-r"));
   else if (action === "testBoard") testBoard();
+  else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "stopTestingBoard") stopTestingBoard();
   else if (action === "viewExampleBoard") viewExampleBoard();
   else if (action === "builderSideTab") builderSideTab(t.getAttribute("data-tab"));
   else if (action === "builderSideFold") builderSideFold();
+  else if (action === "builderSideStep") builderSideStep(t.getAttribute("data-step"));
   else if (action === "closeExampleBoard") closeExampleBoard();
   else if (action === "builderClearMedia") builderClearMedia(+t.getAttribute("data-i"), t.getAttribute("data-field"));
   else if (action === "builderAddCategory") builderAddCategory();
