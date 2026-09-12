@@ -7,6 +7,10 @@
 <script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* The screen shake translates #root sideways. Without this, every wrong
+     answer briefly made the whole page scrollable sideways -- up to 13px, and
+     enough to jog the scroll position on a phone. */
+  html, body { overflow-x: hidden; }
   body {
     margin: 0;
     background:
@@ -1333,6 +1337,106 @@
   }
   .mil-b-opt-right .mil-b-mark { background: #2cb67d; border-color: #2cb67d; color: #04210f; }
 
+  /* ---- Family Feud ---- */
+  .feud-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1100px 650px at 50% -10%, #0d2e22 0%, #070b1c 60%); }
+  .feud-wrap { max-width: 720px; margin: 0 auto; padding: 18px 16px 32px; }
+  .feud-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .feud-round { font-weight: 900; font-size: 12px; letter-spacing: 1.5px; color: #7ee2b0; }
+  .feud-pack { font-size: 12px; color: #8b92c0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feud-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .feud-team {
+    background: #11152f; border: 1px solid #2a2f55; border-radius: 11px; padding: 9px 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0;
+  }
+  .feud-team-on { border-color: #2cb67d; background: #12291f; }
+  .feud-team-name { font-weight: 800; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feud-team-score { font-weight: 900; font-size: 16px; color: #7ee2b0; flex: none; }
+  .feud-q {
+    background: #0d2a20; border: 2px solid #2cb67d; border-radius: 14px; padding: 18px 16px;
+    text-align: center; font-size: 17px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere;
+  }
+  .feud-mult { margin: 8px 0 0; text-align: center; font-weight: 900; font-size: 12px; letter-spacing: 1px; color: #ffd166; }
+  .feud-board { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; }
+  .feud-slot {
+    display: flex; align-items: center; gap: 10px; min-height: 44px;
+    background: #10142e; border: 1px solid #2a2f55; border-radius: 9px; padding: 8px 12px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  .feud-slot-up { background: #12291f; border-color: #2cb67d; animation: mirror-fade 0.3s ease both; }
+  .feud-rank {
+    width: 22px; height: 22px; flex: none; border-radius: 50%; background: #2a2f55;
+    color: #aab0d8; font-weight: 900; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feud-slot-up .feud-rank { background: #2cb67d; color: #04210f; }
+  .feud-ans { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+  .feud-ans-hidden { border-bottom: 2px dotted #2a2f55; }
+  .feud-pts { font-weight: 900; font-size: 15px; color: #7ee2b0; flex: none; }
+  .feud-bank {
+    margin-top: 12px; text-align: center; font-size: 13px; font-weight: 700; color: #9aa2cc;
+  }
+  .feud-bank strong { font-size: 22px; color: #ffd166; display: block; }
+  .feud-strikes { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+  .feud-x { font-size: 30px; font-weight: 900; color: #2a2f55; line-height: 1; }
+  .feud-x-on { color: #ff5470; animation: score-settle-kf 0.3s ease both; }
+  .feud-prompt { margin: 14px 0 0; text-align: center; font-size: 14px; font-weight: 700; color: #c2c8ea; line-height: 1.45; }
+  .feud-prompt-steal { color: #ffd166; }
+  .feud-control-pick { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .feud-take {
+    flex: 1 1 140px; background: #12291f; border: 1px solid #2cb67d; border-radius: 11px;
+    color: #7ee2b0; font-family: inherit; font-weight: 800; font-size: 13px;
+    padding: 13px 10px; min-height: 46px; cursor: pointer;
+  }
+  .feud-hint { margin: 16px 0 6px; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #6a72a8; text-align: center; }
+  .feud-hits { display: flex; flex-wrap: wrap; gap: 6px; }
+  .feud-hit {
+    flex: 1 1 140px; background: #11152f; border: 1px solid #2a2f55; border-radius: 9px;
+    color: #c2c8ea; font-family: inherit; font-weight: 700; font-size: 13px;
+    padding: 11px 10px; min-height: 42px; cursor: pointer; text-align: left;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .feud-hit em { font-style: normal; font-weight: 900; color: #7ee2b0; margin-left: 5px; }
+  .feud-hit-done { opacity: 0.3; cursor: default; }
+  .feud-strike-btn {
+    width: 100%; margin-top: 10px; background: #3a1220; border: 1px solid #ff5470;
+    border-radius: 12px; color: #ff8aa0; font-family: inherit; font-weight: 900;
+    font-size: 15px; padding: 14px; min-height: 48px; cursor: pointer;
+  }
+  .feud-award { text-align: center; margin: 10px 0 4px; }
+  .feud-award-team { margin: 0; font-weight: 900; font-size: 17px; color: #7ee2b0; }
+  .feud-award-amt { margin: 4px 0 0; font-weight: 900; font-size: 32px; color: #ffd166; }
+
+  /* team setup */
+  .feud-team-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .feud-team-col { background: #0d1230; border: 1px solid #2a2f55; border-radius: 11px; padding: 10px; min-width: 0; }
+  .feud-team-head { margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #7ee2b0; text-align: center; }
+  .feud-chip {
+    display: flex; align-items: center; gap: 7px; width: 100%; margin-bottom: 6px;
+    background: #161b3d; border: 1px solid #2a2f55; border-radius: 9px;
+    padding: 9px 10px; min-height: 40px; color: #fff; cursor: pointer; font-family: inherit;
+  }
+  .feud-chip-name { flex: 1; min-width: 0; font-weight: 700; font-size: 13px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feud-chip-move { color: #7ee2b0; font-weight: 900; flex: none; }
+
+  /* the survey creator */
+  .feud-b-rows { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .feud-b-row { display: flex; align-items: center; gap: 7px; }
+  .feud-b-rank {
+    width: 22px; height: 22px; flex: none; border-radius: 50%; background: #2a2f55;
+    color: #aab0d8; font-weight: 900; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feud-b-text { flex: 1; min-width: 0; }
+  .feud-b-pts { width: 64px; flex: none; text-align: center; }
+  .feud-b-del {
+    width: 34px; height: 34px; flex: none; border-radius: 8px; background: #11152f;
+    border: 1px solid #2a2f55; color: #ff8aa0; font-family: inherit;
+    font-weight: 900; font-size: 16px; cursor: pointer;
+  }
+  .feud-b-del[disabled] { opacity: 0.3; cursor: default; }
+  .feud-b-mul { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .feud-b-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
   /* game mode picker on the main menu */
   .mode-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 18px; }
   .mode-chip {
@@ -2233,6 +2337,10 @@ var state = {
   milPackId: null,
   milVotes: null,         // {connId: optionIndex} while the room is voting
   milBuilder: null,       // {draft, index, error, submitMsg}
+  feud: null,             // Family Feud game in progress
+  feudPackId: null,
+  feudTeams: null,        // the two teams, kept between games
+  feudBuilder: null,      // {draft, index, error, submitMsg}
   statsMsg: "",           // one-line confirmation on the stats screen
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
   setupMoreOpen: false,   // the fold-away half of the start screen
@@ -3989,6 +4097,7 @@ function continueToBoards() {
   if (!modeIsReady()) return; // the mode is scaffolding only
   if (!state.players.length) return;
   if (state.gameMode === "millionaire") { openMilPacks(); return; }
+  if (state.gameMode === "feud") { openFeudTeams(); return; }
   // On phone-buzzer nights the room has to exist before anyone can join, so
   // the start button takes you through the room screen on the way.
   if (state.playStyle === "buzzers" && !state.buzzer.on) {
@@ -4855,7 +4964,7 @@ var GAME_MODES = [
   { id: "millionaire", name: "MILLIONAIRE", short: "Millionaire", status: "ready",
     tagline: "One player in the hot seat, fifteen questions, three lifelines.",
     packWord: "question pack", accent: "#3da9fc" },
-  { id: "feud",        name: "FAMILY FEUD", short: "Family Feud", status: "wip",
+  { id: "feud",        name: "FAMILY FEUD", short: "Family Feud", status: "ready",
     tagline: "Two teams, one survey, three strikes.",
     packWord: "survey pack", accent: "#2cb67d" },
 ];
@@ -5169,6 +5278,250 @@ function quitMillionaire() {
   state.phase = "players";
   render();
 }
+// ---- Family Feud ----
+// A survey with ranked answers. Two teams, a face-off for control, three
+// strikes, then the other side gets one shot to steal the whole bank.
+var FEUD_MIN_ANSWERS = 3, FEUD_MAX_ANSWERS = 8, FEUD_STRIKES = 3;
+var JF_FEUDPACKS_KEY = "jf.feudpacks.v1";
+
+function feudPackError(p) {
+  if (!p || typeof p !== "object" || Array.isArray(p)) return "that file is not a survey pack.";
+  if (!p.name) return 'the pack needs a "name".';
+  if (!Array.isArray(p.rounds) || !p.rounds.length) return "a pack needs at least one survey.";
+  if (p.rounds.length > 8) return "a pack can hold at most 8 surveys.";
+  for (var i = 0; i < p.rounds.length; i++) {
+    var r = p.rounds[i];
+    if (!r || typeof r !== "object") return "survey " + (i + 1) + " is missing.";
+    if (!r.q) return "survey " + (i + 1) + " needs a question.";
+    if (!Array.isArray(r.answers) || r.answers.length < FEUD_MIN_ANSWERS || r.answers.length > FEUD_MAX_ANSWERS)
+      return "survey " + (i + 1) + " needs between " + FEUD_MIN_ANSWERS + " and " + FEUD_MAX_ANSWERS + " answers.";
+    for (var a = 0; a < r.answers.length; a++) {
+      var ans = r.answers[a];
+      if (!ans || !String(ans.text || "").trim())
+        return "answer " + (a + 1) + " of survey " + (i + 1) + " has no text.";
+      var pts = +ans.points;
+      if (!isFinite(pts) || pts <= 0)
+        return '"' + ans.text + '" in survey ' + (i + 1) + " needs a points value above zero.";
+    }
+  }
+  return "";
+}
+function isValidFeudPack(p) { return !!(p && p.id) && feudPackError(p) === ""; }
+function feudPacks() {
+  var list = jfRead(JF_FEUDPACKS_KEY, []);
+  if (!Array.isArray(list)) return [];
+  return list.filter(isValidFeudPack);
+}
+function blankFeudRound() {
+  return { q: "", multiplier: 1, answers: [
+    { text: "", points: 0 }, { text: "", points: 0 }, { text: "", points: 0 },
+    { text: "", points: 0 }, { text: "", points: 0 },
+  ] };
+}
+function blankFeudPack() {
+  return {
+    id: "feudpack-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: "", tagline: "", accent: "#2cb67d",
+    rounds: [blankFeudRound(), blankFeudRound(), blankFeudRound()],
+  };
+}
+function normalizeFeudPack(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  var p;
+  try { p = JSON.parse(JSON.stringify(raw)); } catch (e) { return raw; }
+  if (!p.name && p.title) p.name = p.title;
+  if (typeof p.accent !== "string" || !/^#?[0-9a-fA-F]{3,6}$/.test(String(p.accent).trim())) p.accent = "#2cb67d";
+  else if (p.accent.charAt(0) !== "#") p.accent = "#" + p.accent.trim();
+  if (!Array.isArray(p.rounds)) {
+    if (Array.isArray(p.surveys)) p.rounds = p.surveys;
+    else if (Array.isArray(p.questions)) p.rounds = p.questions;
+  }
+  if (Array.isArray(p.rounds)) {
+    p.rounds = p.rounds.map(function (r) {
+      if (!r || typeof r !== "object") return r;
+      if (r.q == null && r.question != null) r.q = r.question;
+      if (r.q == null && r.survey != null) r.q = r.survey;
+      var list = r.answers || r.responses || r.options;
+      if (Array.isArray(list)) {
+        r.answers = list.map(function (a) {
+          // accept {text,points}, {answer,count}, or ["text", 42]
+          if (Array.isArray(a)) return { text: String(a[0] || ""), points: +a[1] || 0 };
+          if (typeof a === "string") return { text: a, points: 0 };
+          if (!a || typeof a !== "object") return { text: "", points: 0 };
+          var text = a.text != null ? a.text : (a.answer != null ? a.answer : a.label);
+          var pts = a.points != null ? a.points : (a.count != null ? a.count : a.score);
+          return { text: String(text == null ? "" : text), points: +pts || 0 };
+        });
+      }
+      // a survey is ranked highest first, whatever order it arrived in
+      if (Array.isArray(r.answers)) r.answers.sort(function (x, y) { return (y.points || 0) - (x.points || 0); });
+      var mul = parseInt(r.multiplier, 10);
+      r.multiplier = isFinite(mul) && mul > 0 ? Math.min(mul, 5) : 1;
+      return r;
+    });
+  }
+  return p;
+}
+// ---- Family Feud: play ----
+// Teams are just a split of the player list, so the same names carry across
+// from setup and nobody has to be typed in twice.
+function defaultFeudTeams() {
+  var a = [], b = [];
+  state.players.forEach(function (p, i) { (i % 2 ? b : a).push(i); });
+  return [
+    { name: "Team 1", members: a, score: 0 },
+    { name: "Team 2", members: b, score: 0 },
+  ];
+}
+function feudTeamLabel(t) {
+  if (!t) return "";
+  if (t.members.length) {
+    return t.members.map(function (i) { return state.players[i] ? state.players[i].name : ""; })
+      .filter(Boolean).join(" & ");
+  }
+  return t.name;
+}
+function startFeud(packId) {
+  var pack = feudPacks().filter(function (p) { return p.id === packId; })[0];
+  if (!pack || !state.players.length) return;
+  state.feudPackId = packId;
+  state.feud = {
+    round: 0,
+    teams: (state.feudTeams && state.feudTeams.length === 2)
+      ? JSON.parse(JSON.stringify(state.feudTeams))
+      : defaultFeudTeams(),
+    control: null,          // which team is playing the board
+    revealed: [],           // answer indexes turned over
+    strikes: 0,
+    bank: 0,
+    stage: "faceoff",       // faceoff | play | steal | roundEnd | done
+    stealFailed: false,
+    lastAward: null,
+  };
+  state.feud.teams.forEach(function (t) { t.score = 0; });
+  state.phase = "feud";
+  hap("press");
+  render();
+}
+function feudPack() {
+  return feudPacks().filter(function (p) { return p.id === state.feudPackId; })[0];
+}
+function feudRound() {
+  var p = feudPack();
+  return p && state.feud ? p.rounds[state.feud.round] : null;
+}
+function feudMultiplier() {
+  var r = feudRound();
+  return r && r.multiplier > 0 ? r.multiplier : 1;
+}
+function feudAllFound() {
+  var r = feudRound();
+  return !!r && state.feud.revealed.length >= r.answers.length;
+}
+// The host taps the answer the player actually said.
+function feudReveal(i) {
+  var f = state.feud, r = feudRound();
+  if (!f || !r || !r.answers[i]) return;
+  if (f.stage !== "faceoff" && f.stage !== "play" && f.stage !== "steal") return;
+  if (f.revealed.indexOf(i) !== -1) return;
+  f.revealed.push(i);
+  f.bank += (r.answers[i].points || 0) * feudMultiplier();
+  sndReveal();
+  hap("good");
+  if (f.stage === "faceoff") {
+    // Someone answered, but nobody has taken control yet. The host says who.
+    render();
+    return;
+  }
+  if (f.stage === "steal") { feudAward(f.stealing, "stole"); return; }
+  if (feudAllFound()) { feudAward(f.control, "cleared"); return; }
+  render();
+}
+function feudStrike() {
+  var f = state.feud;
+  if (!f) return;
+  if (f.stage === "steal") {
+    // One shot only: a miss hands the bank back to the team that built it.
+    f.stealFailed = true;
+    sndScore(false, 0);
+    hap("bad");
+    shakeScreen(8);
+    feudAward(f.control, "survived");
+    return;
+  }
+  if (f.stage !== "play") return;
+  f.strikes++;
+  sndScore(false, 0);
+  hap("bad");
+  shakeScreen(6);
+  if (f.strikes >= FEUD_STRIKES) {
+    f.stage = "steal";
+    f.stealing = f.control === 0 ? 1 : 0;
+  }
+  render();
+}
+function feudTakeControl(team) {
+  var f = state.feud;
+  if (!f || f.stage !== "faceoff") return;
+  f.control = team;
+  f.stage = "play";
+  f.strikes = 0;
+  hap("press");
+  if (feudAllFound()) { feudAward(team, "cleared"); return; }
+  render();
+}
+function feudAward(team, how) {
+  var f = state.feud;
+  if (!f) return;
+  if (f.teams[team]) f.teams[team].score += f.bank;
+  f.lastAward = { team: team, amount: f.bank, how: how };
+  f.stage = "roundEnd";
+  if (f.bank > 0) { sndScore(true, f.bank); fireConfetti(1400); }
+  render();
+}
+function feudNextRound() {
+  var f = state.feud, p = feudPack();
+  if (!f || !p) return;
+  if (f.round >= p.rounds.length - 1) { f.stage = "done"; recordFeudHistory(); sndEnd(); render(); return; }
+  f.round++;
+  f.control = null;
+  f.revealed = [];
+  f.strikes = 0;
+  f.bank = 0;
+  f.stealing = null;
+  f.stealFailed = false;
+  f.lastAward = null;
+  f.stage = "faceoff";
+  render();
+}
+// Turning the rest over at the end of a round is part of the show.
+function feudRevealRest() {
+  var f = state.feud, r = feudRound();
+  if (!f || !r) return;
+  r.answers.forEach(function (a, i) { if (f.revealed.indexOf(i) === -1) f.revealed.push(i); });
+  sndReveal();
+  render();
+}
+function recordFeudHistory() {
+  var f = state.feud, p = feudPack();
+  if (!f || !p) return;
+  var rows = f.teams.map(function (t) { return { name: feudTeamLabel(t), score: t.score }; });
+  var top = rows.reduce(function (a, r) { return Math.max(a, r.score); }, 0);
+  var hist = jfRead(JF_HISTORY_KEY, []);
+  if (!Array.isArray(hist)) hist = [];
+  hist.unshift({
+    at: Date.now(), mode: "feud", boards: [p.name], players: rows,
+    winners: rows.filter(function (r) { return r.score === top && top > 0; }).map(function (r) { return r.name; }),
+  });
+  if (hist.length > 100) hist = hist.slice(0, 100);
+  jfWrite(JF_HISTORY_KEY, hist);
+}
+function quitFeud() {
+  state.feud = null;
+  state.feudPackId = null;
+  state.phase = "players";
+  render();
+}
 function gameMode(id) {
   var want = id || state.gameMode;
   return GAME_MODES.filter(function (m) { return m.id === want; })[0] || GAME_MODES[0];
@@ -5282,6 +5635,14 @@ function renderHelp() {
           "Ask the room is a real vote when people are on their phones, and a stand-in audience when they are not.",
           "<strong>Walk away</strong> any time to keep what you have already won.",
           "With several players everyone takes a turn and the winnings are compared at the end.",
+        ]) +
+        helpSection("Family Feud", [
+          "Pick <strong>Family Feud</strong> at the top of the start screen.",
+          "Split everyone into two teams &mdash; tap a name to move it across.",
+          "Each survey has its answers hidden. Read it out, and tap whichever answer someone actually says.",
+          "Win the face-off and your team plays the board. Three strikes and the other team gets one guess to steal the whole bank.",
+          "Clear the board, or survive the steal, and the bank is yours.",
+          "Later surveys are worth double and triple, so the game is never over early.",
         ]) +
         helpSection("Fan boards", [
           "The <strong>Fan Boards</strong> tab holds boards other people made and sent in.",
@@ -5456,6 +5817,8 @@ function confirmYes() {
   else if (action === "clearHistory") clearHistory();
   else if (action === "quitMil") quitMillionaire();
   else if (action === "deleteMilPack") deleteMilPack(payload);
+  else if (action === "quitFeud") quitFeud();
+  else if (action === "deleteFeudPack") deleteFeudPack(payload);
   else if (action === "reportBoard") reportBoard(payload);
   else render();
 }
@@ -5706,6 +6069,8 @@ function viewPlayers() {
         esc(m.short) + ' ' + m.packWord + 's are not ready yet</button>'
     : m.id === "millionaire"
     ? '<button class="big-gold pack-btn" data-action="openMilBuilder">Make a ' + m.packWord + '</button>'
+    : m.id === "feud"
+    ? '<button class="big-gold pack-btn" data-action="openFeudBuilder">Make a ' + m.packWord + '</button>'
     : '<button class="big-gold pack-btn" data-action="openBuilder">Make or import a ' + m.packWord + '</button>'
     ;
   var playerRows = state.players.map(function (p, i) {
@@ -5763,6 +6128,7 @@ function viewPlayers() {
       playStyleHtml() +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">' +
         (m.id === "millionaire" ? 'Pick a Question Pack'
+          : m.id === "feud" ? 'Set Up the Teams'
           : state.playStyle === "buzzers" ? 'Open the Room &amp; Pick a Board' : 'Pick a Board') + '</button>' +
       '<button class="big-gold" style="margin-top:10px;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN SOMEONE ELSE&rsquo;S ROOM</button>' +
       // Everything below is a one-off: it stays folded away so the first screen
@@ -6467,6 +6833,443 @@ function viewMilBuilder() {
       '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitMilPack">Submit to the Fan Packs</button>' +
       (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
       '<button class="my-import-link" data-action="exportMilPack">Download this pack as a JSON backup</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Family Feud: the screen ----
+function feudBoardHtml(f, r, showAll) {
+  var cells = r.answers.map(function (a, i) {
+    var up = f.revealed.indexOf(i) !== -1 || showAll;
+    return '<div class="feud-slot' + (up ? " feud-slot-up" : "") + '" data-key="fs-' + i + '">' +
+      '<span class="feud-rank">' + (i + 1) + '</span>' +
+      (up
+        ? '<span class="feud-ans">' + esc(a.text) + '</span><span class="feud-pts">' + a.points + '</span>'
+        : '<span class="feud-ans feud-ans-hidden">&nbsp;</span>') +
+    '</div>';
+  }).join("");
+  return '<div class="feud-board">' + cells + '</div>';
+}
+function feudStrikesHtml(f) {
+  var marks = "";
+  for (var i = 0; i < FEUD_STRIKES; i++) {
+    marks += '<span class="feud-x' + (i < f.strikes ? " feud-x-on" : "") + '">&#10007;</span>';
+  }
+  return '<div class="feud-strikes">' + marks + '</div>';
+}
+function viewFeud() {
+  var f = state.feud, pack = feudPack();
+  if (!f || !pack) { state.phase = "players"; return viewPlayers(); }
+  if (f.stage === "done") return viewFeudResults(f, pack);
+  var r = feudRound();
+  if (!r) { state.phase = "players"; return viewPlayers(); }
+
+  var menu = renderMenu([
+    { label: "Quit to the menu", action: "confirmQuitFeud" },
+    { label: "Help", action: "openHelp" },
+  ]);
+
+  var scores = '<div class="feud-teams">' + f.teams.map(function (t, i) {
+    return '<div class="feud-team' + (f.control === i ? " feud-team-on" : "") + '">' +
+      '<span class="feud-team-name">' + esc(feudTeamLabel(t)) + '</span>' +
+      '<span class="feud-team-score">' + t.score + '</span>' +
+    '</div>';
+  }).join("") + '</div>';
+
+  var body;
+  if (f.stage === "roundEnd") {
+    var aw = f.lastAward || { team: 0, amount: 0, how: "cleared" };
+    var line = aw.how === "stole" ? "stole it"
+             : aw.how === "survived" ? "kept it" : "cleared the board";
+    body =
+      '<div class="feud-award">' +
+        '<p class="feud-award-team">' + esc(feudTeamLabel(f.teams[aw.team])) + ' ' + line + '</p>' +
+        '<p class="feud-award-amt">+' + aw.amount + '</p>' +
+      '</div>' +
+      feudBoardHtml(f, r, true) +
+      '<button class="big-gold" data-action="feudNextRound">' +
+        (f.round >= pack.rounds.length - 1 ? "See the final scores" : "Next survey") + '</button>';
+  } else {
+    var answerButtons = r.answers.map(function (a, i) {
+      var up = f.revealed.indexOf(i) !== -1;
+      return '<button class="feud-hit' + (up ? " feud-hit-done" : "") + '" data-action="feudReveal" data-i="' + i + '"' +
+        (up ? ' disabled' : '') + '>' + esc(a.text) + ' <em>' + a.points + '</em></button>';
+    }).join("");
+
+    var prompt;
+    if (f.stage === "faceoff") {
+      prompt = '<p class="feud-prompt">Face-off. Read the survey out, then tap whichever answer was said &mdash; ' +
+        'or go straight to whoever won it.</p>' +
+        '<div class="feud-control-pick">' + f.teams.map(function (t, i) {
+          return '<button class="feud-take" data-action="feudTakeControl" data-i="' + i + '">' +
+            esc(feudTeamLabel(t)) + ' play' + (t.members.length === 1 ? 's' : '') + ' it</button>';
+        }).join("") + '</div>';
+    } else if (f.stage === "steal") {
+      prompt = '<p class="feud-prompt feud-prompt-steal">' +
+        esc(feudTeamLabel(f.teams[f.stealing])) + ' get one guess to steal ' + f.bank + '.</p>';
+    } else {
+      prompt = '<p class="feud-prompt">' + esc(feudTeamLabel(f.teams[f.control])) + ' are on the board.</p>';
+    }
+
+    body =
+      '<div class="feud-q">' + esc(r.q) + '</div>' +
+      (feudMultiplier() > 1 ? '<p class="feud-mult">Double points this round</p>' : '') +
+      feudBoardHtml(f, r, false) +
+      '<div class="feud-bank">Bank <strong>' + f.bank + '</strong></div>' +
+      (f.stage === "play" || f.stage === "steal" ? feudStrikesHtml(f) : '') +
+      prompt +
+      '<p class="feud-hint">Tap what they said:</p>' +
+      '<div class="feud-hits">' + answerButtons + '</div>' +
+      (f.stage === "play" || f.stage === "steal"
+        ? '<button class="feud-strike-btn" data-action="feudStrike">' +
+            (f.stage === "steal" ? "They missed &mdash; no steal" : "Strike") + '</button>'
+        : '') +
+      (f.stage === "play" && !feudAllFound()
+        ? '<button class="my-import-link" data-action="feudRevealRest">Give up &mdash; turn the rest over</button>'
+        : '');
+  }
+
+  return menu + '<div class="feud-bg"><div class="feud-wrap">' +
+    '<div class="feud-top">' +
+      '<span class="feud-round">Survey ' + (f.round + 1) + ' of ' + pack.rounds.length + '</span>' +
+      '<span class="feud-pack">' + esc(pack.name) + '</span>' +
+    '</div>' +
+    scores +
+    body +
+  '</div></div>';
+}
+function viewFeudResults(f, pack) {
+  var ranked = f.teams.slice().sort(function (a, b) { return b.score - a.score; });
+  var top = ranked.length ? ranked[0].score : 0;
+  var rows = ranked.map(function (t, i) {
+    return '<div class="win-row' + (t.score === top && top > 0 ? " win-row-champ" : "") + '">' +
+      '<span class="win-rank">' + (i === 0 ? "\uD83C\uDFC6" : (i + 1) + ".") + '</span>' +
+      '<span class="win-name">' + esc(feudTeamLabel(t)) + '</span>' +
+      '<span class="win-score">' + t.score + '</span>' +
+    '</div>';
+  }).join("");
+  var tie = ranked.length > 1 && ranked[0].score === ranked[1].score;
+  return '<div class="win-bg"><div class="win-wrap">' +
+    '<h1 class="win-title">' + esc(pack.name) + '</h1>' +
+    '<p class="win-champ-line">' + (top === 0 ? "Nobody scored." :
+      tie ? "It is a tie!" : esc(feudTeamLabel(ranked[0])) + " win!") + '</p>' +
+    '<div class="win-board">' + rows + '</div>' +
+    '<div class="win-actions">' +
+      '<button class="big-gold" style="margin-top:0" data-action="feudPlayAgain">Play again</button>' +
+      '<button class="big-disabled" style="margin-top:0;background:#2a2f55;color:#fff" data-action="quitFeud">Back to the menu</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Family Feud: teams, packs, creator ----
+function openFeudTeams() {
+  if (!state.feudTeams || state.feudTeams.length !== 2) state.feudTeams = defaultFeudTeams();
+  // players added or removed since last time must not strand an index
+  var seen = {};
+  state.feudTeams.forEach(function (t) {
+    t.members = t.members.filter(function (i) {
+      if (!state.players[i] || seen[i]) return false;
+      seen[i] = true; return true;
+    });
+  });
+  state.players.forEach(function (p, i) { if (!seen[i]) state.feudTeams[0].members.push(i); });
+  state.phase = "feudTeams";
+  state.menuOpen = false;
+  render();
+}
+function feudMovePlayer(i) {
+  if (!state.feudTeams) return;
+  var from = state.feudTeams[0].members.indexOf(i) !== -1 ? 0 : 1;
+  var to = from === 0 ? 1 : 0;
+  state.feudTeams[from].members = state.feudTeams[from].members.filter(function (x) { return x !== i; });
+  if (state.feudTeams[to].members.indexOf(i) === -1) state.feudTeams[to].members.push(i);
+  hap("tap");
+  render();
+}
+function viewFeudTeams() {
+  var t = state.feudTeams || defaultFeudTeams();
+  var cols = t.map(function (team, ti) {
+    var chips = team.members.map(function (i) {
+      var p = state.players[i];
+      if (!p) return "";
+      return '<button class="feud-chip" data-action="feudMovePlayer" data-i="' + i + '">' +
+        avatarHtml(p, 12) + '<span class="feud-chip-name">' + esc(p.name) + '</span>' +
+        '<span class="feud-chip-move">' + (ti === 0 ? "&rarr;" : "&larr;") + '</span>' +
+      '</button>';
+    }).join("");
+    if (!team.members.length) chips = '<p class="muted" style="margin:8px 0">Nobody yet</p>';
+    return '<div class="feud-team-col">' +
+      '<p class="feud-team-head">' + esc(team.name) + '</p>' + chips +
+    '</div>';
+  }).join("");
+  var ok = t[0].members.length && t[1].members.length;
+  return '<div class="wrap"><div class="inner" style="max-width:560px;margin:0 auto">' +
+    '<h1 class="title" style="font-size:30px;color:#2cb67d">TEAMS</h1>' +
+    '<p class="sub">Tap a name to move it to the other team.</p>' +
+    '<div class="card">' +
+      '<div class="feud-team-cols">' + cols + '</div>' +
+      (ok ? '' : '<p class="err">Both teams need at least one player.</p>') +
+      '<button class="' + (ok ? "big-gold" : "big-disabled") + '" data-action="openFeudPacks"' +
+        (ok ? '' : ' disabled') + '>Pick a survey pack</button>' +
+      '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="editPlayers">Back</button>' +
+    '</div>' +
+  '</div></div>';
+}
+function openFeudPacks() { state.phase = "feudPacks"; state.menuOpen = false; render(); }
+function viewFeudPacks() {
+  var packs = feudPacks();
+  var cards = packs.map(function (p) {
+    return '<div class="my-board-wrap">' +
+      '<button class="board-card" data-action="startFeud" data-id="' + esc(p.id) + '" style="--accent:' + esc(p.accent) + '">' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(p.accent, 0.18) + '">' +
+          esc((p.name || "?").charAt(0).toUpperCase()) + '</div>' +
+        '<div class="board-card-text">' +
+          '<div class="board-card-name">' + esc(p.name) + '</div>' +
+          '<div class="board-card-tag">' + esc(p.tagline || (p.rounds.length + " surveys")) + '</div>' +
+        '</div>' +
+      '</button>' +
+      '<div class="my-board-controls">' +
+        '<button data-action="openFeudBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
+        '<button data-action="deleteFeudPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>' +
+      '</div></div>';
+  }).join("");
+  if (!packs.length) {
+    cards = '<p class="muted" style="grid-column:1/-1;text-align:center">' +
+      'No survey packs yet. Make one and it shows up here.</p>';
+  }
+  return '<div class="boards-bg"><div class="boards-wrap" style="max-width:640px">' +
+    '<div class="boards-header">' +
+      '<h1 class="boards-title idle-float" style="color:#2cb67d">FAMILY FEUD</h1>' +
+      '<p class="boards-subtitle">Pick a survey pack</p>' +
+    '</div>' +
+    '<div class="boards-grid">' + cards + '</div>' +
+    '<div style="max-width:420px;margin:20px auto 0">' +
+      '<button class="big-gold" data-action="openFeudBuilder">Make a survey pack</button>' +
+      '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="openFeudTeams">Back to teams</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Family Feud: the creator ----
+function openFeudBuilder(existingId) {
+  state.menuOpen = false;
+  var draft = null;
+  if (existingId) {
+    var found = feudPacks().filter(function (p) { return p.id === existingId; })[0];
+    if (found) draft = JSON.parse(JSON.stringify(found));
+  }
+  state.feudBuilder = { draft: draft || blankFeudPack(), index: 0, error: "", submitMsg: "" };
+  state.phase = "feudBuilder";
+  render();
+}
+function feudBuilderSelect(i) {
+  if (!state.feudBuilder) return;
+  var d = state.feudBuilder.draft;
+  state.feudBuilder.index = Math.max(0, Math.min(d.rounds.length - 1, i));
+  render();
+}
+function feudAddRound() {
+  var bd = state.feudBuilder;
+  if (!bd || bd.draft.rounds.length >= 8) return;
+  bd.draft.rounds.push(blankFeudRound());
+  bd.index = bd.draft.rounds.length - 1;
+  hap("tap");
+  render();
+}
+function feudRemoveRound(i) {
+  var bd = state.feudBuilder;
+  if (!bd || bd.draft.rounds.length <= 1) return;
+  bd.draft.rounds.splice(i, 1);
+  if (bd.index >= bd.draft.rounds.length) bd.index = bd.draft.rounds.length - 1;
+  hap("tap");
+  render();
+}
+function feudAddAnswer() {
+  var bd = state.feudBuilder;
+  if (!bd) return;
+  var r = bd.draft.rounds[bd.index];
+  if (r.answers.length >= FEUD_MAX_ANSWERS) return;
+  r.answers.push({ text: "", points: 0 });
+  render();
+}
+function feudRemoveAnswer(i) {
+  var bd = state.feudBuilder;
+  if (!bd) return;
+  var r = bd.draft.rounds[bd.index];
+  if (r.answers.length <= FEUD_MIN_ANSWERS) return;
+  r.answers.splice(i, 1);
+  render();
+}
+// A survey reads highest first. Sorting on demand beats making the author
+// retype rows into the right order.
+function feudSortAnswers() {
+  var bd = state.feudBuilder;
+  if (!bd) return;
+  bd.draft.rounds[bd.index].answers.sort(function (a, b) { return (+b.points || 0) - (+a.points || 0); });
+  hap("tap");
+  render();
+}
+function feudBuilderSetField(path, value) {
+  if (!state.feudBuilder) return;
+  var d = state.feudBuilder.draft;
+  if (path === "name") d.name = value;
+  else if (path === "tagline") d.tagline = value;
+  else if (path === "accent") d.accent = value;
+  else {
+    var m = path.split(":");
+    var r = d.rounds[state.feudBuilder.index];
+    if (m[0] === "feudQ") r.q = value;
+    else if (m[0] === "feudMul") {
+      var mul = parseInt(value, 10);
+      r.multiplier = isFinite(mul) && mul > 0 ? Math.min(mul, 5) : 1;
+    } else if (m[0] === "feudAns") r.answers[+m[1]].text = value;
+    else if (m[0] === "feudPts") {
+      var n = parseInt(value, 10);
+      r.answers[+m[1]].points = isFinite(n) && n > 0 ? Math.min(n, 999) : 0;
+    }
+  }
+}
+function cleanFeudPack(p) {
+  var out = JSON.parse(JSON.stringify(p));
+  out.rounds.forEach(function (r) {
+    r.answers = r.answers.map(function (a) {
+      return { text: String(a.text || "").trim(), points: +a.points || 0 };
+    });
+    if (!r.multiplier || r.multiplier < 1) r.multiplier = 1;
+  });
+  return out;
+}
+function saveFeudPack() {
+  if (!state.feudBuilder) return;
+  var d = cleanFeudPack(state.feudBuilder.draft);
+  var err = feudPackError(d);
+  if (err) { state.feudBuilder.error = "Not finished: " + err; render(); return; }
+  var list = jfRead(JF_FEUDPACKS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  var idx = list.map(function (p) { return p.id; }).indexOf(d.id);
+  if (idx !== -1) list[idx] = d; else list.push(d);
+  jfWrite(JF_FEUDPACKS_KEY, list);
+  state.feudBuilder = null;
+  state.phase = "feudPacks";
+  render();
+}
+function deleteFeudPack(id) {
+  var list = jfRead(JF_FEUDPACKS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  jfWrite(JF_FEUDPACKS_KEY, list.filter(function (p) { return p.id !== id; }));
+  render();
+}
+function exportFeudPack() {
+  if (!state.feudBuilder) return;
+  var d = cleanFeudPack(state.feudBuilder.draft);
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }));
+  a.download = ((d.name || "pack").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pack") + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+}
+function submitFeudPack() {
+  if (!state.feudBuilder) return;
+  var d = cleanFeudPack(state.feudBuilder.draft);
+  var err = feudPackError(d);
+  if (err) { state.feudBuilder.error = "Finish the pack first: " + err; render(); return; }
+  var body = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" +
+    "**Surveys:** " + d.rounds.length + "\n\n" +
+    "The pack file has been downloaded to this device. Please drag it into this issue before you submit it.\n";
+  exportFeudPack();
+  state.feudBuilder.error = "";
+  state.feudBuilder.submitMsg = "Your pack file was downloaded. Attach it to the GitHub issue that just opened.";
+  openExternal(repoIssueUrl("Feud pack: " + d.name, body, "feud-pack"));
+  render();
+}
+function feudBuilderProgress(d) {
+  var done = d.rounds.filter(function (r) {
+    return r.q && r.answers.length >= FEUD_MIN_ANSWERS &&
+      r.answers.every(function (a) { return String(a.text || "").trim() && +a.points > 0; });
+  }).length;
+  return { done: done, total: d.rounds.length, ready: done === d.rounds.length && !!d.name };
+}
+function viewFeudBuilder() {
+  var bd = state.feudBuilder;
+  if (!bd) { state.phase = "feudPacks"; return viewFeudPacks(); }
+  var d = bd.draft, i = bd.index, r = d.rounds[i];
+  var p = feudBuilderProgress(d);
+  var pct = Math.round((p.done / p.total) * 100);
+  var total = r.answers.reduce(function (a, x) { return a + (+x.points || 0); }, 0);
+
+  var tabs = d.rounds.map(function (row, n) {
+    var full = row.q && row.answers.every(function (a) { return String(a.text || "").trim() && +a.points > 0; });
+    return '<button class="builder-cat-tab' + (n === i ? " builder-cat-tab-active" : "") + '"' +
+      ' data-action="feudBuilderSelect" data-i="' + n + '">' +
+      '<span class="builder-tab-name">Survey ' + (n + 1) + '</span>' +
+      '<span class="builder-tab-count">' + (full ? "&#10003;" : row.answers.length + " ans") + '</span>' +
+    '</button>';
+  }).join("") +
+  (d.rounds.length < 8
+    ? '<button class="builder-cat-tab builder-cat-add" data-action="feudAddRound" aria-label="Add a survey">+</button>'
+    : '');
+
+  var answerRows = r.answers.map(function (a, n) {
+    return '<div class="feud-b-row">' +
+      '<span class="feud-b-rank">' + (n + 1) + '</span>' +
+      '<input class="input builder-input feud-b-text" style="margin-top:0" data-feudbind="feudAns:' + n + '"' +
+        ' placeholder="Answer" value="' + esc(a.text) + '" />' +
+      '<input class="input builder-input feud-b-pts" style="margin-top:0" data-feudbind="feudPts:' + n + '"' +
+        ' inputmode="numeric" placeholder="0" value="' + esc(a.points || "") + '" />' +
+      '<button class="feud-b-del" data-action="feudRemoveAnswer" data-i="' + n + '"' +
+        (r.answers.length <= FEUD_MIN_ANSWERS ? ' disabled' : '') + ' aria-label="Remove this answer">&times;</button>' +
+    '</div>';
+  }).join("");
+
+  return '<div class="wrap"><div class="inner builder-inner">' +
+    '<h1 class="title" style="font-size:28px;color:#2cb67d">SURVEY PACK</h1>' +
+    '<p class="sub">Each survey needs ' + FEUD_MIN_ANSWERS + ' to ' + FEUD_MAX_ANSWERS +
+      ' answers with the number of people who said each one.</p>' +
+    '<div class="builder-progress">' +
+      '<div class="builder-progress-top">' +
+        '<span class="builder-progress-num">' + p.done + ' of ' + p.total + ' surveys finished</span>' +
+        '<span class="builder-progress-pct">' + pct + '%</span>' +
+      '</div>' +
+      '<div class="builder-bar"><div class="builder-bar-fill" style="width:' + pct + '%"></div></div>' +
+      (p.ready ? '<p class="builder-progress-note builder-ready">Ready to save.</p>'
+               : (!d.name ? '<p class="builder-progress-note">Still to do: the pack has no name.</p>' : '')) +
+    '</div>' +
+    '<div class="card">' +
+      builderSectionHtml(1, "The pack",
+        '<label class="lbl">Pack name</label>' +
+        '<input class="input builder-input" data-feudbind="name" placeholder="e.g. Household Survey" value="' + esc(d.name) + '" />' +
+        '<label class="lbl" style="display:block;margin-top:10px">Tagline</label>' +
+        '<input class="input builder-input" data-feudbind="tagline" placeholder="A short description" value="' + esc(d.tagline) + '" />') +
+      builderSectionHtml(2, "Surveys",
+        '<div class="builder-cat-tabs">' + tabs + '</div>' +
+        '<div class="builder-cat-bar">' +
+          '<span class="builder-cat-pos">Survey ' + (i + 1) + ' of ' + d.rounds.length + '</span>' +
+          '<button class="builder-cat-del" data-action="feudRemoveRound" data-i="' + i + '"' +
+            (d.rounds.length <= 1 ? ' disabled' : '') + '>Remove</button>' +
+        '</div>') +
+      builderSectionHtml(3, "Survey " + (i + 1),
+        '<textarea class="input builder-input mil-b-q" data-feudbind="feudQ" rows="2" placeholder="Name something...">' + esc(r.q) + '</textarea>' +
+        '<div class="feud-b-mul">' +
+          '<label class="builder-media-lbl">Points multiplier</label>' +
+          '<input class="input builder-input feud-b-pts" style="margin-top:0" data-feudbind="feudMul"' +
+            ' inputmode="numeric" value="' + esc(r.multiplier || 1) + '" />' +
+          '<span class="builder-hint-note" style="margin:0">Round 2 is usually 2, round 3 usually 3.</span>' +
+        '</div>' +
+        '<div class="feud-b-rows">' + answerRows + '</div>' +
+        '<div class="feud-b-tools">' +
+          '<button class="builder-cat-move" data-action="feudAddAnswer"' +
+            (r.answers.length >= FEUD_MAX_ANSWERS ? ' disabled' : '') + '>Add an answer</button>' +
+          '<button class="builder-cat-move" data-action="feudSortAnswers">Sort by points</button>' +
+          '<span class="builder-cat-pos" style="text-align:right">' + total + ' people surveyed</span>' +
+        '</div>') +
+      (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
+      '<div style="display:flex;gap:10px;margin-top:18px">' +
+        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeFeudBuilder">Cancel</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveFeudPack">Save Pack</button>' +
+      '</div>' +
+      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitFeudPack">Submit to the Fan Packs</button>' +
+      (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
+      '<button class="my-import-link" data-action="exportFeudPack">Download this pack as a JSON backup</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -8010,6 +8813,10 @@ function render() {
   else if (state.phase === "millionaire") html = viewMillionaire();
   else if (state.phase === "milBuilder") html = viewMilBuilder();
   else if (state.phase === "milPacks") html = viewMilPacks();
+  else if (state.phase === "feud") html = viewFeud();
+  else if (state.phase === "feudTeams") html = viewFeudTeams();
+  else if (state.phase === "feudPacks") html = viewFeudPacks();
+  else if (state.phase === "feudBuilder") html = viewFeudBuilder();
   else if (state.phase === "buzzer") html = viewBuzzer();
   else if (state.phase === "hostRoom") html = viewHostRoom();
   else if (state.phase === "interlude") html = viewInterlude();
@@ -8105,6 +8912,7 @@ document.getElementById("root").addEventListener("input", function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
   if (t && t.getAttribute && t.getAttribute("data-milbind")) milBuilderSetField(t.getAttribute("data-milbind"), t.value);
+  if (t && t.getAttribute && t.getAttribute("data-feudbind")) feudBuilderSetField(t.getAttribute("data-feudbind"), t.value);
   if (t && t.id === "volumeSlider") {
     state.volume = (+t.value) / 100;
     var pct = document.getElementById("volumeSliderPct");
@@ -8246,6 +9054,30 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "deleteMilPack") askConfirm("Delete this question pack?", "deleteMilPack", t.getAttribute("data-id"));
   else if (action === "exportMilPack") exportMilPack();
   else if (action === "submitMilPack") submitMilPack();
+  else if (action === "feudReveal") feudReveal(+t.getAttribute("data-i"));
+  else if (action === "feudStrike") feudStrike();
+  else if (action === "feudTakeControl") feudTakeControl(+t.getAttribute("data-i"));
+  else if (action === "feudNextRound") feudNextRound();
+  else if (action === "feudRevealRest") feudRevealRest();
+  else if (action === "feudPlayAgain") startFeud(state.feudPackId);
+  else if (action === "confirmQuitFeud") askConfirm("Quit this game? The scores will not be recorded.", "quitFeud");
+  else if (action === "quitFeud") quitFeud();
+  else if (action === "openFeudTeams") openFeudTeams();
+  else if (action === "feudMovePlayer") feudMovePlayer(+t.getAttribute("data-i"));
+  else if (action === "openFeudPacks") openFeudPacks();
+  else if (action === "startFeud") startFeud(t.getAttribute("data-id"));
+  else if (action === "openFeudBuilder") openFeudBuilder(t.getAttribute("data-id"));
+  else if (action === "closeFeudBuilder") { state.feudBuilder = null; state.phase = "feudPacks"; render(); }
+  else if (action === "feudBuilderSelect") feudBuilderSelect(+t.getAttribute("data-i"));
+  else if (action === "feudAddRound") feudAddRound();
+  else if (action === "feudRemoveRound") feudRemoveRound(+t.getAttribute("data-i"));
+  else if (action === "feudAddAnswer") feudAddAnswer();
+  else if (action === "feudRemoveAnswer") feudRemoveAnswer(+t.getAttribute("data-i"));
+  else if (action === "feudSortAnswers") feudSortAnswers();
+  else if (action === "saveFeudPack") saveFeudPack();
+  else if (action === "deleteFeudPack") askConfirm("Delete this survey pack?", "deleteFeudPack", t.getAttribute("data-id"));
+  else if (action === "exportFeudPack") exportFeudPack();
+  else if (action === "submitFeudPack") submitFeudPack();
   else if (action === "openStats") openStats();
   else if (action === "confirmClearHistory") askConfirm("Clear every recorded game on this device? The leaderboard and match list go with it. This cannot be undone.", "clearHistory");
   else if (action === "closeStats") closeStats();
