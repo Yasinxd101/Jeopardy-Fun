@@ -538,7 +538,10 @@
     font-size: 13px; cursor: pointer; font-family: inherit;
     display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
   }
-  .builder-tab-name { max-width: 118px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .builder-tab-name {
+    max-width: 118px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    word-break: keep-all;
+  }
   .builder-tab-count { font-size: 10px; font-weight: 900; opacity: 0.75; }
   .builder-cat-tab-active { background: #ffd166; color: #0b0f24; border-color: #ffd166; }
   .builder-cat-add {
@@ -590,6 +593,10 @@
   }
   .builder-card { border: 1px solid #23284b; }
   .builder-card .builder-sec-num { background: var(--ba); color: #0b0f24; }
+  .builder-card .builder-cat-tab-active { background: var(--ba); border-color: var(--ba); color: #0b0f24; }
+  /* the three end buttons were wrapping onto two lines each on a phone */
+  .builder-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  .builder-actions button { flex: 1 1 92px; margin-top: 0; padding: 13px 8px; font-size: 14px; white-space: nowrap; }
   .builder-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   @media (max-width: 520px) { .builder-two { grid-template-columns: 1fr; } }
   .builder-swatch-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
@@ -1298,6 +1305,20 @@
     padding: 11px 13px; font-size: 12.5px; color: #c2c8ea; line-height: 1.5; text-align: left;
   }
 
+  /* test-run banner */
+  .test-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 28;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: #2cb67d; color: #04210f; padding: 8px 62px 8px 14px;
+  }
+  .test-banner-tag { font-weight: 900; font-size: 11px; letter-spacing: 1.5px; }
+  .test-banner-text { flex: 1; min-width: 0; font-size: 12px; font-weight: 700; }
+  .test-banner-btn {
+    background: #04210f; color: #7ee2b0; border: none; border-radius: 8px;
+    font-family: inherit; font-weight: 800; font-size: 12px;
+    padding: 8px 12px; min-height: 32px; cursor: pointer;
+  }
+
   /* team setup on the start screen */
   .team-setup { margin-top: 14px; }
   .team-toggle {
@@ -1323,7 +1344,7 @@
 
   /* ---- Millionaire ---- */
   .mil-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1200px 700px at 50% -10%, #10224a 0%, #070b1c 60%); }
-  .mil-wrap { max-width: 1000px; margin: 0 auto; padding: 18px 16px 32px; }
+  .mil-wrap { max-width: 1000px; margin: 0 auto; padding: 64px 16px 32px; }
   .mil-top {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     flex-wrap: wrap; margin-bottom: 14px;
@@ -1366,7 +1387,7 @@
   .mil-aud-pct { position: absolute; right: 8px; bottom: 7px; font-size: 11px; font-weight: 900; color: #3da9fc; }
   .mil-lifelines { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .mil-ll {
-    flex: 1; min-width: 92px; background: #11152f; border: 1px solid #3a4a80; border-radius: 999px;
+    flex: 1 1 100px; min-width: 0; background: #11152f; border: 1px solid #3a4a80; border-radius: 999px;
     color: #9ec9f5; font-family: inherit; font-weight: 800; font-size: 13px;
     padding: 11px 8px; min-height: 42px; cursor: pointer;
   }
@@ -1422,8 +1443,11 @@
 
   /* ---- Family Feud ---- */
   .feud-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1100px 650px at 50% -10%, #0d2e22 0%, #070b1c 60%); }
-  .feud-wrap { max-width: 720px; margin: 0 auto; padding: 18px 16px 32px; }
-  .feud-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .feud-wrap { max-width: 720px; margin: 0 auto; padding: 64px 16px 32px; }
+  .feud-top {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    margin-bottom: 12px;
+  }
   .feud-round { font-weight: 900; font-size: 12px; letter-spacing: 1.5px; color: #7ee2b0; }
   .feud-pack { font-size: 12px; color: #8b92c0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .feud-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
@@ -2420,6 +2444,8 @@ var state = {
   milPackId: null,
   milVotes: null,         // {connId: optionIndex} while the room is voting
   milBuilder: null,       // {draft, index, error, submitMsg}
+  testingBoard: null,     // the builder draft parked while its board is test-played
+  exampleOpen: false,     // showing the worked example from inside the builder
   feud: null,             // Family Feud game in progress
   feudPackId: null,
   feudTeams: null,        // the two teams, kept between games
@@ -3765,6 +3791,75 @@ function youtubeId(raw) {
   if (/^[A-Za-z0-9_-]{6,}$/.test(v)) return v;
   return v;   // leave anything unrecognised alone so the author can see it
 }
+// Realistic placeholders, so an empty board shows the SHAPE of a good question
+// rather than the word "Question". These are placeholder attributes only --
+// nothing here is ever saved, and a board of these is still empty.
+var BUILDER_HINTS = [
+  { cat: "Opening Lines",  q: "This 1977 film opens with a wall of yellow text crawling into space.",
+    a: "What is Star Wars?" },
+  { cat: "One-Hit Wonders", q: "A-ha only ever reached number one with this 1985 single and its pencil-sketch video.",
+    a: "What is Take On Me?" },
+  { cat: "Small Countries", q: "At roughly half a square kilometre, this is the smallest country in the world.",
+    a: "What is Vatican City?" },
+  { cat: "Kitchen Science", q: "Adding salt to water does this to its boiling point.",
+    a: "What is raise it?" },
+  { cat: "Famous Cats",     q: "This lasagne-loving cartoon cat first appeared in newspapers in 1978.",
+    a: "Who is Garfield?" },
+];
+function builderHint(row) { return BUILDER_HINTS[row % BUILDER_HINTS.length]; }
+
+// A complete little board, so "what does a finished one look like?" has an
+// answer that is not "go and read the JSON".
+function exampleBoard() {
+  var cats = [
+    { category: "Opening Lines", qs: [
+      ["This 1977 film opens with a wall of yellow text crawling into space.", "What is Star Wars?"],
+      ["\u201CCall me Ishmael\u201D begins this 1851 novel about a white whale.", "What is Moby-Dick?"],
+      ["\u201CIt was the best of times, it was the worst of times\u201D opens this Dickens novel.", "What is A Tale of Two Cities?"],
+      ["This 1999 film opens on a man being told the first rule of a certain club.", "What is Fight Club?"],
+      ["\u201CAll happy families are alike\u201D begins this Tolstoy novel.", "What is Anna Karenina?"]] },
+    { category: "One-Hit Wonders", qs: [
+      ["A-ha only reached number one once, with this 1985 single.", "What is Take On Me?"],
+      ["Los del R\u00EDo had the world doing this dance in 1996.", "What is the Macarena?"],
+      ["Soft Cell's biggest hit was this cover of a Gloria Jones song.", "What is Tainted Love?"],
+      ["Chumbawamba got knocked down, but got up again, in this 1997 track.", "What is Tubthumping?"],
+      ["Carl Douglas kung-fu fought his way to number one with this 1974 novelty hit.", "What is Kung Fu Fighting?"]] },
+    { category: "Small Countries", qs: [
+      ["At about half a square kilometre, the smallest country in the world.", "What is Vatican City?"],
+      ["This principality on the French Riviera is famous for its Grand Prix.", "What is Monaco?"],
+      ["Landlocked between Switzerland and Austria, and about 160 square kilometres.", "What is Liechtenstein?"],
+      ["The smallest country in mainland Africa, almost entirely surrounded by Senegal.", "What is The Gambia?"],
+      ["This Pacific island nation of about 21 square kilometres was once rich on phosphate.", "What is Nauru?"]] },
+    { category: "Kitchen Science", qs: [
+      ["Adding salt to water does this to its boiling point.", "What is raise it?"],
+      ["This reaction browns a steak and gives bread its crust.", "What is the Maillard reaction?"],
+      ["Whisking egg whites works because heat and air do this to the proteins.", "What is denature them?"],
+      ["Bicarbonate of soda needs one of these to make a cake rise.", "What is an acid?"],
+      ["Resting meat after cooking lets this redistribute.", "What are the juices?"]] },
+    { category: "Famous Cats", qs: [
+      ["This lasagne-loving cartoon cat first appeared in newspapers in 1978.", "Who is Garfield?"],
+      ["Alice met this grinning, vanishing cat in Wonderland.", "Who is the Cheshire Cat?"],
+      ["Sylvester spent decades failing to catch this canary.", "Who is Tweety?"],
+      ["This robotic blue cat from the future is a Japanese icon.", "Who is Doraemon?"],
+      ["Schr\u00F6dinger's cat is both of these at once until observed.", "What are alive and dead?"]] },
+  ];
+  return {
+    id: "example-board",
+    name: "Example Board",
+    tagline: "A finished board, to show what one looks like",
+    accent: "#7ee2b0",
+    icon: "?",
+    genre: "My Boards",
+    textBoard: cats.map(function (c) {
+      return { category: c.category, questions: c.qs.map(function (pair, r) {
+        return { value: (r + 1) * 100, q: pair[0], a: pair[1] };
+      }) };
+    }),
+    final: { category: "Last Words",
+      q: "This two-word Latin phrase, meaning \u201Cthus passes\u201D, opens a longer line about worldly glory.",
+      a: "What is sic transit?" },
+  };
+}
 function blankCategory() {
   var qs = [];
   for (var r = 0; r < ROWS_PER_CAT; r++) qs.push({ value: (r + 1) * 100, q: "", a: "", note: "", id: "", img: "", aimg: "" });
@@ -3890,6 +3985,73 @@ function builderSelectCat(i) {
   render();
 }
 // Jump from the mini board straight to one question, and put the cursor in it.
+// Play the draft where it stands, without saving it. Half-written tiles are
+// filled with a visible placeholder so the board is playable at any point, and
+// the whole thing is torn down again on the way out.
+function testBoard() {
+  if (!state.builder) return;
+  var draft = JSON.parse(JSON.stringify(cleanDraft(state.builder.draft)));
+  draft.id = "__testing__";
+  draft.name = draft.name || "Board in progress";
+  draft.genre = "My Boards";
+  draft.textBoard.forEach(function (col, ci) {
+    if (!col.category) col.category = "Category " + (ci + 1);
+    col.questions.forEach(function (q, r) {
+      if (!q.q && !q.id) q.q = "(question " + (r + 1) + " is not written yet)";
+      if (!q.a) q.a = "(no answer written yet)";
+    });
+  });
+  if (!draft.final) draft.final = {};
+  if (!draft.final.category) draft.final.category = "Final Jeopardy";
+  if (!draft.final.q) draft.final.q = "(the final question is not written yet)";
+  if (!draft.final.a) draft.final.a = "(no answer written yet)";
+
+  state.testingBoard = { draft: state.builder.draft, catIndex: state.builder.catIndex,
+                         openRow: state.builder.openRow };
+  BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; }).concat([draft]);
+  if (!state.players.length) {
+    state.players = [{ name: "You", score: 0, color: PLAYER_COLORS[0], shape: "circle",
+                       streak: 0, immune: false, skipNextTurn: false }];
+    state.testingBoard.tempPlayers = true;
+  }
+  state.builder = null;
+  selectBoard("__testing__");
+}
+function stopTestingBoard() {
+  var t = state.testingBoard;
+  state.testingBoard = null;
+  BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; });
+  state.boardId = null;
+  state.active = null;
+  state.wagering = false;
+  state.revealed = false;
+  state.used = {};
+  state.finalStage = null;
+  state.finalDone = false;
+  if (t && t.tempPlayers) state.players = [];
+  if (t) {
+    state.builder = { draft: t.draft, catIndex: t.catIndex, error: "", shareUrl: "", openRow: t.openRow };
+    state.phase = "builder";
+  } else {
+    state.phase = "players";
+  }
+  render();
+}
+function viewExampleBoard() {
+  var ex = exampleBoard();
+  BOARDS = BOARDS.filter(function (b) { return b.id !== ex.id; }).concat([ex]);
+  state.previewBoardId = ex.id;
+  state.exampleOpen = true;
+  state.phase = "boards";
+  render();
+}
+function closeExampleBoard() {
+  state.exampleOpen = false;
+  state.previewBoardId = null;
+  BOARDS = BOARDS.filter(function (b) { return b.id !== "example-board"; });
+  state.phase = "builder";
+  render();
+}
 function builderJump(c, r) {
   if (!state.builder) return;
   state.builder.catIndex = c;
@@ -5743,9 +5905,29 @@ function applyModeTheme() {
   r.style.setProperty("--mode-deep", t.deep);
   r.style.setProperty("--mode-glow", t.glow);
 }
+// Is a game of any mode actually running right now?
+function gameInProgress() {
+  if (state.mil && state.mil.stage !== "done") return true;
+  if (state.feud && state.feud.stage !== "done") return true;
+  return state.phase === "board" || state.phase === "question" ||
+         state.phase === "final" || state.phase === "interlude";
+}
 function setGameMode(id) {
   if (state.gameMode === id) return;
+  // Switching modes used to leave you sat on the old mode's screen -- a
+  // Jeopardy question with Millionaire selected, or the hot seat with Jeopardy
+  // selected. A game in progress has to be abandoned on purpose.
+  if (gameInProgress()) { askConfirm("Leave this game and switch to " + gameMode(id).short + "? The scores will not be recorded.", "switchGameMode", id); return; }
+  applyGameMode(id);
+}
+function applyGameMode(id) {
   state.gameMode = id;
+  // nothing from the old mode should outlive the switch
+  state.mil = null; state.milPackId = null; state.milVotes = null;
+  state.feud = null; state.feudPackId = null;
+  state.active = null; state.wagering = false; state.revealed = false;
+  state.wheel = null;
+  state.phase = "players";
   applyModeTheme();
   sndSelect();
   jfSaveSettings();
@@ -5855,8 +6037,8 @@ function renderHelp() {
           "Pick <strong>Millionaire</strong> at the top of the start screen for a different game.",
           "One player sits in the hot seat and climbs fifteen questions, four answers each.",
           "Two rungs are safe: reach them and that money is yours however it ends.",
-          "Three lifelines, once each: <strong>50:50</strong>, <strong>Ask the room</strong> and <strong>Phone a friend</strong>.",
-          "Ask the room is a real vote when people are on their phones, and a stand-in audience when they are not.",
+          "Three lifelines, once each: <strong>50:50</strong>, <strong>Audience</strong> and <strong>Phone</strong>.",
+          "Audience is a real vote when people are on their phones, and a stand-in audience when they are not.",
           "<strong>Walk away</strong> any time to keep what you have already won.",
           "With several players everyone takes a turn and the winnings are compared at the end.",
         ]) +
@@ -6047,6 +6229,7 @@ function confirmYes() {
   else if (action === "removePlayerInGame") removePlayerInGame(payload);
   else if (action === "deleteCustomBoard") deleteCustomBoard(payload);
   else if (action === "clearHistory") clearHistory();
+  else if (action === "switchGameMode") applyGameMode(payload);
   else if (action === "stopRoom") stopBuzzerRoom();
   else if (action === "quitMil") quitMillionaire();
   else if (action === "deleteMilPack") deleteMilPack(payload);
@@ -6060,6 +6243,16 @@ function confirmNewRound() { askConfirm("Start a new game? All scores and used q
 function confirmNewPlayers() { askConfirm("Clear all players? This removes everyone and all progress, and takes you back to the start.", "newPlayers"); }
 
 // ---- views ----
+// While a draft is being test-played, every screen carries a way back to the
+// editor -- otherwise the only exit is starting a whole new game.
+function testingBannerHtml() {
+  if (!state.testingBoard) return "";
+  return '<div class="test-banner">' +
+    '<span class="test-banner-tag">TEST RUN</span>' +
+    '<span class="test-banner-text">Nothing here is saved or scored.</span>' +
+    '<button class="test-banner-btn" data-action="stopTestingBoard">Back to editing</button>' +
+  '</div>';
+}
 function renderMenu(items) {
   var btn = '<button data-action="toggleMenu" aria-label="Menu" style="position:fixed;top:14px;right:14px;width:42px;height:42px;border-radius:10px;border:none;background:#161b3d;color:#fff;font-size:20px;cursor:pointer;z-index:30">&#9776;</button>';
   if (!state.menuOpen) return btn;
@@ -6265,7 +6458,10 @@ function viewBoardPreview() {
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + catChips.join("") + '</div>' +
       '<p class="lbl" style="display:block;margin-bottom:8px">Final Jeopardy Category</p>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px">' + '<div class="preview-chip" style="border-color:#ffd166;color:#ffd166">' + esc(b.final.category) + '</div>' + '</div>' +
-      (state.matchPending ?
+      (state.exampleOpen && b.id === "example-board" ?
+        '<p class="muted" style="margin-top:18px;text-align:left">This is what a finished board looks like: every category titled, all ' +
+        (b.textBoard.length * ROWS_PER_CAT) + ' questions written with an answer, and a Final Jeopardy at the end.</p>'
+      : state.matchPending ?
         '<div style="display:flex;gap:10px;margin-top:22px">' +
           '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
           '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectRound2" data-id="' + esc(b.id) + '">Set as Round 2 &amp; Start</button>' +
@@ -6282,6 +6478,9 @@ function viewBoardPreview() {
       // report them to.
       (b.genre === "Fan Boards"
         ? '<button class="danger-link" data-action="confirmReportBoard" data-id="' + esc(b.id) + '">Report this board</button>'
+        : '') +
+      (state.exampleOpen && b.id === "example-board"
+        ? '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="closeExampleBoard">Back to my board</button>'
         : '') +
     '</div>' +
   '</div></div>';
@@ -6736,8 +6935,8 @@ function viewBuilder() {
         '<span>' + q.value + ' pts</span>' +
         '<span class="builder-clue-tags">' + (has.length ? esc(has.join(" &middot; ")) : '') + '</span>' +
       '</div>' +
-      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="Question" value="' + esc(q.q) + '" />' +
-      '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="Answer" value="' + esc(q.a) + '" />' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="' + esc(builderHint(r).q) + '" value="' + esc(q.q) + '" />' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="' + esc(builderHint(r).a) + '" value="' + esc(q.a) + '" />' +
       '<button class="builder-more" data-action="builderToggleRow" data-i="' + r + '">' +
         (open ? '&#9650; Hide extras' : '&#9660; Picture, clip, hint&hellip;') +
       '</button>' +
@@ -6765,6 +6964,7 @@ function viewBuilder() {
       '</label>';
 
   var accent = /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || "")) ? d.accent : DEFAULT_ACCENT;
+  var prog = builderProgress(d);
   return '<div class="builder-bg" style="--ba:' + esc(accent) + '"><div class="builder-inner">' +
     // A live cover of the board being made, so what is on screen is the thing
     // you are building rather than a form about it.
@@ -6797,13 +6997,13 @@ function viewBuilder() {
           (nCats <= MIN_CATS ? ' disabled title="A board needs at least ' + MIN_CATS + ' categories"' : '') +
           '>Remove</button>' +
       '</div>' +
-      '<input class="input builder-input" style="margin-top:10px" data-bind="catName" placeholder="Category title" value="' + esc(col.category) + '" />' +
+      '<input class="input builder-input" style="margin-top:10px" data-bind="catName" placeholder="' + esc(builderHint(ci).cat) + '" value="' + esc(col.category) + '" />' +
       '<div class="builder-rows">' + clueFields + '</div>' +
 
       builderSectionHtml(4, "Final Jeopardy",
-        '<input class="input builder-input" data-bind="finalCategory" placeholder="Final category" value="' + esc(d.final.category) + '" />' +
-        '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="Final question" value="' + esc(d.final.q) + '" />' +
-        '<input class="input builder-input" style="margin-top:8px" data-bind="finalA" placeholder="Final answer" value="' + esc(d.final.a) + '" />',
+        '<input class="input builder-input" data-bind="finalCategory" placeholder="Last Words" value="' + esc(d.final.category) + '" />' +
+        '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="The hardest one you have &mdash; everyone bets on it." value="' + esc(d.final.q) + '" />' +
+        '<input class="input builder-input" style="margin-top:8px" data-bind="finalA" placeholder="What is the answer?" value="' + esc(d.final.a) + '" />',
         "One last question everyone bets on.") +
 
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
@@ -6816,10 +7016,14 @@ function viewBuilder() {
           '<p class="muted" style="text-align:left;margin-top:6px">Anyone with this link can play your board straight away.</p></div>'
       : '') +
 
-      '<div style="display:flex;gap:10px;margin-top:18px">' +
-        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeBuilder">Cancel</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="shareBuilder">Share Link</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveBuilder">Save Board</button>' +
+      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="testBoard">' +
+        'Try this board out' + (prog.ready ? '' : ' (as far as it goes)') + '</button>' +
+      '<p class="muted" style="margin-top:6px;font-size:12px">Plays it for real on this device. Nothing is scored, and you come straight back here.</p>' +
+      '<button class="my-import-link" data-action="viewExampleBoard">See a finished board as an example</button>' +
+      '<div class="builder-actions">' +
+        '<button class="confirm-btn-cancel" data-action="closeBuilder">Cancel</button>' +
+        '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="shareBuilder">Share</button>' +
+        '<button class="big-gold" data-action="saveBuilder">Save</button>' +
       '</div>' +
       '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitBoardForReview">Submit to the Fan Boards</button>' +
       '<p class="muted" style="margin-top:6px;font-size:12px">Opens a GitHub issue with your board attached. The site owner reviews every submission before it becomes one of the Fan Boards.</p>' +
@@ -6883,9 +7087,9 @@ function viewMillionaire() {
     '<button class="mil-ll' + (m.lifelines.fifty ? '' : ' mil-ll-used') + '" data-action="milFifty"' +
       (m.lifelines.fifty && m.stage === "question" && !m.locked ? '' : ' disabled') + '>50:50</button>' +
     '<button class="mil-ll' + (m.lifelines.audience ? '' : ' mil-ll-used') + '" data-action="milAudience"' +
-      (m.lifelines.audience && m.stage === "question" && !m.locked ? '' : ' disabled') + '>Ask the room</button>' +
+      (m.lifelines.audience && m.stage === "question" && !m.locked ? '' : ' disabled') + ' aria-label="Ask the room">Audience</button>' +
     '<button class="mil-ll' + (m.lifelines.phone ? '' : ' mil-ll-used') + '" data-action="milPhone"' +
-      (m.lifelines.phone && m.stage === "question" && !m.locked ? '' : ' disabled') + '>Phone a friend</button>' +
+      (m.lifelines.phone && m.stage === "question" && !m.locked ? '' : ' disabled') + ' aria-label="Phone a friend">Phone</button>' +
   '</div>';
 
   var phoneLine = m.phone
@@ -7168,9 +7372,9 @@ function viewMilBuilder() {
         '<input class="input builder-input" data-milbind="mil:img" placeholder="Picture link (optional)" value="' + esc(q.img || "") + '" />',
         MIL_SAFE.indexOf(i) !== -1 ? "This rung is safe: reaching it banks the money for good." : "") +
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
-      '<div style="display:flex;gap:10px;margin-top:18px">' +
-        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeMilBuilder">Cancel</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveMilPack">Save Pack</button>' +
+      '<div class="builder-actions">' +
+        '<button class="confirm-btn-cancel" data-action="closeMilBuilder">Cancel</button>' +
+        '<button class="big-gold" data-action="saveMilPack">Save</button>' +
       '</div>' +
       '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitMilPack">Submit to the Fan Packs</button>' +
       (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
@@ -7247,10 +7451,14 @@ function viewFeud() {
             esc(feudTeamLabel(t)) + ' play' + (t.members.length === 1 ? 's' : '') + ' it</button>';
         }).join("") + '</div>';
     } else if (f.stage === "steal") {
-      prompt = '<p class="feud-prompt feud-prompt-steal">' +
-        esc(feudTeamLabel(f.teams[f.stealing])) + ' get one guess to steal ' + f.bank + '.</p>';
+      var st = f.teams[f.stealing];
+      prompt = '<p class="feud-prompt feud-prompt-steal">' + esc(feudTeamLabel(st)) +
+        (st && st.members.length !== 1 ? ' get' : ' gets') + ' one guess to steal ' + f.bank + '.</p>';
     } else {
-      prompt = '<p class="feud-prompt">' + esc(feudTeamLabel(f.teams[f.control])) + ' are on the board.</p>';
+      var ctrl = f.teams[f.control];
+      var plural = ctrl && ctrl.members.length !== 1;
+      prompt = '<p class="feud-prompt">' + esc(feudTeamLabel(ctrl)) +
+        (plural ? ' are' : ' is') + ' on the board.</p>';
     }
 
     body =
@@ -7605,9 +7813,9 @@ function viewFeudBuilder() {
           '<span class="builder-cat-pos" style="text-align:right">' + total + ' people surveyed</span>' +
         '</div>') +
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
-      '<div style="display:flex;gap:10px;margin-top:18px">' +
-        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeFeudBuilder">Cancel</button>' +
-        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveFeudPack">Save Pack</button>' +
+      '<div class="builder-actions">' +
+        '<button class="confirm-btn-cancel" data-action="closeFeudBuilder">Cancel</button>' +
+        '<button class="big-gold" data-action="saveFeudPack">Save</button>' +
       '</div>' +
       '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitFeudPack">Submit to the Fan Packs</button>' +
       (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
@@ -8710,7 +8918,7 @@ function viewQuestion() {
       (questionItem().value * roundMultiplier()) + ' + ' + state.wager + ' WAGERED = ' + value + ' AT STAKE</div>';
   }
 
-  return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + stageBackdropHtml() +
+  return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + testingBannerHtml() + stageBackdropHtml() +
     '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div class="clue-enter">' +
       ddBanner +
@@ -8839,7 +9047,7 @@ function viewBoard() {
 
   var menu = renderMenu(withUndo(gameMenuItems(true)));
 
-  return menu + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
+  return menu + testingBannerHtml() + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
     '<div class="board-chiprow">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(teamModeOn() ? teamLabel(teamOf(state.turn)) : state.players[state.turn].name) + "'s pick" +
@@ -9153,6 +9361,16 @@ function ensureConsistentState() {
   if (state.players && state.players.length && state.turn >= state.players.length) {
     state.turn = 0;
   }
+  // and so can a team's member list, which then hands scores to nobody
+  if (state.teamMode && state.teams && state.players && state.players.length) {
+    var stale = state.teams.some(function (t) {
+      return t.members.some(function (i) { return !state.players[i]; });
+    });
+    var unplaced = state.players.some(function (p, i) {
+      return !state.teams.some(function (t) { return t.members.indexOf(i) !== -1; });
+    });
+    if (stale || unplaced) reconcileTeams();
+  }
   if (needsBoard && !currentBoard()) {
     state.active = null;
     state.wagering = false;
@@ -9456,6 +9674,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderSelectCat") builderSelectCat(+t.getAttribute("data-i"));
   else if (action === "builderToggleRow") builderToggleRow(+t.getAttribute("data-i"));
   else if (action === "builderJump") builderJump(+t.getAttribute("data-c"), +t.getAttribute("data-r"));
+  else if (action === "testBoard") testBoard();
+  else if (action === "stopTestingBoard") stopTestingBoard();
+  else if (action === "viewExampleBoard") viewExampleBoard();
+  else if (action === "closeExampleBoard") closeExampleBoard();
   else if (action === "builderClearMedia") builderClearMedia(+t.getAttribute("data-i"), t.getAttribute("data-field"));
   else if (action === "builderAddCategory") builderAddCategory();
   else if (action === "builderRemoveCategory") builderRemoveCategory(+t.getAttribute("data-i"));
