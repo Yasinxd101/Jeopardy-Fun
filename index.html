@@ -958,6 +958,39 @@
   }
   @media (hover: hover) { .wheel-escape:hover { color: #ff8aa0; border-color: #ff8aa0; } }
 
+  /* the help guide: a sheet you pull up, never forced on anyone */
+  .help-overlay {
+    position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end;
+    justify-content: center; background: rgba(4, 6, 16, 0.72);
+    animation: tk-in 0.2s ease both;
+  }
+  .help-sheet {
+    width: 100%; max-width: 620px; max-height: 88vh; display: flex; flex-direction: column;
+    background: #131838; border: 1px solid #2a2f55; border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    animation: help-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes help-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .help-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid #2a2f55; flex-shrink: 0;
+  }
+  .help-title { font-weight: 900; font-size: 12px; letter-spacing: 2px; color: #ffd166; }
+  .help-close {
+    background: none; border: none; color: #aab0d8; font-size: 26px; line-height: 1;
+    cursor: pointer; padding: 0 6px; min-width: 40px; min-height: 40px;
+  }
+  .help-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 16px 26px; }
+  .help-sec { margin-top: 18px; }
+  .help-h {
+    margin: 0 0 8px; font-size: 13px; font-weight: 900; letter-spacing: 1px;
+    color: #fff; text-transform: uppercase;
+  }
+  .help-list { margin: 0; padding-left: 18px; }
+  .help-list li { color: #c2c8ea; font-size: 14px; line-height: 1.55; margin-bottom: 7px; }
+  .help-list strong { color: #ffd166; }
+  @media (prefers-reduced-motion: reduce) { .help-overlay, .help-sheet { animation: none; } }
+
   /* room code and host PIN are covered until the host asks for them */
   .host-code-hidden { letter-spacing: 10px; color: #3a4170; }
   .code-toggle {
@@ -1763,6 +1796,7 @@ var state = {
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
   clipLimit: 20,          // seconds of a music clue to play, 0 = the whole thing
   clipStartedAt: 0,       // when the host hit play, so phones can join in sync
+  helpOpen: false,        // the pull-up help guide
   showRoomCode: false,    // room code and host PIN stay covered until asked for
   showHostPin: false,
   juice: true,            // motion effects: shakes, slides, takeovers
@@ -1871,6 +1905,31 @@ function roundMultiplier() {
   return state.match && state.match.round === 2 ? 2 : 1;
 }
 // One daily double normally; two distinct ones in the Double Jeopardy round.
+// Nobody should meet a Daily Double before they have seen a normal clue, so if
+// the opening pick happens to be one, it hops to another unplayed tile.
+function relocateDailyDouble(catKey, qIndex) {
+  var board = currentBoard();
+  if (!board) return;
+  var taken = {};
+  (state.dailyDoubles || []).forEach(function (d) { taken[d.catKey + "-" + d.qIndex] = true; });
+  var options = [];
+  for (var c = 0; c < board.textBoard.length; c++) {
+    var col = board.textBoard[c];
+    for (var r = 0; r < (col.questions || []).length; r++) {
+      var key = c + "-" + r;
+      if (key === catKey + "-" + qIndex) continue;
+      if (taken[key] || state.used[key]) continue;
+      options.push({ catKey: c, qIndex: r });
+    }
+  }
+  if (!options.length) return;
+  var moveTo = options[Math.floor(Math.random() * options.length)];
+  state.dailyDoubles = (state.dailyDoubles || []).map(function (d) {
+    return (d.catKey === catKey && d.qIndex === qIndex) ? moveTo : d;
+  });
+  state.dailyDouble = state.dailyDoubles[0] || null;
+  state.dailyDoubleB = state.dailyDoubles[1] || null;
+}
 function assignDailyDoubles() {
   var count = state.roomRules.ddCount;
   if (state.match && state.match.round === 2 && count === 1) count = 2; // classic double jeopardy default
@@ -3772,6 +3831,7 @@ function openQuestion(catKey, qIndex) {
   state.videoStatus = null;
   clearVideoLoadTimer();
   state.chosenAlignment = null;
+  if (isDailyDoubleTile(catKey, qIndex) && !Object.keys(state.used).length) relocateDailyDouble(catKey, qIndex);
   state.wagering = isDailyDoubleTile(catKey, qIndex);
   state.wager = null;
   state.wagerInput = "";
@@ -4007,6 +4067,71 @@ function toggleJuice() { state.juice = !state.juice; settingsChanged(); }
 function toggleHaptics() { state.haptics = !state.haptics; if (state.haptics) hap("correct"); settingsChanged(); }
 function togglePhoneMirror() { state.phoneMirror = !state.phoneMirror; settingsChanged(); }
 function dismissAdultGate() { state.adultGate = null; render(); }
+
+// ---- help guide ----
+// Deliberately a single thing you pull up, not coaching bolted onto each step.
+function helpSection(title, lines) {
+  return '<div class="help-sec">' +
+    '<h3 class="help-h">' + title + '</h3>' +
+    '<ul class="help-list">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>' +
+  '</div>';
+}
+function renderHelp() {
+  if (!state.helpOpen) return "";
+  return '<div class="help-overlay" data-action="closeHelp">' +
+    '<div class="help-sheet" data-stop="1">' +
+      '<div class="help-bar">' +
+        '<span class="help-title">HOW IT WORKS</span>' +
+        '<button class="help-close" data-action="closeHelp" aria-label="Close help">&times;</button>' +
+      '</div>' +
+      '<div class="help-body">' +
+        helpSection("The basics", [
+          "Pick a tile on the board. The bigger the number, the harder the question.",
+          "Someone answers out loud. The host decides if it was right.",
+          "Right adds the points. Wrong takes them away.",
+          "When every tile is gone, you finish with Final Jeopardy.",
+        ]) +
+        helpSection("Everyone on one screen", [
+          "Add each player's name, pick a board, and play off the one device.",
+          "Whoever's turn it is picks the next tile.",
+          "Use the <strong>+</strong> and <strong>&minus;</strong> buttons under the answer to score.",
+          "Playing alone works the same way &mdash; add just yourself and keep your own score.",
+        ]) +
+        helpSection("Phones as buzzers", [
+          "On the big screen tap <strong>HOST A ROOM</strong>. It shows a room code and a QR code.",
+          "Everyone else opens the same link on their phone and taps <strong>JOIN A ROOM</strong>.",
+          "They type the code and their name, and get a big buzzer.",
+          "First phone to press wins the buzz. The host taps Right or Wrong.",
+          "<strong>Watch on TV</strong> joins a screen that follows the game with no buzzer.",
+        ]) +
+        helpSection("Running it from your phone", [
+          "The host screen has a 4-digit <strong>host PIN</strong>. Keep it to yourself &mdash; it shows the answers.",
+          "On your phone: JOIN A ROOM, enter the PIN, tap <strong>Host Control</strong>.",
+          "<strong>Peek</strong> shows the answer to you only. The big screen does not change.",
+          "From there you can reveal, judge, score, and start or stop the music.",
+        ]) +
+        helpSection("Daily Double and Final", [
+          "One hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
+          "Bet high and a right answer pays big; a wrong one costs the same.",
+          "In <strong>Final Jeopardy</strong> everyone bets secretly, then answers one last question.",
+        ]) +
+        helpSection("Music and picture questions", [
+          "Some questions play a song. The host picks how long it plays and taps Play.",
+          "Each phone needs one tap on <strong>Turn on sound</strong> before audio can start by itself.",
+          "The video stays hidden while it plays, so the picture cannot give it away.",
+        ]) +
+        helpSection("Good to know", [
+          "The game saves itself. Close the tab and you can pick it back up.",
+          "Settings has sound, motion, vibration, and the 18+ section, which is off until you turn it on.",
+          "<strong>Make your own board</strong> lives under the My Boards tab when you pick a board.",
+        ]) +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+function openHelp() { state.helpOpen = true; state.menuOpen = false; render(); }
+function closeHelp() { state.helpOpen = false; render(); }
+
 function renderAdultGate() {
   var g = state.adultGate;
   if (!g) return "";
@@ -4175,6 +4300,7 @@ function withUndo(items) {
 function gameMenuItems(includeManage) {
   var items = includeManage ? [{ label: "Manage Players", action: "openManagePlayers" }] : [];
   items.push({ label: state.buzzer.on ? "Buzzer Room (" + (state.buzzer.code || "") + ")" : "Open a Buzzer Room", action: "openHostRoom" });
+  items.push({ label: "How It Works", action: "openHelp" });
   items.push({ label: "Stats & History", action: "openStats" });
   return items.concat([
     { label: "Switch Board (Keep Players)", action: "confirmSwitchBoard" },
@@ -4414,6 +4540,7 @@ function viewPlayers() {
         '<input class="input" id="nameInput" placeholder="Type a name..." value="' + esc(state.nameInput) + '" />' +
         '<button class="btn-gold" data-action="add">Add</button>' +
       '</div>' +
+      '<label class="lbl" style="display:block;margin-top:12px">Pick a token</label>' +
       '<div class="shape-row">' + AVATAR_SHAPES.map(function (sh) {
         var sel = (state.nextShape || AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length]) === sh;
         return '<button class="shape-pick' + (sel ? ' shape-pick-sel' : '') + '" data-action="pickShape" data-shape="' + sh + '" aria-label="' + sh + '">' +
@@ -4432,7 +4559,8 @@ function viewPlayers() {
         '<button class="big-gold" style="flex:1;margin-top:0;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
       '</div>' +
       '<p class="muted" style="margin-top:14px">' +
-        'Host on the big screen, join from every phone &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
+        '<button data-action="openHelp" class="inline-link" style="background:none;border:none;color:#ffd166;font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline">How it works</button>' +
+        ' &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
       '</p>' +
     '</div>' +
   '</div></div>';
@@ -5913,7 +6041,7 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate();
+  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp();
   flipPlay(); // slide anything that moved from where it used to be
   saveGameSnapshot();
   broadcastSync();
@@ -6127,6 +6255,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
+  else if (action === "openHelp") openHelp();
+  else if (action === "closeHelp") closeHelp();
   else if (action === "toggleJuice") toggleJuice();
   else if (action === "toggleRoomCode") { state.showRoomCode = !state.showRoomCode; render(); }
   else if (action === "toggleHostPin") { state.showHostPin = !state.showHostPin; render(); }
