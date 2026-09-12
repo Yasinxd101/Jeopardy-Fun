@@ -545,11 +545,68 @@
   }
   .builder-cat-del { color: #ff8aa0; }
   .builder-cat-move[disabled], .builder-cat-del[disabled] { opacity: 0.35; cursor: default; }
-  .builder-clue { background: #0d1230; border-radius: 12px; padding: 12px; }
-  .builder-clue-head { color: #ffd166; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 8px; }
+  .builder-clue { background: #0d1230; border-radius: 12px; padding: 12px; border-left: 3px solid #2a2f55; }
+  .builder-clue-done { border-left-color: #2cb67d; }
+  .builder-clue-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    color: #ffd166; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .builder-clue-tags {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #8b92c0;
+    text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .builder-input { margin-top: 6px; font-size: 14px; padding: 10px 12px; }
-  .builder-optionals { border-top: 1px dashed #2a2f55; margin-top: 8px; padding-top: 4px; }
-  .builder-optionals .builder-input { font-size: 12px; padding: 8px 10px; opacity: 0.85; }
+  .builder-more {
+    width: 100%; margin-top: 8px; background: none; border: none; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 12px; cursor: pointer;
+    padding: 8px; text-align: left; min-height: 34px;
+  }
+  .builder-optionals { border-top: 1px dashed #2a2f55; margin-top: 4px; padding-top: 6px; }
+  .builder-optionals .builder-input { font-size: 12px; padding: 8px 10px; }
+  .builder-media { margin-top: 10px; }
+  .builder-media-lbl {
+    display: block; font-size: 10px; font-weight: 900; letter-spacing: 1px;
+    color: #9aa2cc; text-transform: uppercase;
+  }
+  .builder-thumb-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .builder-thumb {
+    width: 54px; height: 40px; object-fit: cover; border-radius: 7px;
+    background: #161b3d; border: 1px solid #2a2f55; flex: none;
+  }
+  .builder-thumb.thumb-broken { object-fit: contain; opacity: 0.35; }
+  .builder-thumb-note { flex: 1; min-width: 0; font-size: 11px; font-weight: 700; color: #8b92c0; }
+  .builder-clear {
+    background: none; border: 1px solid #43305a; border-radius: 8px; color: #ff8aa0;
+    font-family: inherit; font-weight: 800; font-size: 11px; cursor: pointer;
+    padding: 7px 10px; min-height: 30px;
+  }
+  .builder-upload {
+    display: inline-block; margin-top: 6px; color: #3da9fc; font-size: 12px;
+    font-weight: 800; cursor: pointer; text-decoration: underline; padding: 6px 0;
+  }
+  .builder-cue { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .builder-cue-lbl { font-size: 11px; font-weight: 700; color: #8b92c0; }
+  .builder-cue-in { width: 64px; font-size: 12px; padding: 8px 10px; text-align: center; }
+  .builder-hint-note { margin: 5px 0 0; font-size: 11px; color: #8b92c0; line-height: 1.4; }
+
+  /* the host's private hint, on the big screen and on Host Control */
+  .host-hint-btn, .hc-hint-btn {
+    display: block; width: 100%; margin-top: 12px; background: #161b3d;
+    border: 1px dashed #43506a; border-radius: 10px; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
+    padding: 11px; min-height: 40px;
+  }
+  .host-hint, .hc-hint {
+    margin-top: 8px; background: #10142e; border: 1px solid #43506a; border-radius: 10px;
+    padding: 12px 14px; color: #c2c8ea; font-size: 14px; line-height: 1.45;
+    text-align: center; overflow-wrap: anywhere;
+  }
+  .hc-hint { font-size: 13px; }
+  .danger-link {
+    display: block; width: 100%; margin-top: 12px; background: none; border: none;
+    color: #ff8aa0; font-family: inherit; font-weight: 700; font-size: 13px;
+    cursor: pointer; padding: 10px; text-decoration: underline;
+  }
   .my-board-wrap { position: relative; }
   .my-board-controls {
     display: flex; gap: 14px; justify-content: flex-end; margin: -8px 4px 0;
@@ -1932,11 +1989,13 @@ var state = {
   nextShape: null,        // avatar shape chosen for the next player added
   roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false },
   questionShown: false,   // read-aloud mode: has the host put the text on screen yet
+  clueHintOpen: false,    // the host has asked to see this question's hint
   dailyDoubles: [],       // all hidden daily double tiles this round
   buzzedThisClue: {},     // playerIndex map for the one buzz per clue rule
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
+  statsMsg: "",           // one-line confirmation on the stats screen
   setupMoreOpen: false,   // the fold-away half of the start screen
   playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
@@ -2046,6 +2105,11 @@ function categoryHasVideo(col) {
   return col.questions.some(function (q) { return !!q.id; });
 }
 
+// Seconds as m:ss, for clip cue points.
+function mmss(sec) {
+  var n = Math.max(0, Math.floor(+sec || 0));
+  return Math.floor(n / 60) + ":" + ("0" + (n % 60)).slice(-2);
+}
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -2760,7 +2824,8 @@ function buzzerSyncPayload() {
       isVideo: !!item.id,
       videoId: state.wagering ? null : (item.id || null),
       playing: !!state.playing,
-      clipLimit: state.clipLimit,
+      clipLimit: activeClipLen(),
+      clipStart: clipStartFor(item),
       clipElapsed: state.playing && state.clipStartedAt
         ? Math.max(0, Math.round((Date.now() - state.clipStartedAt) / 1000)) : 0,
       revealed: !!state.revealed,
@@ -2856,6 +2921,7 @@ function extendHostPayload(p) {
     p.clue.note = hitem.note || null;
     p.clue.aimg = hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null);
     p.clue.q = hitem.q || "";                 // the host always has the text
+    p.clue.hint = hitem.hint || null;         // host-only nudge, never sent to players
     p.clue.hostRevealed = !!state.revealed;   // what the big screen is showing
     p.clue.judged = !!state.judgedThisClue;
     p.clue.value = activeValue();
@@ -3017,6 +3083,14 @@ function toggleHostPeek() {
   var bc = state.buzzClient;
   if (!bc) return;
   bc.peek = !bc.peek;
+  hap("press");
+  render();
+}
+// Also local-only: showing yourself the hint changes nothing for anyone else.
+function toggleHostHint() {
+  var bc = state.buzzClient;
+  if (!bc) return;
+  bc.hint = !bc.hint;
   hap("press");
   render();
 }
@@ -3214,8 +3288,16 @@ function recordMatchHistory() {
   if (hist.length > 100) hist = hist.slice(0, 100);
   jfWrite(JF_HISTORY_KEY, hist);
 }
+// Wiping the leaderboard is one of the few genuinely irreversible things in
+// the app, so it goes through the same confirm dialog as deleting a board.
+function clearHistory() {
+  jfRemove(JF_HISTORY_KEY);
+  state.statsMsg = "History cleared.";
+  render();
+}
 function openStats() {
   state.menuOpen = false;
+  state.statsMsg = "";
   state.phase = "stats";
   render();
 }
@@ -3226,6 +3308,16 @@ function closeStats() {
 
 // ---- board builder + sharing (localStorage jf.myboards.v1) ----
 var JF_MYBOARDS_KEY = "jf.myboards.v1";
+// People paste the whole URL. Take the id out of any of YouTube's shapes and
+// leave a bare id untouched.
+function youtubeId(raw) {
+  var v = String(raw || "").trim();
+  if (!v) return "";
+  var m = v.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  if (m) return m[1];
+  if (/^[A-Za-z0-9_-]{6,}$/.test(v)) return v;
+  return v;   // leave anything unrecognised alone so the author can see it
+}
 function blankCategory() {
   var qs = [];
   for (var r = 0; r < ROWS_PER_CAT; r++) qs.push({ value: (r + 1) * 100, q: "", a: "", note: "", id: "", img: "", aimg: "" });
@@ -3249,7 +3341,7 @@ function openBuilder(existingId) {
     var found = customBoards().filter(function (b) { return b.id === existingId; })[0];
     if (found) draft = JSON.parse(JSON.stringify(found));
   }
-  state.builder = { draft: draft || blankDraft(), catIndex: 0, error: "", shareUrl: "" };
+  state.builder = { draft: draft || blankDraft(), catIndex: 0, error: "", shareUrl: "", openRow: -1 };
   state.phase = "builder";
   render();
 }
@@ -3271,14 +3363,71 @@ function builderSetField(path, value) {
   else if (path === "catName") d.textBoard[state.builder.catIndex].category = value;
   else {
     var m = path.split(":"); // clue:<row>:<field>
-    if (m[0] === "clue") d.textBoard[state.builder.catIndex].questions[+m[1]][m[2]] = value;
+    if (m[0] === "clue") {
+      var it = d.textBoard[state.builder.catIndex].questions[+m[1]];
+      var f = m[2];
+      if (f === "id") it.id = youtubeId(value);
+      else if (f === "clipStart" || f === "clipLen") {
+        var n = parseInt(value, 10);
+        if (value === "" || !isFinite(n) || n < 0) delete it[f];
+        else it[f] = Math.min(n, 36000);
+      } else it[f] = value;
+    }
   }
   // do not re-render on every keystroke (inputs keep focus); state is captured live
 }
 function builderSelectCat(i) {
   if (!state.builder) return;
   state.builder.catIndex = i;
+  state.builder.openRow = -1;
   render();
+}
+function builderToggleRow(r) {
+  if (!state.builder) return;
+  state.builder.openRow = state.builder.openRow === r ? -1 : r;
+  render();
+}
+function builderClearMedia(r, field) {
+  if (!state.builder || !field) return;
+  var it = state.builder.draft.textBoard[state.builder.catIndex].questions[r];
+  if (!it) return;
+  delete it[field];
+  state.builder.error = "";
+  render();
+}
+// A picture chosen from the device is stored inside the board as a data URI.
+// That keeps a board one self-contained file, but it also means a few large
+// photos can outgrow what a share link will carry, so the size is capped and
+// the author is told plainly.
+var BUILDER_IMG_MAX = 400 * 1024;
+function builderUploadImage(r, field, file) {
+  if (!state.builder || !file) return;
+  if (!/^image\//.test(file.type)) {
+    state.builder.error = "That file is not an image.";
+    render();
+    return;
+  }
+  if (file.size > BUILDER_IMG_MAX) {
+    state.builder.error = "That picture is " + Math.round(file.size / 1024) + "KB. Keep uploads under " +
+      Math.round(BUILDER_IMG_MAX / 1024) + "KB, or paste a link to it instead.";
+    render();
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var it = state.builder && state.builder.draft.textBoard[state.builder.catIndex].questions[r];
+    if (!it) return;
+    it[field] = String(e.target.result || "");
+    state.builder.error = "";
+    state.builder.openRow = r;
+    render();
+  };
+  reader.onerror = function () {
+    if (!state.builder) return;
+    state.builder.error = "That picture could not be read.";
+    render();
+  };
+  reader.readAsDataURL(file);
 }
 function builderAddCategory() {
   var bd = state.builder;
@@ -3317,7 +3466,11 @@ function cleanDraft(d) {
   var out = JSON.parse(JSON.stringify(d));
   out.textBoard.forEach(function (col) {
     col.questions.forEach(function (it) {
-      ["note", "id", "img", "aimg"].forEach(function (f) { if (!it[f]) delete it[f]; });
+      ["note", "id", "img", "aimg", "hint"].forEach(function (f) { if (!it[f]) delete it[f]; });
+      // cue points only mean anything on a clip, and 0/blank is the default
+      if (!it.id) { delete it.clipStart; delete it.clipLen; }
+      if (!it.clipStart) delete it.clipStart;
+      if (it.clipLen == null || it.clipLen === "") delete it.clipLen;
     });
   });
   if (!out.art) delete out.art;
@@ -3747,6 +3900,7 @@ function newPlayers() {
   state.answerHidden = false;
   state.judgedThisClue = false;
   state.questionShown = false;
+  state.clueHintOpen = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -4127,6 +4281,7 @@ function openQuestion(catKey, qIndex) {
   state.answerHidden = false;
   state.judgedThisClue = false;
   state.questionShown = false;
+  state.clueHintOpen = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -4328,14 +4483,31 @@ function adjustClipLimit(delta) {
   state.clipLimit = next;
   settingsChanged();
 }
+// Where a clip starts and how long it runs. The board can pin both per
+// question ("play the chorus, 15 seconds from 1:12"); anything it leaves out
+// falls back to the host's own setting.
+function clipStartFor(item) {
+  var n = item && parseInt(item.clipStart, 10);
+  return isFinite(n) && n > 0 ? n : 0;
+}
+function clipLenFor(item) {
+  var n = item && parseInt(item.clipLen, 10);
+  if (isFinite(n) && n > 0) return n;
+  if (item && item.clipLen === 0) return 0;   // the board explicitly says "all of it"
+  return state.clipLimit;
+}
+function activeClipLen() {
+  return state.phase === "question" && state.active ? clipLenFor(questionItem()) : state.clipLimit;
+}
 function playVideo() {
   if (state.playing) return;
   state.playing = true;
   state.clipStartedAt = Date.now();
   state.videoStatus = "loading";
   clearClipStopTimer();
-  if (state.clipLimit > 0) {
-    clipStopTimer = setTimeout(function () { stopClip(); }, state.clipLimit * 1000);
+  var runFor = activeClipLen();
+  if (runFor > 0) {
+    clipStopTimer = setTimeout(function () { stopClip(); }, runFor * 1000);
   }
   render();
   attachYoutubeVolumeControl();
@@ -4542,6 +4714,7 @@ function closeQuestion() {
   state.answerHidden = false;
   state.judgedThisClue = false;
   state.questionShown = false;
+  state.clueHintOpen = false;
   state.playing = false;
   state.videoStatus = null;
   clearVideoLoadTimer();
@@ -4638,6 +4811,7 @@ function confirmYes() {
   else if (action === "newPlayers") newPlayers();
   else if (action === "removePlayerInGame") removePlayerInGame(payload);
   else if (action === "deleteCustomBoard") deleteCustomBoard(payload);
+  else if (action === "clearHistory") clearHistory();
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -5035,9 +5209,69 @@ function viewStats() {
       '<div style="display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
       '<p class="lbl" style="display:block;margin:18px 0 4px">RECENT MATCHES</p>' +
       matchRows +
+      (state.statsMsg ? '<p class="muted" style="margin-top:12px">' + esc(state.statsMsg) + '</p>' : '') +
       '<button class="big-gold" data-action="closeStats">Back</button>' +
+      (hist.length
+        ? '<button class="danger-link" data-action="confirmClearHistory">' +
+            'Clear all history (' + hist.length + ' game' + (hist.length === 1 ? '' : 's') + ')</button>'
+        : '') +
     '</div>' +
   '</div></div>';
+}
+
+// Everything past "question and answer": art, a clip with cue points, the
+// host's private hint, and the note everyone reads after the reveal. Folded
+// away by default so a plain board stays a plain form.
+function builderImageRowHtml(q, r, field, label) {
+  var val = q[field] || "";
+  var isFile = val.indexOf("data:") === 0;
+  return '<div class="builder-media">' +
+    '<label class="builder-media-lbl">' + label + '</label>' +
+    (val
+      ? '<div class="builder-thumb-row">' +
+          '<img class="builder-thumb" src="' + esc(val) + '" alt="" referrerpolicy="no-referrer" onerror="this.classList.add(&quot;thumb-broken&quot;)">' +
+          '<span class="builder-thumb-note">' + (isFile ? "From your device" : "From the web") + '</span>' +
+          '<button class="builder-clear" data-action="builderClearMedia" data-i="' + r + '" data-field="' + field + '">Remove</button>' +
+        '</div>'
+      : '') +
+    (isFile ? '' :
+      '<input class="input builder-input" data-bind="clue:' + r + ':' + field + '" placeholder="Paste an image link" value="' + esc(val) + '" />') +
+    '<label class="builder-upload">Upload from this device' +
+      '<input type="file" accept="image/*" data-upload="' + r + ':' + field + '" style="display:none" />' +
+    '</label>' +
+  '</div>';
+}
+function builderExtrasHtml(q, r) {
+  return '<div class="builder-optionals">' +
+    builderImageRowHtml(q, r, "img", "Picture shown with the question") +
+    builderImageRowHtml(q, r, "aimg", "Picture shown with the answer") +
+    '<div class="builder-media">' +
+      '<label class="builder-media-lbl">Music or video clip</label>' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':id" placeholder="YouTube link or video ID" value="' + esc(q.id || "") + '" />' +
+      (q.id
+        ? '<div class="builder-cue">' +
+            '<span class="builder-cue-lbl">Start at</span>' +
+            '<input class="input builder-cue-in" data-bind="clue:' + r + ':clipStart" inputmode="numeric" placeholder="0" value="' + esc(q.clipStart != null ? q.clipStart : "") + '" />' +
+            '<span class="builder-cue-lbl">sec &middot; play for</span>' +
+            '<input class="input builder-cue-in" data-bind="clue:' + r + ':clipLen" inputmode="numeric" placeholder="host" value="' + esc(q.clipLen != null ? q.clipLen : "") + '" />' +
+            '<span class="builder-cue-lbl">sec</span>' +
+          '</div>' +
+          '<p class="builder-hint-note">' +
+            (clipStartFor(q) ? 'Starts at ' + mmss(clipStartFor(q)) : 'Starts at the beginning') +
+            (q.clipLen ? ' and plays ' + q.clipLen + 's.' : ' and runs for however long the host has set.') +
+          '</p>'
+        : '') +
+    '</div>' +
+    '<div class="builder-media">' +
+      '<label class="builder-media-lbl">Hint for the host only</label>' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':hint" placeholder="A nudge you can offer a stuck room" value="' + esc(q.hint || "") + '" />' +
+      '<p class="builder-hint-note">Never shown on the big screen or on a player&rsquo;s phone until the host asks for it.</p>' +
+    '</div>' +
+    '<div class="builder-media">' +
+      '<label class="builder-media-lbl">Note shown after the reveal</label>' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':note" placeholder="Trivia everyone sees with the answer" value="' + esc(q.note || "") + '" />' +
+    '</div>' +
+  '</div>';
 }
 
 // Board builder: edit one category at a time, with live tab switching.
@@ -5064,16 +5298,25 @@ function viewBuilder() {
     : '');
 
   var clueFields = col.questions.map(function (q, r) {
-    return '<div class="builder-clue">' +
-      '<div class="builder-clue-head">' + q.value + ' pts</div>' +
+    var open = state.builder.openRow === r;
+    var has = [];
+    if (q.img) has.push("picture");
+    if (q.aimg) has.push("answer art");
+    if (q.id) has.push("clip");
+    if (q.hint) has.push("hint");
+    if (q.note) has.push("note");
+    var done = (q.q || q.id) && q.a;
+    return '<div class="builder-clue' + (done ? ' builder-clue-done' : '') + '">' +
+      '<div class="builder-clue-head">' +
+        '<span>' + q.value + ' pts</span>' +
+        '<span class="builder-clue-tags">' + (has.length ? esc(has.join(" &middot; ")) : '') + '</span>' +
+      '</div>' +
       '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="Question" value="' + esc(q.q) + '" />' +
       '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="Answer" value="' + esc(q.a) + '" />' +
-      '<div class="builder-optionals">' +
-        '<input class="input builder-input" data-bind="clue:' + r + ':note" placeholder="Note (optional)" value="' + esc(q.note || "") + '" />' +
-        '<input class="input builder-input" data-bind="clue:' + r + ':aimg" placeholder="Answer image URL (optional)" value="' + esc(q.aimg || "") + '" />' +
-        '<input class="input builder-input" data-bind="clue:' + r + ':img" placeholder="Question image URL (optional)" value="' + esc(q.img || "") + '" />' +
-        '<input class="input builder-input" data-bind="clue:' + r + ':id" placeholder="YouTube video ID (optional, makes it a clip)" value="' + esc(q.id || "") + '" />' +
-      '</div>' +
+      '<button class="builder-more" data-action="builderToggleRow" data-i="' + r + '">' +
+        (open ? '&#9650; Hide extras' : '&#9660; Picture, clip, hint&hellip;') +
+      '</button>' +
+      (open ? builderExtrasHtml(q, r) : '') +
     '</div>';
   }).join("");
 
@@ -5290,7 +5533,7 @@ function buzzMirrorHtml(bc) {
         // Join wherever the host already is, so every phone hears the same
         // moment. The picture is the answer on a "name this opening" clue, so
         // the frame stays fully covered until the host reveals it.
-        var startAt = Math.max(0, c.clipElapsed || 0);
+        var startAt = Math.max(0, (c.clipStart || 0) + (c.clipElapsed || 0));
         var src = 'https://www.youtube.com/embed/' + esc(c.videoId) +
           '?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&start=' + startAt;
         clipHtml = '<div class="buzz-clip-frame' + (c.revealed ? '' : ' buzz-clip-hidden') + '">' +
@@ -5532,6 +5775,13 @@ function viewHostControl(bc) {
     ? '<div class="hc-answer">' + esc(c.a || '(no answer on this question)') + '</div>' +
       (c.note ? '<p class="hc-note">' + esc(c.note) + '</p>' : '')
     : '<p class="hc-hidden">Answer hidden &mdash; only this phone can show it</p>';
+  // The hint is a nudge, not the answer, so it sits outside Peek on its own
+  // toggle: the host can read a clue out and offer a hint without spoiling it.
+  var hintBlock = c.hint
+    ? '<button class="hc-hint-btn" data-action="hostHint">' +
+        (bc.hint ? 'Hide the hint' : 'Show me a hint') + '</button>' +
+      (bc.hint ? '<div class="hc-hint">' + esc(c.hint) + '</div>' : '')
+    : '';
 
   var buzzLine = (g.buzz && g.buzz.winner)
     ? '<div class="hc-buzz">' + esc(g.buzz.winner) + ' buzzed in</div>' : '';
@@ -5561,6 +5811,7 @@ function viewHostControl(bc) {
         ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
           '<p class="hc-hidden">Only you can see the text right now &mdash; read it out.</p>'
         : '') +
+      hintBlock +
       '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
       peekBlock +
       buzzLine +
@@ -6048,8 +6299,10 @@ function viewClueMedia() {
   var player;
   if (state.playing) {
     var hideChrome = isVideoBlurred();
+    var startFrom = clipStartFor(item);
     var src = "https://www.youtube.com/embed/" + item.id +
       "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1" +
+      (startFrom ? "&start=" + startFrom : "") +
       (hideChrome ? "&controls=0&disablekb=1&fs=0" : "") +
       "&origin=" + encodeURIComponent(window.location.origin);
     player = '<iframe id="ytplayer" title="' + (hideChrome ? "Audio question" : "Question video") + '" src="' + src +
@@ -6117,7 +6370,8 @@ function viewClueFooter() {
 
   var clipVolRow = "";
   if (isVideo) {
-    var lenLabel = state.clipLimit === 0 ? "Full" : state.clipLimit + "s";
+    var runFor = clipLenFor(item), fromSec = clipStartFor(item);
+    var lenLabel = (runFor === 0 ? "Full" : runFor + "s") + (fromSec ? " from " + mmss(fromSec) : "");
     clipVolRow =
       '<div class="clip-ctl-row">' +
         '<span class="clip-ctl-lbl">CLIP LENGTH</span>' +
@@ -6178,9 +6432,17 @@ function viewClueFooter() {
     : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>';
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
+  // The board author's private nudge for the host. Hidden until asked for, so
+  // it cannot be read off the big screen by accident.
+  var hostHint = "";
+  if (item.hint && !state.revealed) {
+    hostHint = '<button class="host-hint-btn" data-action="toggleClueHint">' +
+        (state.clueHintOpen ? 'Hide the hint' : 'Hint for the host') + '</button>' +
+      (state.clueHintOpen ? '<div class="host-hint">' + esc(item.hint) + '</div>' : '');
+  }
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
-  return buzzBlock + clipVolRow + hint + timerBar + revealBlock + scoreBlock + closeBlock;
+  return buzzBlock + clipVolRow + hint + timerBar + hostHint + revealBlock + scoreBlock + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -6764,6 +7026,11 @@ document.getElementById("root").addEventListener("change", function (e) {
   var t = e.target;
   if (t && t.id === "importBoardFile" && t.files && t.files[0]) importBoardFile(t.files[0]);
   if (t && t.id === "builderAdult" && state.builder) state.builder.draft.adult = !!t.checked;
+  if (t && t.getAttribute && t.getAttribute("data-upload") && t.files && t.files[0]) {
+    var up = t.getAttribute("data-upload").split(":");   // <row>:<field>
+    builderUploadImage(+up[0], up[1], t.files[0]);
+    t.value = "";                                        // allow re-picking the same file
+  }
 });
 
 document.getElementById("root").addEventListener("click", function (e) {
@@ -6827,9 +7094,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleKeepTurn") toggleKeepTurn();
   else if (action === "toggleReadAloud") toggleReadAloud();
   else if (action === "showQuestionText") showQuestionText();
+  else if (action === "toggleClueHint") { state.clueHintOpen = !state.clueHintOpen; renderOrUpdateClue(); }
   else if (action === "watchAsTv") watchAsTv();
   else if (action === "controlAsHost") controlAsHost();
   else if (action === "hostPeek") toggleHostPeek();
+  else if (action === "hostHint") toggleHostHint();
   else if (action === "hostReveal") sendHostCmd("reveal");
   else if (action === "hostToggleScreenAnswer") sendHostCmd("toggleAnswerOnScreen");
   else if (action === "hostClose") sendHostCmd("close");
@@ -6857,10 +7126,13 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "resumeGame") resumeGame();
   else if (action === "discardSave") discardSave();
   else if (action === "openStats") openStats();
+  else if (action === "confirmClearHistory") askConfirm("Clear every recorded game on this device? The leaderboard and match list go with it. This cannot be undone.", "clearHistory");
   else if (action === "closeStats") closeStats();
   else if (action === "openBuilder") openBuilder(t.getAttribute("data-id"));
   else if (action === "closeBuilder") closeBuilder();
   else if (action === "builderSelectCat") builderSelectCat(+t.getAttribute("data-i"));
+  else if (action === "builderToggleRow") builderToggleRow(+t.getAttribute("data-i"));
+  else if (action === "builderClearMedia") builderClearMedia(+t.getAttribute("data-i"), t.getAttribute("data-field"));
   else if (action === "builderAddCategory") builderAddCategory();
   else if (action === "builderRemoveCategory") builderRemoveCategory(+t.getAttribute("data-i"));
   else if (action === "builderMoveCategory") builderMoveCategory(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
