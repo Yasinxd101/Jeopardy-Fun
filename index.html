@@ -638,7 +638,11 @@
 
   /* --- step two: the live board --- */
   .bboard-bg {
-    min-height: 100vh; min-height: 100svh;
+    /* height, not min-height: the board maker is a fixed frame with a
+       scrolling middle. With min-height the frame grew past the screen, the
+       inner scroller was never constrained, and Play test / Save board
+       scrolled away off the bottom on any board with a few rows on it. */
+    height: 100vh; height: 100svh; max-height: 100svh; overflow: hidden;
     display: flex; flex-direction: column; padding: 0;
   }
   .bboard-top {
@@ -771,6 +775,44 @@
     background: var(--ba); border: none; border-radius: 12px; color: #0b0f24;
     font-family: inherit; font-weight: 900; font-size: 15px; padding: 13px; min-height: 46px; cursor: pointer;
   }
+  /* the shelf: what you removed, still recoverable */
+  .bbin {
+    background: #171d1a; border: 1px solid #2c5a45; border-left: 4px solid #2cb67d;
+    border-radius: 13px; padding: 11px; margin-bottom: 14px;
+    animation: mirror-fade 0.2s ease both;
+  }
+  .bbin-head { margin: 0 0 8px; font-size: 9px; font-weight: 900; letter-spacing: 1.6px; color: #7ee2b0; }
+  .bbin-row { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .bbin-row:first-of-type { margin-top: 0; }
+  .bbin-what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .bbin-label { font-size: 13.5px; font-weight: 800; overflow-wrap: anywhere; }
+  .bbin-sub { font-size: 11px; color: #8b92c0; }
+  .bbin-back {
+    flex: none; background: #2cb67d; border: none; border-radius: 9px; color: #04210f;
+    font-family: inherit; font-weight: 900; font-size: 12px; padding: 8px 11px;
+    min-height: 34px; cursor: pointer; white-space: nowrap;
+  }
+  .bbin-drop {
+    flex: none; width: 34px; min-height: 34px; background: none; border: 1px solid #3a4070;
+    border-radius: 9px; color: #8b92c0; font-family: inherit; font-size: 17px; cursor: pointer;
+  }
+  .bbin-drop:hover { border-color: #ff5470; color: #ff8aa0; }
+
+  /* the erase block: on its own, at the very bottom, nothing else near it */
+  .bdanger { margin-top: 56px; border-top: 1px dashed #4a2733; padding-top: 18px; }
+  .bdanger-head { margin: 0 0 6px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #ff8aa0; }
+  .bdanger-note { margin: 0 0 12px; font-size: 11.5px; color: #8b92c0; line-height: 1.5; }
+  .bdanger-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    width: 100%; margin-top: 8px; background: none; border: 1px solid #4a2733;
+    border-radius: 11px; padding: 11px 12px; min-height: 46px; cursor: pointer;
+    font-family: inherit; text-align: left;
+  }
+  .bdanger-btn:hover { background: #1e1014; border-color: #ff5470; }
+  .bdanger-name { font-size: 13.5px; font-weight: 800; color: #ff8aa0; overflow-wrap: anywhere; }
+  .bdanger-sub { font-size: 11px; color: #8b92c0; }
+  .bpop-clear { border-color: #3a4070; color: #c2c8ea; }
+  .bpop-del-note { margin: 6px 0 0; font-size: 11px; color: #6a72a8; line-height: 1.4; text-align: center; }
   .btools { margin-top: 16px; background: #11152f; border: 1px solid #23284b; border-radius: 13px; padding: 13px; }
   .btools-row { display: flex; gap: 8px; margin-top: 10px; }
   .btools-row > * { flex: 1; }
@@ -4374,45 +4416,161 @@ function builderAddRow() {
 // control in the popup that can throw away work you cannot get back. It asks
 // first, but only when there is something to lose -- confirming an empty row
 // would just be a dialog for its own sake.
-function rowHasWork(d, r) {
-  return d.textBoard.some(function (col) {
-    var q = col.questions[r];
-    return !!(q && (q.q || q.a || q.id || q.img || q.note || q.hint));
-  });
+// ---- removing things, and getting them back ----
+// Nothing you have written is thrown away by a single tap. Removing a category
+// or a row moves it to a holding shelf that stays on screen until you either
+// bring it back -- with everything that was in it -- or erase it on purpose.
+// The only control that really destroys anything lives on its own, far from
+// anything you might be aiming at.
+function questionHasWork(q) {
+  return !!(q && (q.q || q.a || q.id || q.img || q.aimg || q.note || q.hint));
 }
-function confirmRemoveRow(row) {
-  if (!state.builder) return;
-  var d = state.builder.draft, r = parseInt(row, 10);
-  if (isNaN(r) || boardRows(d) <= MIN_ROWS) return;
-  if (!rowHasWork(d, r)) { builderRemoveRow(r); return; }
-  var n = d.textBoard.filter(function (col) {
-    var q = col.questions[r];
-    return !!(q && (q.q || q.a || q.id));
-  }).length;
-  askConfirm("Delete the " + d.textBoard[0].questions[r].value + " row? That removes it from every category, " +
-             "including " + n + " question" + (n === 1 ? "" : "s") + " you have written.",
-             "builderRemoveRow", r);
+function rowHasWork(d, r) {
+  return d.textBoard.some(function (col) { return questionHasWork(col.questions[r]); });
+}
+function categoryWorkCount(col) {
+  if (!col) return 0;
+  return col.questions.filter(function (q) { return questionHasWork(q); }).length;
+}
+function builderBin() {
+  if (!state.builder) return [];
+  if (!state.builder.bin) state.builder.bin = [];
+  return state.builder.bin;
 }
 function builderRemoveRow(row) {
   if (!state.builder) return;
   var d = state.builder.draft;
   var r = parseInt(row, 10);
   if (isNaN(r) || boardRows(d) <= MIN_ROWS) return;
+  var kept = d.textBoard.map(function (col) { return JSON.parse(JSON.stringify(col.questions[r])); });
+  var value = d.textBoard[0].questions[r].value;
   d.textBoard.forEach(function (col) { col.questions.splice(r, 1); });
+  builderBin().push({
+    kind: "row", at: r, value: value,
+    label: value + " row",
+    work: kept.filter(function (q) { return questionHasWork(q); }).length,
+    data: kept,
+  });
   state.builder.editing = null;
   hap("tap");
   render();
 }
-function confirmRemoveCategory(i) {
+function builderRemoveCategory(i) {
+  var bd = state.builder;
+  if (!bd || bd.draft.textBoard.length <= MIN_CATS) return;
+  var n = parseInt(i, 10);
+  if (isNaN(n) || n < 0 || n >= bd.draft.textBoard.length) return;
+  var col = JSON.parse(JSON.stringify(bd.draft.textBoard[n]));
+  bd.draft.textBoard.splice(n, 1);
+  builderBin().push({
+    kind: "cat", at: n,
+    label: col.category || "an untitled category",
+    work: categoryWorkCount(col),
+    data: col,
+  });
+  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
+  bd.editing = null;
+  bd.error = "";
+  hap("tap");
+  render();
+}
+// Bringing one back puts it where it was, with everything that was in it.
+function builderRestore(idx) {
+  var bd = state.builder;
+  if (!bd) return;
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  var it = bin[k];
+  var d = bd.draft;
+  if (it.kind === "cat") {
+    if (d.textBoard.length >= MAX_CATS) {
+      bd.error = "The board is already at " + MAX_CATS + " categories. Remove one before bringing this back.";
+      render();
+      return;
+    }
+    var col = JSON.parse(JSON.stringify(it.data));
+    // the board may be a different depth now than when this was removed
+    var rows = boardRows(d);
+    while (col.questions.length > rows) col.questions.pop();
+    while (col.questions.length < rows) col.questions.push(blankQuestion(d.textBoard[0].questions[col.questions.length].value));
+    d.textBoard.splice(Math.min(it.at, d.textBoard.length), 0, col);
+  } else {
+    if (boardRows(d) >= MAX_ROWS) {
+      bd.error = "The board is already " + MAX_ROWS + " rows deep. Remove one before bringing this back.";
+      render();
+      return;
+    }
+    var at = Math.min(it.at, boardRows(d));
+    d.textBoard.forEach(function (c, ci) {
+      var q = it.data[ci] ? JSON.parse(JSON.stringify(it.data[ci])) : blankQuestion(it.value);
+      c.questions.splice(at, 0, q);
+    });
+  }
+  bin.splice(k, 1);
+  bd.error = "";
+  hap("good");
+  render();
+}
+function confirmDiscardBin(idx) {
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  var it = bin[k];
+  if (!it.work) { builderDiscardBin(k); return; }
+  askConfirm("Erase " + it.label + " for good? " + it.work + " written question" +
+             (it.work === 1 ? "" : "s") + " will be gone, and this cannot be undone.",
+             "builderDiscardBin", k);
+}
+function builderDiscardBin(idx) {
+  var bin = builderBin();
+  var k = parseInt(idx, 10);
+  if (isNaN(k) || !bin[k]) return;
+  bin.splice(k, 1);
+  render();
+}
+// The real delete. It lives in its own block at the bottom of the board, with
+// nothing else near it, and it says exactly what it is about to destroy.
+function confirmEraseCategory(i) {
   if (!state.builder) return;
   var d = state.builder.draft, c = parseInt(i, 10);
-  if (isNaN(c) || !d.textBoard[c] || d.textBoard.length <= MIN_CATS) return;
+  if (isNaN(c) || !d.textBoard[c]) return;
+  if (d.textBoard.length <= MIN_CATS) {
+    state.builder.error = "A board needs at least one category, so this one cannot be erased. Clear its questions instead.";
+    render();
+    return;
+  }
   var col = d.textBoard[c];
-  var n = col.questions.filter(function (q) { return q.q || q.a || q.id; }).length;
-  if (!n && !col.category) { builderRemoveCategory(c); return; }
-  askConfirm("Delete " + (col.category ? '"' + col.category + '"' : "this category") +
-             (n ? " and the " + n + " question" + (n === 1 ? "" : "s") + " in it?" : "?"),
-             "builderRemoveCategory", c);
+  var n = categoryWorkCount(col);
+  askConfirm("Erase " + (col.category ? '"' + col.category + '"' : "this category") +
+             " for good?" + (n ? " " + n + " written question" + (n === 1 ? "" : "s") + " will be gone." : "") +
+             " This cannot be undone.",
+             "eraseCategory", c);
+}
+function eraseCategory(i) {
+  var bd = state.builder;
+  if (!bd) return;
+  var c = parseInt(i, 10);
+  if (isNaN(c) || !bd.draft.textBoard[c] || bd.draft.textBoard.length <= MIN_CATS) return;
+  bd.draft.textBoard.splice(c, 1);          // no shelf: this one is meant to hurt
+  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
+  bd.editing = null;
+  hap("bad");
+  render();
+}
+// One question at a time is the deliberate way to empty a board out.
+function builderClearQuestion(row) {
+  var bd = state.builder;
+  if (!bd || !bd.editing) return;
+  var r = parseInt(row, 10);
+  var q = bd.draft.textBoard[bd.editing.ci] && bd.draft.textBoard[bd.editing.ci].questions[r];
+  if (!q) return;
+  var value = q.value;
+  ["q", "a", "note", "hint", "id", "img", "aimg", "clipStart", "clipLen"].forEach(function (f) { delete q[f]; });
+  q.q = ""; q.a = ""; q.note = ""; q.id = ""; q.img = ""; q.aimg = "";
+  q.value = value;
+  hap("tap");
+  render();
 }
 function closeBuilder() {
   state.builder = null;
@@ -4730,18 +4888,6 @@ function builderAddCategory() {
   // open the new column's title straight away: an untitled column is the
   // first thing you would tap anyway
   bd.editing = { kind: "cat", ci: bd.catIndex, row: 0 };
-  render();
-}
-function builderRemoveCategory(i) {
-  var bd = state.builder;
-  if (!bd || bd.draft.textBoard.length <= MIN_CATS) return;
-  var n = parseInt(i, 10);
-  if (isNaN(n) || n < 0 || n >= bd.draft.textBoard.length) return;
-  bd.draft.textBoard.splice(n, 1);
-  if (bd.catIndex >= bd.draft.textBoard.length) bd.catIndex = bd.draft.textBoard.length - 1;
-  bd.editing = null;
-  bd.error = "";
-  hap("tap");
   render();
 }
 // Reordering: categories read left to right on the board, so the creator needs
@@ -6826,7 +6972,10 @@ function renderHelp() {
           "Tap a category heading to name it. Tap any tile to write its question and answer.",
           "Everything you type happens in a popup over the board, so the board never leaves the screen.",
           "<strong>Points</strong> in that popup sets the value for the whole row, so 100&ndash;500 is a starting point, not a rule.",
-          "<strong>+ Add a row of questions</strong> makes the board deeper; the popup can delete a row again.",
+          "<strong>+ Add a row of questions</strong> makes the board deeper.",
+          "Nothing you write is lost by one tap. <strong>Remove this category</strong> and <strong>Remove this row</strong> put it on a shelf above the board &mdash; <strong>Bring it back</strong> returns it with every question still in it.",
+          "<strong>Clear just this question</strong> empties one tile and leaves the rest alone. That is the way to empty a board out on purpose.",
+          "<strong>Erase for good</strong> is the only thing here that really destroys something. It sits on its own at the very bottom, names what it would take with it, and cannot be undone.",
           "<strong>Play test</strong> plays it for real on this device. Nothing is scored and you come straight back.",
           "The <strong>&#8942;</strong> button holds the tagline, cover art, 18+, sharing, download and import.",
         ]) +
@@ -7009,8 +7158,8 @@ function confirmYes() {
   else if (action === "quitFeud") quitFeud();
   else if (action === "deleteFeudPack") deleteFeudPack(payload);
   else if (action === "reportBoard") reportBoard(payload);
-  else if (action === "builderRemoveRow") builderRemoveRow(payload);
-  else if (action === "builderRemoveCategory") builderRemoveCategory(payload);
+  else if (action === "builderDiscardBin") builderDiscardBin(payload);
+  else if (action === "eraseCategory") eraseCategory(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -7831,6 +7980,7 @@ function viewBuilderBoard() {
     '</div>' +
 
     '<div class="bboard-scroll">' +
+      builderBinHtml() +
       '<div class="bgrid" style="--cols:' + gridCols + '">' + heads + rows + '</div>' +
       (nRows < MAX_ROWS
         ? '<button class="bgrid-add-row" data-action="builderAddRow">+ Add a row of questions</button>'
@@ -7845,6 +7995,7 @@ function viewBuilderBoard() {
 
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
       (bd.toolsOpen ? builderToolsHtml(d, bd) : '') +
+      builderDangerHtml(d) +
     '</div>' +
 
     '<div class="bboard-bar">' +
@@ -7855,6 +8006,49 @@ function viewBuilderBoard() {
   '</div>';
 }
 
+// What you removed, still here until you say otherwise. It sits above the
+// board because it is about the board, and it goes away on its own the moment
+// you bring the last thing back.
+function builderBinHtml() {
+  var bin = builderBin();
+  if (!bin.length) return "";
+  var rows = bin.map(function (it, i) {
+    return '<div class="bbin-row">' +
+      '<span class="bbin-what">' +
+        '<span class="bbin-label">' + esc(it.label) + '</span>' +
+        '<span class="bbin-sub">' +
+          (it.work ? it.work + ' written question' + (it.work === 1 ? '' : 's') + ' waiting'
+                   : 'nothing was written in it') +
+        '</span>' +
+      '</span>' +
+      '<button class="bbin-back" data-action="builderRestore" data-i="' + i + '">Bring it back</button>' +
+      '<button class="bbin-drop" data-action="confirmDiscardBin" data-i="' + i + '" ' +
+        'aria-label="Erase ' + esc(it.label) + ' for good">&times;</button>' +
+    '</div>';
+  }).join("");
+  return '<div class="bbin">' +
+    '<p class="bbin-head">REMOVED &mdash; NOTHING IS LOST YET</p>' + rows +
+  '</div>';
+}
+// The only control in the maker that destroys anything outright. It is at the
+// very bottom, behind its own heading, with a gap above it, so it can only be
+// reached on purpose.
+function builderDangerHtml(d) {
+  if (d.textBoard.length <= MIN_CATS) return "";
+  var rows = d.textBoard.map(function (col, i) {
+    var n = categoryWorkCount(col);
+    return '<button class="bdanger-btn" data-action="confirmEraseCategory" data-i="' + i + '">' +
+      '<span class="bdanger-name">' + esc(col.category || "Category " + (i + 1)) + '</span>' +
+      '<span class="bdanger-sub">erase this column and its ' + n + ' written question' + (n === 1 ? '' : 's') + '</span>' +
+    '</button>';
+  }).join("");
+  return '<div class="bdanger">' +
+    '<p class="bdanger-head">ERASE FOR GOOD</p>' +
+    '<p class="bdanger-note">Everything else in the maker can be undone. These cannot. ' +
+      'To empty a category without erasing it, open its questions and clear them one at a time.</p>' +
+    rows +
+  '</div>';
+}
 // The one-off stuff: tagline, cover art, 18+, share, export, import, submit.
 // Folded away because none of it is part of making a board.
 function builderToolsHtml(d, bd) {
@@ -7908,7 +8102,8 @@ function builderPopupHtml(d, ed) {
           (ed.ci === d.textBoard.length - 1 ? ' disabled' : '') + '>Move right &rarr;</button>' +
       '</div>';
     if (d.textBoard.length > MIN_CATS) {
-      del = '<button class="bpop-del" data-action="confirmRemoveCategory" data-i="' + ed.ci + '">Delete this category</button>';
+      del = '<button class="bpop-del" data-action="builderRemoveCategory" data-i="' + ed.ci + '">Remove this category</button>' +
+        '<p class="bpop-del-note">It goes to the shelf above the board with everything in it, and you can bring it back.</p>';
     }
 
   } else if (ed.kind === "final") {
@@ -7945,9 +8140,13 @@ function builderPopupHtml(d, ed) {
         (state.builder.extrasOpen ? '&#9650; Hide extras' : '&#9660; Picture, clip, hint&hellip;') +
       '</button>' +
       (state.builder.extrasOpen ? builderExtrasHtml(q, ed.row) : '');
-    if (boardRows(d) > MIN_ROWS) {
-      del = '<button class="bpop-del" data-action="confirmRemoveRow" data-row="' + ed.row + '">Delete this whole row</button>';
-    }
+    del = (questionHasWork(q)
+        ? '<button class="bpop-del bpop-clear" data-action="builderClearQuestion" data-row="' + ed.row + '">Clear just this question</button>'
+        : '') +
+      (boardRows(d) > MIN_ROWS
+        ? '<button class="bpop-del" data-action="builderRemoveRow" data-row="' + ed.row + '">Remove this row</button>' +
+          '<p class="bpop-del-note">The whole row goes to the shelf above the board, and you can bring it back.</p>'
+        : '');
   }
 
   return '<div class="bpop-scrim" data-action="builderCloseEdit"></div>' +
@@ -10666,8 +10865,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderToggleTools") builderToggleTools();
   else if (action === "toggleBoardRules") toggleBoardRules();
   else if (action === "builderAddRow") builderAddRow();
-  else if (action === "confirmRemoveRow") confirmRemoveRow(t.getAttribute("data-row"));
-  else if (action === "confirmRemoveCategory") confirmRemoveCategory(t.getAttribute("data-i"));
+  else if (action === "builderRestore") builderRestore(t.getAttribute("data-i"));
+  else if (action === "confirmDiscardBin") confirmDiscardBin(t.getAttribute("data-i"));
+  else if (action === "confirmEraseCategory") confirmEraseCategory(t.getAttribute("data-i"));
+  else if (action === "builderClearQuestion") builderClearQuestion(t.getAttribute("data-row"));
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "stopTestingBoard") stopTestingBoard();
@@ -10675,7 +10876,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "closeExampleBoard") closeExampleBoard();
   else if (action === "builderClearMedia") builderClearMedia(+t.getAttribute("data-i"), t.getAttribute("data-field"));
   else if (action === "builderAddCategory") builderAddCategory();
-  else if (action === "builderRemoveCategory") builderRemoveCategory(+t.getAttribute("data-i"));
+  else if (action === "builderRemoveCategory") builderRemoveCategory(t.getAttribute("data-i"));
+  else if (action === "builderRemoveRow") builderRemoveRow(t.getAttribute("data-row"));
   else if (action === "builderMoveCategory") builderMoveCategory(+t.getAttribute("data-i"), +t.getAttribute("data-dir"));
   else if (action === "saveBuilder") saveBuilder();
   else if (action === "shareBuilder") shareBuilder();
