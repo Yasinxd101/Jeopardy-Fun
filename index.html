@@ -693,7 +693,9 @@
   }
   .my-board-controls button {
     background: none; border: none; color: #8b92c0; font-weight: 800;
-    font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px;
+    font-size: 12px; cursor: pointer; text-decoration: underline;
+    /* 4px padding left these at 22px tall, under the 24px minimum target */
+    padding: 6px 8px; min-height: 28px;
   }
   .board-card-create { border-style: dashed; border-left-width: 1px; justify-content: center; }
   /* 18+ section + wheel-effect indicators */
@@ -1231,6 +1233,105 @@
   }
   .more-caret { font-size: 11px; }
   .more-panel { margin-top: 4px; animation: mirror-fade 0.2s ease both; }
+
+  /* ---- Millionaire ---- */
+  .mil-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1200px 700px at 50% -10%, #10224a 0%, #070b1c 60%); }
+  .mil-wrap { max-width: 1000px; margin: 0 auto; padding: 18px 16px 32px; }
+  .mil-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .mil-seat {
+    display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: 14px;
+    background: #11152f; border: 1px solid #2a2f55; border-radius: 999px; padding: 7px 14px;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mil-playing-for { font-weight: 900; font-size: 14px; color: #ffd166; }
+  .mil-main { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 860px) { .mil-main { grid-template-columns: 1fr 220px; align-items: start; } }
+  .mil-stage { min-width: 0; }
+  .mil-img { display: block; max-width: 100%; max-height: 210px; margin: 0 auto 12px; border-radius: 12px; }
+  .mil-q {
+    background: #0d1638; border: 2px solid #2a3a70; border-radius: 14px;
+    padding: 20px 18px; text-align: center; font-size: 18px; font-weight: 700;
+    line-height: 1.45; overflow-wrap: anywhere;
+  }
+  .mil-opts { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+  @media (min-width: 640px) { .mil-opts { grid-template-columns: 1fr 1fr; } }
+  .mil-opt {
+    position: relative; display: flex; align-items: center; gap: 10px; text-align: left;
+    background: #0d1638; border: 1px solid #2a3a70; border-radius: 11px;
+    padding: 13px 14px; min-height: 52px; color: #fff; cursor: pointer;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .mil-opt[disabled] { cursor: default; }
+  .mil-letter { font-weight: 900; color: #ffd166; flex: none; min-width: 16px; }
+  .mil-opt-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .mil-opt-picked { background: #3a2f10; border-color: #ffd166; }
+  .mil-opt-locked { background: #4a3a10; border-color: #ffd166; animation: mil-pulse 0.9s ease-in-out infinite; }
+  @keyframes mil-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.5); } 50% { box-shadow: 0 0 0 7px rgba(255, 209, 102, 0); } }
+  .mil-opt-right { background: #13351f; border-color: #2cb67d; }
+  .mil-opt-wrong { background: #3a1220; border-color: #ff5470; }
+  .mil-opt-gone { opacity: 0.28; }
+  .mil-aud { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #0b0f24; border-radius: 0 0 11px 11px; }
+  .mil-aud-fill { display: block; height: 100%; background: #3da9fc; border-radius: 0 0 0 11px; transition: width 0.5s ease; }
+  .mil-aud-pct { position: absolute; right: 8px; bottom: 7px; font-size: 11px; font-weight: 900; color: #3da9fc; }
+  .mil-lifelines { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .mil-ll {
+    flex: 1; min-width: 92px; background: #11152f; border: 1px solid #3a4a80; border-radius: 999px;
+    color: #9ec9f5; font-family: inherit; font-weight: 800; font-size: 13px;
+    padding: 11px 8px; min-height: 42px; cursor: pointer;
+  }
+  .mil-ll-used { opacity: 0.3; text-decoration: line-through; }
+  .mil-ll[disabled] { cursor: default; }
+  .mil-friend {
+    margin-top: 12px; background: #11152f; border: 1px solid #2a3a70; border-radius: 11px;
+    padding: 12px 14px; font-size: 14px; line-height: 1.45; color: #c2c8ea;
+  }
+  .mil-friend strong { color: #3da9fc; }
+  .mil-note { margin: 10px 0 0; font-size: 13px; color: #9aa2cc; line-height: 1.45; }
+  .mil-locking { margin: 16px 0 0; text-align: center; font-weight: 900; font-size: 15px; color: #ffd166; letter-spacing: 2px; }
+  .mil-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .mil-actions .confirm-btn-cancel { width: 100%; }
+  .mil-ladder {
+    display: flex; flex-direction: column-reverse; gap: 2px;
+    background: #0b1128; border: 1px solid #2a2f55; border-radius: 12px; padding: 8px;
+  }
+  @media (min-width: 860px) { .mil-ladder { flex-direction: column; } }
+  .mil-rung {
+    display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-radius: 7px;
+    font-size: 12px; font-weight: 700; color: #6a72a8;
+  }
+  .mil-rung-num { min-width: 16px; font-size: 10px; opacity: 0.7; }
+  .mil-rung-cash { flex: 1; text-align: right; }
+  .mil-rung-safe { color: #9aa2cc; }
+  .mil-rung-won { color: #7ee2b0; }
+  .mil-rung-now { background: #ffd166; color: #0b0f24; font-weight: 900; }
+
+  /* the pack creator */
+  .mil-b-ladder { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .mil-b-rung {
+    position: relative; flex: 1 1 88px; background: #0d1230; border: 1px solid #2a2f55;
+    border-radius: 9px; padding: 8px 6px; cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 46px;
+  }
+  .mil-b-rung-n { font-size: 9px; font-weight: 900; color: #6a72a8; }
+  .mil-b-rung-cash { font-size: 11px; font-weight: 800; color: #8b92c0; }
+  .mil-b-rung-done { border-color: #2cb67d; }
+  .mil-b-rung-done .mil-b-rung-cash { color: #7ee2b0; }
+  .mil-b-rung-on { background: #3da9fc; border-color: #3da9fc; }
+  .mil-b-rung-on .mil-b-rung-n, .mil-b-rung-on .mil-b-rung-cash { color: #04203a; }
+  .mil-b-safe { font-size: 7.5px; font-weight: 900; letter-spacing: 0.5px; color: #ffd166; }
+  .mil-b-q { resize: vertical; min-height: 70px; font-family: inherit; line-height: 1.4; }
+  .mil-b-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .mil-b-opt { display: flex; align-items: center; gap: 8px; }
+  .mil-b-mark {
+    width: 38px; height: 38px; flex: none; border-radius: 9px;
+    background: #0d1230; border: 1px solid #2a2f55; color: #8b92c0;
+    font-family: inherit; font-weight: 900; font-size: 14px; cursor: pointer;
+  }
+  .mil-b-opt-right .mil-b-mark { background: #2cb67d; border-color: #2cb67d; color: #04210f; }
 
   /* game mode picker on the main menu */
   .mode-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 18px; }
@@ -2128,6 +2229,10 @@ var state = {
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
+  mil: null,              // Millionaire run in progress
+  milPackId: null,
+  milVotes: null,         // {connId: optionIndex} while the room is voting
+  milBuilder: null,       // {draft, index, error, submitMsg}
   statsMsg: "",           // one-line confirmation on the stats screen
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
   setupMoreOpen: false,   // the fold-away half of the start screen
@@ -3883,6 +3988,7 @@ function removePlayer(i) {
 function continueToBoards() {
   if (!modeIsReady()) return; // the mode is scaffolding only
   if (!state.players.length) return;
+  if (state.gameMode === "millionaire") { openMilPacks(); return; }
   // On phone-buzzer nights the room has to exist before anyone can join, so
   // the start button takes you through the room screen on the way.
   if (state.playStyle === "buzzers" && !state.buzzer.on) {
@@ -4746,13 +4852,323 @@ var GAME_MODES = [
   { id: "jeopardy",   name: "JEOPARDY",    short: "Jeopardy",    status: "ready",
     tagline: "Add players, then pick a board to play.",
     packWord: "board", accent: "#ffd166" },
-  { id: "millionaire", name: "MILLIONAIRE", short: "Millionaire", status: "wip",
+  { id: "millionaire", name: "MILLIONAIRE", short: "Millionaire", status: "ready",
     tagline: "One player in the hot seat, fifteen questions, three lifelines.",
     packWord: "question pack", accent: "#3da9fc" },
   { id: "feud",        name: "FAMILY FEUD", short: "Family Feud", status: "wip",
     tagline: "Two teams, one survey, three strikes.",
     packWord: "survey pack", accent: "#2cb67d" },
 ];
+// ---- Who Wants to Be a Millionaire ----
+// A ladder of fifteen questions. Two rungs are safe: reach them and you keep
+// that money however badly it goes afterwards.
+var MIL_LADDER = [100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000,
+                  64000, 125000, 250000, 500000, 1000000];
+var MIL_SAFE = [4, 9];           // indexes of the 1,000 and 32,000 rungs
+var MIL_LETTERS = ["A", "B", "C", "D"];
+var JF_MILPACKS_KEY = "jf.milpacks.v1";
+
+function milSafeFloor(index) {
+  // Money banked if you get question `index` wrong: the highest safe rung
+  // strictly below it.
+  var banked = 0;
+  for (var i = 0; i < MIL_SAFE.length; i++) {
+    if (MIL_SAFE[i] < index) banked = MIL_LADDER[MIL_SAFE[i]];
+  }
+  return banked;
+}
+function milMoney(index) { return MIL_LADDER[index] || 0; }
+function milPackError(p) {
+  if (!p || typeof p !== "object" || Array.isArray(p)) return "that file is not a question pack.";
+  if (!p.name) return 'the pack needs a "name".';
+  if (!Array.isArray(p.ladder) || p.ladder.length !== MIL_LADDER.length)
+    return "a pack needs exactly " + MIL_LADDER.length + " questions, easiest first.";
+  for (var i = 0; i < p.ladder.length; i++) {
+    var q = p.ladder[i];
+    if (!q || typeof q !== "object") return "question " + (i + 1) + " is missing.";
+    if (!q.q) return "question " + (i + 1) + " needs a question.";
+    if (!Array.isArray(q.options) || q.options.length !== 4)
+      return "question " + (i + 1) + " needs four answers.";
+    for (var o = 0; o < 4; o++) {
+      if (!String(q.options[o] || "").trim())
+        return "question " + (i + 1) + " is missing answer " + MIL_LETTERS[o] + ".";
+    }
+    if (typeof q.correct !== "number" || q.correct < 0 || q.correct > 3)
+      return "question " + (i + 1) + " has no correct answer marked.";
+  }
+  return "";
+}
+function isValidMilPack(p) { return !!(p && p.id) && milPackError(p) === ""; }
+function milPacks() {
+  var list = jfRead(JF_MILPACKS_KEY, []);
+  if (!Array.isArray(list)) return [];
+  return list.filter(isValidMilPack);
+}
+function blankMilQuestion() {
+  return { q: "", options: ["", "", "", ""], correct: 0, note: "", hint: "" };
+}
+function blankMilPack() {
+  var ladder = [];
+  for (var i = 0; i < MIL_LADDER.length; i++) ladder.push(blankMilQuestion());
+  return {
+    id: "milpack-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: "", tagline: "", accent: "#3da9fc", art: "",
+    ladder: ladder,
+  };
+}
+// Accept the same loose shapes a hand-written or AI-written pack arrives in.
+function normalizeMilPack(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  var p;
+  try { p = JSON.parse(JSON.stringify(raw)); } catch (e) { return raw; }
+  if (!p.name && p.title) p.name = p.title;
+  if (typeof p.accent !== "string" || !/^#?[0-9a-fA-F]{3,6}$/.test(String(p.accent).trim())) p.accent = "#3da9fc";
+  else if (p.accent.charAt(0) !== "#") p.accent = "#" + p.accent.trim();
+  if (!Array.isArray(p.ladder)) {
+    if (Array.isArray(p.questions)) p.ladder = p.questions;
+    else if (Array.isArray(p.items)) p.ladder = p.items;
+  }
+  if (Array.isArray(p.ladder)) {
+    p.ladder = p.ladder.map(function (q) {
+      if (!q || typeof q !== "object") return q;
+      if (q.q == null && q.question != null) q.q = q.question;
+      if (!Array.isArray(q.options)) {
+        if (Array.isArray(q.answers)) q.options = q.answers;
+        else if (Array.isArray(q.choices)) q.options = q.choices;
+      }
+      // "correct" may arrive as a letter or as the answer text
+      if (typeof q.correct === "string") {
+        var letter = MIL_LETTERS.indexOf(q.correct.trim().toUpperCase());
+        if (letter !== -1) q.correct = letter;
+        else if (Array.isArray(q.options)) {
+          var byText = q.options.map(function (o) { return String(o).trim(); }).indexOf(q.correct.trim());
+          if (byText !== -1) q.correct = byText;
+        }
+      }
+      if (typeof q.correct !== "number" && typeof q.answer === "string" && Array.isArray(q.options)) {
+        var m = q.options.map(function (o) { return String(o).trim(); }).indexOf(q.answer.trim());
+        if (m !== -1) q.correct = m;
+      }
+      if (typeof q.correct !== "number") q.correct = 0;
+      return q;
+    });
+  }
+  return p;
+}
+// ---- Millionaire: play ----
+// One contestant at a time. With several players everyone takes a run and the
+// winnings are compared at the end, which keeps it a hot seat rather than
+// inventing a rule the real show does not have.
+function startMillionaire(packId) {
+  var pack = milPacks().filter(function (p) { return p.id === packId; })[0];
+  if (!pack || !state.players.length) return;
+  state.milPackId = packId;
+  state.mil = {
+    seat: 0,                  // whose run this is
+    index: 0,                 // rung 0-14
+    chosen: null,             // letter index they have picked but not locked
+    locked: false,
+    revealed: false,
+    correct: false,
+    removed: [],              // options taken away by 50:50
+    audience: null,           // [4] percentages once the audience has voted
+    phone: null,              // {name, guess, confidence} once a friend has answered
+    lifelines: { fifty: true, audience: true, phone: true },
+    stage: "question",        // question | result | banked | done
+    winnings: [],             // per player, filled as each run ends
+    walked: false,
+  };
+  state.phase = "millionaire";
+  hap("press");
+  render();
+}
+function milPack() {
+  return milPacks().filter(function (p) { return p.id === state.milPackId; })[0];
+}
+function milQuestion() {
+  var p = milPack();
+  return p && state.mil ? p.ladder[state.mil.index] : null;
+}
+function milPick(i) {
+  var m = state.mil;
+  if (!m || m.locked || m.stage !== "question") return;
+  if (m.removed.indexOf(i) !== -1) return;
+  m.chosen = m.chosen === i ? null : i;
+  hap("tap");
+  render();
+}
+function milLockIn() {
+  var m = state.mil, q = milQuestion();
+  if (!m || !q || m.locked || m.chosen == null) return;
+  m.locked = true;
+  hap("press");
+  render();
+  // A beat of silence before the answer, the way the show does it.
+  setTimeout(function () {
+    if (!state.mil || !state.mil.locked || state.mil.revealed) return;
+    milReveal();
+  }, reducedMotion() ? 200 : 1400);
+}
+function milReveal() {
+  var m = state.mil, q = milQuestion();
+  if (!m || !q) return;
+  m.revealed = true;
+  m.correct = m.chosen === q.correct;
+  m.stage = "result";
+  if (m.correct) { sndScore(true, milMoney(m.index)); hap("good"); }
+  else { sndScore(false, 0); hap("bad"); shakeScreen(9); }
+  render();
+}
+function milNext() {
+  var m = state.mil;
+  if (!m || m.stage !== "result") return;
+  if (!m.correct) { milEndRun(milSafeFloor(m.index), "wrong"); return; }
+  if (m.index >= MIL_LADDER.length - 1) { milEndRun(milMoney(m.index), "won"); return; }
+  m.index++;
+  m.chosen = null;
+  m.locked = false;
+  m.revealed = false;
+  m.correct = false;
+  m.removed = [];
+  m.audience = null;
+  m.phone = null;
+  m.stage = "question";
+  hap("tap");
+  render();
+}
+function milWalkAway() {
+  var m = state.mil;
+  if (!m || m.stage !== "question" || m.locked) return;
+  milEndRun(m.index > 0 ? milMoney(m.index - 1) : 0, "walked");
+}
+function milEndRun(amount, how) {
+  var m = state.mil;
+  if (!m) return;
+  m.winnings[m.seat] = { amount: amount, how: how, reached: m.index };
+  m.stage = "banked";
+  if (how === "won") { sndEnd(); fireConfetti(2600); }
+  else if (how === "walked" && amount > 0) sndReveal();
+  render();
+}
+function milNextSeat() {
+  var m = state.mil;
+  if (!m) return;
+  if (m.seat >= state.players.length - 1) { m.stage = "done"; recordMilHistory(); render(); return; }
+  m.seat++;
+  m.index = 0;
+  m.chosen = null; m.locked = false; m.revealed = false; m.correct = false;
+  m.removed = []; m.audience = null; m.phone = null;
+  m.lifelines = { fifty: true, audience: true, phone: true };
+  m.stage = "question";
+  render();
+}
+function recordMilHistory() {
+  var m = state.mil, p = milPack();
+  if (!m || !p) return;
+  var rows = state.players.map(function (pl, i) {
+    return { name: pl.name, score: (m.winnings[i] && m.winnings[i].amount) || 0 };
+  });
+  var top = rows.reduce(function (a, r) { return Math.max(a, r.score); }, 0);
+  var hist = jfRead(JF_HISTORY_KEY, []);
+  if (!Array.isArray(hist)) hist = [];
+  hist.unshift({
+    at: Date.now(), mode: "millionaire", boards: [p.name], players: rows,
+    winners: rows.filter(function (r) { return r.score === top && top > 0; }).map(function (r) { return r.name; }),
+  });
+  if (hist.length > 100) hist = hist.slice(0, 100);
+  jfWrite(JF_HISTORY_KEY, hist);
+}
+
+// ---- lifelines ----
+function milFifty() {
+  var m = state.mil, q = milQuestion();
+  if (!m || !q || !m.lifelines.fifty || m.locked || m.stage !== "question") return;
+  var wrong = [0, 1, 2, 3].filter(function (i) { return i !== q.correct; });
+  // drop two of the three wrong ones, chosen at random
+  for (var i = wrong.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = wrong[i]; wrong[i] = wrong[j]; wrong[j] = t;
+  }
+  m.removed = wrong.slice(0, 2);
+  if (m.chosen != null && m.removed.indexOf(m.chosen) !== -1) m.chosen = null;
+  m.lifelines.fifty = false;
+  sndSelect();
+  hap("press");
+  render();
+}
+// The audience leans towards the right answer, harder on the easy questions
+// than the hard ones, which is roughly how a real studio audience behaves.
+function milAskAudience() {
+  var m = state.mil, q = milQuestion();
+  if (!m || !q || !m.lifelines.audience || m.locked || m.stage !== "question") return;
+  var live = milPhoneVotes();
+  if (live) {
+    m.audience = live;
+  } else {
+    var confidence = Math.max(0.3, 0.92 - m.index * 0.045);
+    var pool = [0, 1, 2, 3].filter(function (i) { return m.removed.indexOf(i) === -1; });
+    var pct = [0, 0, 0, 0];
+    var right = Math.round(confidence * 100 * (0.85 + Math.random() * 0.3));
+    right = Math.max(20, Math.min(92, right));
+    pct[q.correct] = right;
+    var rest = 100 - right;
+    var others = pool.filter(function (i) { return i !== q.correct; });
+    others.forEach(function (i, n) {
+      var share = n === others.length - 1 ? rest : Math.round(Math.random() * rest);
+      pct[i] = share;
+      rest -= share;
+    });
+    if (rest !== 0 && others.length) pct[others[others.length - 1]] += rest;
+    m.audience = pct;
+  }
+  m.lifelines.audience = false;
+  sndSelect();
+  render();
+}
+// If phones are in the room, the audience lifeline is a real vote.
+function milPhoneVotes() {
+  if (!state.buzzer.on || !hostConns.length) return null;
+  var votes = state.milVotes || {};
+  var keys = Object.keys(votes);
+  if (!keys.length) return null;
+  var counts = [0, 0, 0, 0], total = 0;
+  keys.forEach(function (k) {
+    var v = votes[k];
+    if (v >= 0 && v <= 3) { counts[v]++; total++; }
+  });
+  if (!total) return null;
+  var pct = counts.map(function (c) { return Math.round((c / total) * 100); });
+  var drift = 100 - pct.reduce(function (a, b) { return a + b; }, 0);
+  var biggest = pct.indexOf(Math.max.apply(null, pct));
+  pct[biggest] += drift;
+  return pct;
+}
+function milPhoneFriend() {
+  var m = state.mil, q = milQuestion();
+  if (!m || !q || !m.lifelines.phone || m.locked || m.stage !== "question") return;
+  // A friend who is usually right, less so the higher you climb, and who says
+  // so when they are guessing.
+  var sure = Math.random() < Math.max(0.25, 0.9 - m.index * 0.05);
+  var pool = [0, 1, 2, 3].filter(function (i) { return m.removed.indexOf(i) === -1; });
+  var guess = sure ? q.correct : pool[Math.floor(Math.random() * pool.length)];
+  m.phone = {
+    guess: guess,
+    sure: sure,
+    line: sure
+      ? "I'm almost certain it's " + MIL_LETTERS[guess] + "."
+      : "I'm really not sure, but I'd go " + MIL_LETTERS[guess] + ".",
+  };
+  m.lifelines.phone = false;
+  sndSelect();
+  render();
+}
+function quitMillionaire() {
+  state.mil = null;
+  state.milPackId = null;
+  state.milVotes = null;
+  state.phase = "players";
+  render();
+}
 function gameMode(id) {
   var want = id || state.gameMode;
   return GAME_MODES.filter(function (m) { return m.id === want; })[0] || GAME_MODES[0];
@@ -4857,6 +5273,15 @@ function renderHelp() {
           "<strong>Streak Bonus</strong> pays +100 for every three right in a row.",
           "<strong>One Buzz Per Question</strong> gives each player a single shot.",
           "<strong>Correct Answer Picks Next</strong> hands the board to whoever just got it right.",
+        ]) +
+        helpSection("Millionaire", [
+          "Pick <strong>Millionaire</strong> at the top of the start screen for a different game.",
+          "One player sits in the hot seat and climbs fifteen questions, four answers each.",
+          "Two rungs are safe: reach them and that money is yours however it ends.",
+          "Three lifelines, once each: <strong>50:50</strong>, <strong>Ask the room</strong> and <strong>Phone a friend</strong>.",
+          "Ask the room is a real vote when people are on their phones, and a stand-in audience when they are not.",
+          "<strong>Walk away</strong> any time to keep what you have already won.",
+          "With several players everyone takes a turn and the winnings are compared at the end.",
         ]) +
         helpSection("Fan boards", [
           "The <strong>Fan Boards</strong> tab holds boards other people made and sent in.",
@@ -5029,6 +5454,8 @@ function confirmYes() {
   else if (action === "removePlayerInGame") removePlayerInGame(payload);
   else if (action === "deleteCustomBoard") deleteCustomBoard(payload);
   else if (action === "clearHistory") clearHistory();
+  else if (action === "quitMil") quitMillionaire();
+  else if (action === "deleteMilPack") deleteMilPack(payload);
   else if (action === "reportBoard") reportBoard(payload);
   else render();
 }
@@ -5274,10 +5701,13 @@ function viewPlayers() {
   }).join('') + '</div>';
   // The board builder lives on the main menu now, one entry per game mode,
   // rather than being buried inside the board picker.
-  var packButton = m.status === "ready"
-    ? '<button class="big-gold pack-btn" data-action="openBuilder">Make or import a ' + m.packWord + '</button>'
-    : '<button class="big-gold pack-btn" style="background:#2a2f55;color:#6a72a8" disabled>' +
-        esc(m.short) + ' ' + m.packWord + 's are not ready yet</button>';
+  var packButton = m.status !== "ready"
+    ? '<button class="big-gold pack-btn" style="background:#2a2f55;color:#6a72a8" disabled>' +
+        esc(m.short) + ' ' + m.packWord + 's are not ready yet</button>'
+    : m.id === "millionaire"
+    ? '<button class="big-gold pack-btn" data-action="openMilBuilder">Make a ' + m.packWord + '</button>'
+    : '<button class="big-gold pack-btn" data-action="openBuilder">Make or import a ' + m.packWord + '</button>'
+    ;
   var playerRows = state.players.map(function (p, i) {
     return '<div class="row-item">' +
       avatarHtml(p, 14) +
@@ -5332,7 +5762,8 @@ function viewPlayers() {
       '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">' + playerRows + '</div>' +
       playStyleHtml() +
       '<button class="' + (state.players.length ? 'big-gold' : 'big-disabled') + '" data-action="continueToBoards">' +
-        (state.playStyle === "buzzers" ? 'Open the Room &amp; Pick a Board' : 'Pick a Board') + '</button>' +
+        (m.id === "millionaire" ? 'Pick a Question Pack'
+          : state.playStyle === "buzzers" ? 'Open the Room &amp; Pick a Board' : 'Pick a Board') + '</button>' +
       '<button class="big-gold" style="margin-top:10px;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN SOMEONE ELSE&rsquo;S ROOM</button>' +
       // Everything below is a one-off: it stays folded away so the first screen
       // is just "who is playing" and "go".
@@ -5690,6 +6121,352 @@ function viewBuilder() {
         '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
       '</label>' +
       (state.importFileMsg ? '<p class="muted" style="margin-top:6px;text-align:center">' + esc(state.importFileMsg) + '</p>' : '') +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Millionaire: the screen ----
+function milMoneyLabel(n) {
+  return "\u00A3" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+function milLadderHtml(m) {
+  var rows = [];
+  for (var i = MIL_LADDER.length - 1; i >= 0; i--) {
+    var safe = MIL_SAFE.indexOf(i) !== -1;
+    var cls = "mil-rung";
+    if (i === m.index && m.stage !== "banked" && m.stage !== "done") cls += " mil-rung-now";
+    else if (i < m.index) cls += " mil-rung-won";
+    if (safe) cls += " mil-rung-safe";
+    rows.push('<div class="' + cls + '">' +
+      '<span class="mil-rung-num">' + (i + 1) + '</span>' +
+      '<span class="mil-rung-cash">' + milMoneyLabel(MIL_LADDER[i]) + '</span>' +
+    '</div>');
+  }
+  return '<div class="mil-ladder">' + rows.join("") + '</div>';
+}
+function viewMillionaire() {
+  var m = state.mil, pack = milPack();
+  if (!m || !pack) { state.phase = "players"; return viewPlayers(); }
+  var seat = state.players[m.seat];
+  if (!seat) { state.phase = "players"; return viewPlayers(); }
+
+  if (m.stage === "done") return viewMilResults(m, pack);
+  if (m.stage === "banked") return viewMilBanked(m, pack, seat);
+
+  var q = milQuestion();
+  var options = q.options.map(function (text, i) {
+    var cls = "mil-opt";
+    if (m.removed.indexOf(i) !== -1) cls += " mil-opt-gone";
+    if (m.chosen === i) cls += m.locked ? " mil-opt-locked" : " mil-opt-picked";
+    if (m.revealed && i === q.correct) cls += " mil-opt-right";
+    else if (m.revealed && m.chosen === i) cls += " mil-opt-wrong";
+    var bar = (m.audience && m.removed.indexOf(i) === -1)
+      ? '<span class="mil-aud"><span class="mil-aud-fill" style="width:' + (m.audience[i] || 0) + '%"></span>' +
+        '<span class="mil-aud-pct">' + (m.audience[i] || 0) + '%</span></span>' : '';
+    return '<button class="' + cls + '" data-action="milPick" data-i="' + i + '"' +
+        (m.removed.indexOf(i) !== -1 || m.locked || m.stage !== "question" ? ' disabled' : '') + '>' +
+      '<span class="mil-letter">' + MIL_LETTERS[i] + '</span>' +
+      '<span class="mil-opt-text">' + (m.removed.indexOf(i) !== -1 ? "" : esc(text)) + '</span>' +
+      bar +
+    '</button>';
+  }).join("");
+
+  var lifelines = '<div class="mil-lifelines">' +
+    '<button class="mil-ll' + (m.lifelines.fifty ? '' : ' mil-ll-used') + '" data-action="milFifty"' +
+      (m.lifelines.fifty && m.stage === "question" && !m.locked ? '' : ' disabled') + '>50:50</button>' +
+    '<button class="mil-ll' + (m.lifelines.audience ? '' : ' mil-ll-used') + '" data-action="milAudience"' +
+      (m.lifelines.audience && m.stage === "question" && !m.locked ? '' : ' disabled') + '>Ask the room</button>' +
+    '<button class="mil-ll' + (m.lifelines.phone ? '' : ' mil-ll-used') + '" data-action="milPhone"' +
+      (m.lifelines.phone && m.stage === "question" && !m.locked ? '' : ' disabled') + '>Phone a friend</button>' +
+  '</div>';
+
+  var phoneLine = m.phone
+    ? '<div class="mil-friend"><strong>Your friend:</strong> ' + esc(m.phone.line) + '</div>' : '';
+  var votesLine = (m.audience && state.buzzer.on && state.milVotes && Object.keys(state.milVotes).length)
+    ? '<p class="mil-note">That is a real vote from ' + Object.keys(state.milVotes).length + ' phone' +
+      (Object.keys(state.milVotes).length === 1 ? '' : 's') + ' in the room.</p>'
+    : (m.audience ? '<p class="mil-note">Nobody is on a phone, so that is a stand-in audience.</p>' : '');
+
+  var action;
+  if (m.stage === "result") {
+    action = '<button class="big-gold" data-action="milNext">' +
+      (m.correct
+        ? (m.index >= MIL_LADDER.length - 1 ? "Claim the million" : "Next question &mdash; " + milMoneyLabel(milMoney(m.index + 1)))
+        : "See what " + esc(seat.name) + " walks away with") + '</button>';
+  } else if (m.locked) {
+    action = '<p class="mil-locking">Locked in&hellip;</p>';
+  } else {
+    action = '<div class="mil-actions">' +
+        '<button class="' + (m.chosen == null ? "big-disabled" : "big-gold") + '" style="margin-top:0" data-action="milLockIn"' +
+          (m.chosen == null ? ' disabled' : '') + '>' +
+          (m.chosen == null ? "Pick an answer" : "Final answer: " + MIL_LETTERS[m.chosen]) + '</button>' +
+        (m.index > 0
+          ? '<button class="confirm-btn-cancel" data-action="milWalk">Walk away with ' + milMoneyLabel(milMoney(m.index - 1)) + '</button>'
+          : '') +
+      '</div>';
+  }
+
+  var menu = renderMenu([
+    { label: "Quit to the menu", action: "confirmQuitMil" },
+    { label: "Help", action: "openHelp" },
+  ]);
+
+  return menu + '<div class="mil-bg"><div class="mil-wrap">' +
+    '<div class="mil-top">' +
+      '<span class="mil-seat">' + avatarHtml(seat, 13) + ' ' + esc(seat.name) +
+        (state.players.length > 1 ? ' &middot; ' + (m.seat + 1) + ' of ' + state.players.length : '') + '</span>' +
+      '<span class="mil-playing-for">Playing for ' + milMoneyLabel(milMoney(m.index)) + '</span>' +
+    '</div>' +
+    '<div class="mil-main">' +
+      '<div class="mil-stage">' +
+        (q.img ? '<img class="mil-img" src="' + esc(q.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
+        '<div class="mil-q">' + esc(q.q) + '</div>' +
+        '<div class="mil-opts">' + options + '</div>' +
+        phoneLine + votesLine +
+        (m.revealed && q.note ? '<p class="mil-note">' + esc(q.note) + '</p>' : '') +
+        lifelines +
+        action +
+      '</div>' +
+      milLadderHtml(m) +
+    '</div>' +
+  '</div></div>';
+}
+function viewMilBanked(m, pack, seat) {
+  var w = m.winnings[m.seat] || { amount: 0, how: "wrong" };
+  var line = w.how === "won" ? "took the lot." :
+             w.how === "walked" ? "walked away." : "got it wrong.";
+  var more = m.seat < state.players.length - 1;
+  return '<div class="win-bg"><div class="win-wrap">' +
+    '<h1 class="win-title">' + esc(seat.name) + ' ' + line + '</h1>' +
+    '<p class="win-champ-line">' + milMoneyLabel(w.amount) + '</p>' +
+    '<p class="mil-note" style="text-align:center">Reached question ' + (w.reached + 1) + ' of ' + MIL_LADDER.length + '.</p>' +
+    '<div class="win-actions">' +
+      '<button class="big-gold" style="margin-top:0" data-action="milNextSeat">' +
+        (more ? esc(state.players[m.seat + 1].name) + " takes the seat" : "See the results") + '</button>' +
+    '</div>' +
+  '</div></div>';
+}
+function viewMilResults(m, pack) {
+  var ranked = state.players.map(function (p, i) {
+    return { name: p.name, color: p.color, shape: p.shape,
+             amount: (m.winnings[i] && m.winnings[i].amount) || 0 };
+  }).sort(function (a, b) { return b.amount - a.amount; });
+  var top = ranked.length ? ranked[0].amount : 0;
+  var medals = ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"];
+  var rows = ranked.map(function (p, i) {
+    return '<div class="win-row' + (p.amount === top && top > 0 ? " win-row-champ" : "") + '">' +
+      '<span class="win-rank">' + (medals[i] || (i + 1) + ".") + '</span>' +
+      '<span class="dot" style="background:' + p.color + '"></span>' +
+      '<span class="win-name">' + esc(p.name) + '</span>' +
+      '<span class="win-score">' + milMoneyLabel(p.amount) + '</span>' +
+    '</div>';
+  }).join("");
+  return '<div class="win-bg"><div class="win-wrap">' +
+    '<h1 class="win-title">\uD83C\uDFC6 ' + esc(pack.name) + '</h1>' +
+    '<div class="win-board">' + rows + '</div>' +
+    '<div class="win-actions">' +
+      '<button class="big-gold" style="margin-top:0" data-action="milPlayAgain">Play again</button>' +
+      '<button class="big-disabled" style="margin-top:0;background:#2a2f55;color:#fff" data-action="quitMil">Back to the menu</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Millionaire: choosing a pack ----
+function openMilPacks() { state.phase = "milPacks"; state.menuOpen = false; render(); }
+function viewMilPacks() {
+  var packs = milPacks();
+  var cards = packs.map(function (p) {
+    return '<div class="my-board-wrap">' +
+      '<button class="board-card" data-action="startMil" data-id="' + esc(p.id) + '" style="--accent:' + esc(p.accent) + '">' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(p.accent, 0.18) + '">' +
+          esc((p.name || "?").charAt(0).toUpperCase()) + '</div>' +
+        '<div class="board-card-text">' +
+          '<div class="board-card-name">' + esc(p.name) + '</div>' +
+          '<div class="board-card-tag">' + esc(p.tagline || (MIL_LADDER.length + " questions")) + '</div>' +
+        '</div>' +
+      '</button>' +
+      '<div class="my-board-controls">' +
+        '<button data-action="openMilBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
+        '<button data-action="deleteMilPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>' +
+      '</div></div>';
+  }).join("");
+  if (!packs.length) {
+    cards = '<p class="muted" style="grid-column:1/-1;text-align:center">' +
+      'No question packs yet. Make one and it shows up here.</p>';
+  }
+  return '<div class="boards-bg"><div class="boards-wrap" style="max-width:640px">' +
+    '<div class="boards-header">' +
+      '<h1 class="boards-title idle-float" style="color:#3da9fc">MILLIONAIRE</h1>' +
+      '<p class="boards-subtitle">' + (state.players.length
+        ? esc(state.players.map(function (p) { return p.name; }).join(", ")) + ' &mdash; pick a question pack'
+        : 'Add players first') + '</p>' +
+    '</div>' +
+    '<div class="boards-grid">' + cards + '</div>' +
+    '<div style="max-width:420px;margin:20px auto 0">' +
+      '<button class="big-gold" data-action="openMilBuilder">Make a question pack</button>' +
+      '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="editPlayers">Back</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ---- Millionaire: the creator ----
+function openMilBuilder(existingId) {
+  state.menuOpen = false;
+  var draft = null;
+  if (existingId) {
+    var found = milPacks().filter(function (p) { return p.id === existingId; })[0];
+    if (found) draft = JSON.parse(JSON.stringify(found));
+  }
+  state.milBuilder = { draft: draft || blankMilPack(), index: 0, error: "", submitMsg: "" };
+  state.phase = "milBuilder";
+  render();
+}
+function milBuilderSelect(i) {
+  if (!state.milBuilder) return;
+  state.milBuilder.index = Math.max(0, Math.min(MIL_LADDER.length - 1, i));
+  render();
+}
+function milBuilderCorrect(i) {
+  if (!state.milBuilder) return;
+  state.milBuilder.draft.ladder[state.milBuilder.index].correct = i;
+  hap("tap");
+  render();
+}
+function milBuilderSetField(path, value) {
+  if (!state.milBuilder) return;
+  var d = state.milBuilder.draft;
+  if (path === "name") d.name = value;
+  else if (path === "tagline") d.tagline = value;
+  else if (path === "accent") d.accent = value;
+  else {
+    var m = path.split(":");           // mil:<field> or milOpt:<n>
+    var q = d.ladder[state.milBuilder.index];
+    if (m[0] === "mil") q[m[1]] = value;
+    else if (m[0] === "milOpt") q.options[+m[1]] = value;
+  }
+}
+function cleanMilPack(p) {
+  var out = JSON.parse(JSON.stringify(p));
+  out.ladder.forEach(function (q) {
+    ["note", "hint", "img"].forEach(function (f) { if (!q[f]) delete q[f]; });
+    q.options = q.options.map(function (o) { return String(o == null ? "" : o); });
+  });
+  if (!out.art) delete out.art;
+  return out;
+}
+function saveMilPack() {
+  if (!state.milBuilder) return;
+  var d = cleanMilPack(state.milBuilder.draft);
+  var err = milPackError(d);
+  if (err) { state.milBuilder.error = "Not finished: " + err; render(); return; }
+  var list = jfRead(JF_MILPACKS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  var idx = list.map(function (p) { return p.id; }).indexOf(d.id);
+  if (idx !== -1) list[idx] = d; else list.push(d);
+  jfWrite(JF_MILPACKS_KEY, list);
+  state.milBuilder = null;
+  state.phase = "milPacks";
+  render();
+}
+function deleteMilPack(id) {
+  var list = jfRead(JF_MILPACKS_KEY, []);
+  if (!Array.isArray(list)) list = [];
+  jfWrite(JF_MILPACKS_KEY, list.filter(function (p) { return p.id !== id; }));
+  render();
+}
+function exportMilPack() {
+  if (!state.milBuilder) return;
+  var d = cleanMilPack(state.milBuilder.draft);
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }));
+  a.download = ((d.name || "pack").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pack") + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+}
+function submitMilPack() {
+  if (!state.milBuilder) return;
+  var d = cleanMilPack(state.milBuilder.draft);
+  var err = milPackError(d);
+  if (err) { state.milBuilder.error = "Finish the pack first: " + err; render(); return; }
+  var body = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" +
+    "**Questions:** " + d.ladder.length + " (Millionaire ladder)\n\n" +
+    "The pack file has been downloaded to this device. Please drag it into this issue before you submit it.\n";
+  exportMilPack();
+  state.milBuilder.error = "";
+  state.milBuilder.submitMsg = "Your pack file was downloaded. Attach it to the GitHub issue that just opened.";
+  openExternal(repoIssueUrl("Millionaire pack: " + d.name, body, "millionaire-pack"));
+  render();
+}
+function milBuilderProgress(d) {
+  var done = d.ladder.filter(function (q) {
+    return q.q && q.options.every(function (o) { return String(o || "").trim(); });
+  }).length;
+  return { done: done, total: d.ladder.length, ready: done === d.ladder.length && !!d.name };
+}
+function viewMilBuilder() {
+  var bd = state.milBuilder;
+  if (!bd) { state.phase = "milPacks"; return viewMilPacks(); }
+  var d = bd.draft, i = bd.index, q = d.ladder[i];
+  var p = milBuilderProgress(d);
+  var pct = Math.round((p.done / p.total) * 100);
+
+  var rungs = d.ladder.map(function (row, n) {
+    var full = row.q && row.options.every(function (o) { return String(o || "").trim(); });
+    return '<button class="mil-b-rung' + (n === i ? " mil-b-rung-on" : "") + (full ? " mil-b-rung-done" : "") +
+      '" data-action="milBuilderSelect" data-i="' + n + '">' +
+      '<span class="mil-b-rung-n">' + (n + 1) + '</span>' +
+      '<span class="mil-b-rung-cash">' + milMoneyLabel(MIL_LADDER[n]) + '</span>' +
+      (MIL_SAFE.indexOf(n) !== -1 ? '<span class="mil-b-safe">SAFE</span>' : '') +
+    '</button>';
+  }).join("");
+
+  var opts = q.options.map(function (text, n) {
+    return '<div class="mil-b-opt' + (q.correct === n ? " mil-b-opt-right" : "") + '">' +
+      '<button class="mil-b-mark" data-action="milBuilderCorrect" data-i="' + n + '"' +
+        ' aria-label="Mark ' + MIL_LETTERS[n] + ' as the correct answer">' +
+        (q.correct === n ? "&#10003;" : MIL_LETTERS[n]) + '</button>' +
+      '<input class="input builder-input" style="margin-top:0" data-milbind="milOpt:' + n + '"' +
+        ' placeholder="Answer ' + MIL_LETTERS[n] + '" value="' + esc(text) + '" />' +
+    '</div>';
+  }).join("");
+
+  return '<div class="wrap"><div class="inner builder-inner">' +
+    '<h1 class="title" style="font-size:28px;color:#3da9fc">QUESTION PACK</h1>' +
+    '<p class="sub">' + MIL_LADDER.length + ' questions, easiest first. Four answers each, one of them right.</p>' +
+    '<div class="builder-progress">' +
+      '<div class="builder-progress-top">' +
+        '<span class="builder-progress-num">' + p.done + ' of ' + p.total + ' questions written</span>' +
+        '<span class="builder-progress-pct">' + pct + '%</span>' +
+      '</div>' +
+      '<div class="builder-bar"><div class="builder-bar-fill" style="width:' + pct + '%"></div></div>' +
+      (p.ready ? '<p class="builder-progress-note builder-ready">Ready to save.</p>'
+               : (!d.name ? '<p class="builder-progress-note">Still to do: the pack has no name.</p>' : '')) +
+    '</div>' +
+    '<div class="card">' +
+      builderSectionHtml(1, "The pack",
+        '<label class="lbl">Pack name</label>' +
+        '<input class="input builder-input" data-milbind="name" placeholder="e.g. Film Buff Millionaire" value="' + esc(d.name) + '" />' +
+        '<label class="lbl" style="display:block;margin-top:10px">Tagline</label>' +
+        '<input class="input builder-input" data-milbind="tagline" placeholder="A short description" value="' + esc(d.tagline) + '" />') +
+      builderSectionHtml(2, "The ladder",
+        '<div class="mil-b-ladder">' + rungs + '</div>',
+        "Tap a rung to write that question. The easiest is worth " + milMoneyLabel(MIL_LADDER[0]) + ".") +
+      builderSectionHtml(3, "Question " + (i + 1) + " &mdash; " + milMoneyLabel(MIL_LADDER[i]),
+        '<textarea class="input builder-input mil-b-q" data-milbind="mil:q" rows="3" placeholder="The question">' + esc(q.q) + '</textarea>' +
+        '<p class="builder-sec-sub" style="margin-left:0">Tap a letter to mark the right answer.</p>' +
+        '<div class="mil-b-opts">' + opts + '</div>' +
+        '<input class="input builder-input" data-milbind="mil:hint" placeholder="Hint for the host only (optional)" value="' + esc(q.hint || "") + '" />' +
+        '<input class="input builder-input" data-milbind="mil:note" placeholder="Note shown after the answer (optional)" value="' + esc(q.note || "") + '" />' +
+        '<input class="input builder-input" data-milbind="mil:img" placeholder="Picture link (optional)" value="' + esc(q.img || "") + '" />',
+        MIL_SAFE.indexOf(i) !== -1 ? "This rung is safe: reaching it banks the money for good." : "") +
+      (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
+      '<div style="display:flex;gap:10px;margin-top:18px">' +
+        '<button class="confirm-btn-cancel" style="flex:1" data-action="closeMilBuilder">Cancel</button>' +
+        '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveMilPack">Save Pack</button>' +
+      '</div>' +
+      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitMilPack">Submit to the Fan Packs</button>' +
+      (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
+      '<button class="my-import-link" data-action="exportMilPack">Download this pack as a JSON backup</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -7230,6 +8007,9 @@ function render() {
   flipCapture(); // measure the outgoing DOM before it is replaced
   var html;
   if (state.wheel) html = viewWheel();
+  else if (state.phase === "millionaire") html = viewMillionaire();
+  else if (state.phase === "milBuilder") html = viewMilBuilder();
+  else if (state.phase === "milPacks") html = viewMilPacks();
   else if (state.phase === "buzzer") html = viewBuzzer();
   else if (state.phase === "hostRoom") html = viewHostRoom();
   else if (state.phase === "interlude") html = viewInterlude();
@@ -7324,6 +8104,7 @@ function render() {
 document.getElementById("root").addEventListener("input", function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+  if (t && t.getAttribute && t.getAttribute("data-milbind")) milBuilderSetField(t.getAttribute("data-milbind"), t.value);
   if (t && t.id === "volumeSlider") {
     state.volume = (+t.value) / 100;
     var pct = document.getElementById("volumeSliderPct");
@@ -7444,6 +8225,27 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "startRound2") startRound2();
   else if (action === "resumeGame") resumeGame();
   else if (action === "discardSave") discardSave();
+  else if (action === "milPick") milPick(+t.getAttribute("data-i"));
+  else if (action === "milLockIn") milLockIn();
+  else if (action === "milNext") milNext();
+  else if (action === "milWalk") milWalkAway();
+  else if (action === "milNextSeat") milNextSeat();
+  else if (action === "milFifty") milFifty();
+  else if (action === "milAudience") milAskAudience();
+  else if (action === "milPhone") milPhoneFriend();
+  else if (action === "confirmQuitMil") askConfirm("Quit this game? Nobody's winnings will be recorded.", "quitMil");
+  else if (action === "quitMil") quitMillionaire();
+  else if (action === "milPlayAgain") startMillionaire(state.milPackId);
+  else if (action === "openMilPacks") openMilPacks();
+  else if (action === "startMil") startMillionaire(t.getAttribute("data-id"));
+  else if (action === "openMilBuilder") openMilBuilder(t.getAttribute("data-id"));
+  else if (action === "closeMilBuilder") { state.milBuilder = null; state.phase = "milPacks"; render(); }
+  else if (action === "milBuilderSelect") milBuilderSelect(+t.getAttribute("data-i"));
+  else if (action === "milBuilderCorrect") milBuilderCorrect(+t.getAttribute("data-i"));
+  else if (action === "saveMilPack") saveMilPack();
+  else if (action === "deleteMilPack") askConfirm("Delete this question pack?", "deleteMilPack", t.getAttribute("data-id"));
+  else if (action === "exportMilPack") exportMilPack();
+  else if (action === "submitMilPack") submitMilPack();
   else if (action === "openStats") openStats();
   else if (action === "confirmClearHistory") askConfirm("Clear every recorded game on this device? The leaderboard and match list go with it. This cannot be undone.", "clearHistory");
   else if (action === "closeStats") closeStats();
