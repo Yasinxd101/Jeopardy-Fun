@@ -602,6 +602,16 @@
     text-align: center; overflow-wrap: anywhere;
   }
   .hc-hint { font-size: 13px; }
+  .board-notice {
+    max-width: 560px; margin: 0 auto 12px; padding: 10px 14px; border-radius: 10px;
+    background: rgba(22, 27, 61, 0.85); border: 1px solid #2a2f55;
+    color: #c2c8ea; font-size: 13px; font-weight: 600; line-height: 1.45; text-align: center;
+  }
+  .board-notice-quiet { color: #9aa2cc; font-weight: 500; }
+  .board-notice .inline-link {
+    background: none; border: none; color: #ffd166; font-family: inherit;
+    font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0;
+  }
   .danger-link {
     display: block; width: 100%; margin-top: 12px; background: none; border: none;
     color: #ff8aa0; font-family: inherit; font-weight: 700; font-size: 13px;
@@ -1843,6 +1853,54 @@ var BUILTIN_BOARDS = [
 // The live registry = built-ins + owner-curated fan boards + this device's
 // custom boards. Rebuilt whenever fan boards load or a custom board changes.
 var FAN_BOARDS = [];
+
+// ---- fan board submission and reporting ----
+// There is no server here. What makes a board canon is that it appears in
+// fan-boards.json IN THE REPOSITORY, and only someone who can push to that
+// repository can put it there. So submissions and reports do not go into the
+// page at all -- they open a GitHub issue, where GitHub does the identity
+// check and the repo owner decides. An "admin password" in a file anyone can
+// view-source would be theatre, not a gate.
+var REPO_FALLBACK = { owner: "Yasinxd101", repo: "Jeopardy-Fun" };
+function repoInfo() {
+  // yasinxd101.github.io/Jeopardy-Fun/ -> owner from the host, repo from path.
+  var host = String(location.hostname || "");
+  var m = host.match(/^([\w-]+)\.github\.io$/i);
+  if (m) {
+    var seg = String(location.pathname || "").split("/").filter(Boolean)[0];
+    if (seg) return { owner: m[1], repo: seg };
+  }
+  return REPO_FALLBACK;
+}
+function repoIssueUrl(title, body, label) {
+  var r = repoInfo();
+  return "https://github.com/" + encodeURIComponent(r.owner) + "/" + encodeURIComponent(r.repo) +
+    "/issues/new?title=" + encodeURIComponent(title) +
+    "&labels=" + encodeURIComponent(label) +
+    "&body=" + encodeURIComponent(body);
+}
+// How long a prefilled issue URL may get. Boards themselves always travel as
+// an attached file; this only decides whether a one-click "play it" link can
+// ride along too.
+var ISSUE_URL_MAX = 7000;
+
+var JF_HIDDEN_KEY = "jf.hidden.v1";
+function hiddenBoardIds() {
+  var v = jfRead(JF_HIDDEN_KEY, []);
+  return Array.isArray(v) ? v : [];
+}
+function isHiddenBoard(id) { return hiddenBoardIds().indexOf(id) !== -1; }
+function hideBoardLocally(id) {
+  var list = hiddenBoardIds();
+  if (list.indexOf(id) === -1) list.push(id);
+  jfWrite(JF_HIDDEN_KEY, list);
+}
+function unhideAllBoards() {
+  jfRemove(JF_HIDDEN_KEY);
+  rebuildBoards();
+  state.boardMsg = "";
+  render();
+}
 var BOARDS = BUILTIN_BOARDS.slice();
 function customBoards() {
   var list = jfRead("jf.myboards.v1", []);
@@ -1853,7 +1911,12 @@ function customBoards() {
   });
 }
 function rebuildBoards() {
-  BOARDS = BUILTIN_BOARDS.concat(FAN_BOARDS).concat(customBoards());
+  // A board this device has reported stops showing up here straight away,
+  // rather than waiting for the repo owner to act on the report.
+  var hidden = hiddenBoardIds();
+  BOARDS = BUILTIN_BOARDS
+    .concat(FAN_BOARDS.filter(function (b) { return hidden.indexOf(b.id) === -1; }))
+    .concat(customBoards());
 }
 // Explain exactly why a board can't be played, or "" when it is valid.
 // Does NOT require an id (that gets assigned on import) so hand-written or
@@ -1996,6 +2059,7 @@ var state = {
   editNameError: "",
   settingsOpen: false,
   statsMsg: "",           // one-line confirmation on the stats screen
+  boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
   setupMoreOpen: false,   // the fold-away half of the start screen
   playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
@@ -3376,6 +3440,66 @@ function builderSetField(path, value) {
   }
   // do not re-render on every keystroke (inputs keep focus); state is captured live
 }
+// Submitting does not add the board anywhere. It opens a GitHub issue on the
+// repo that serves fan-boards.json, so the owner -- the only person who can
+// push that file -- decides whether it becomes canon.
+function submitBoardForReview() {
+  if (!state.builder) return;
+  var d = cleanDraft(state.builder.draft);
+  var err = boardValidationError(d);
+  if (err) {
+    state.builder.error = "Finish the board first: " + err;
+    render();
+    return;
+  }
+  var cats = d.textBoard.map(function (c) { return c.category; }).join(", ");
+  var head =
+    "**Board:** " + d.name + "\n" +
+    "**Tagline:** " + (d.tagline || "(none)") + "\n" +
+    "**Categories (" + d.textBoard.length + "):** " + cats + "\n" +
+    "**Final:** " + d.final.category + "\n" +
+    (d.adult ? "**18+:** yes, this belongs in After Dark.\n" : "") +
+    "\n";
+  // A whole board does not fit in a URL. Measured against the built-in boards,
+  // the packed share link alone runs 7-14KB, and the raw JSON far more, so the
+  // file is the normal way a board travels and the link is a bonus for the
+  // small ones -- it lets the reviewer play the board in one click.
+  var title = "Fan board: " + d.name;
+  var attachNote = "The board file has been downloaded to this device. " +
+    "Please drag `" + boardFileName(d) + "` into this issue before you submit it.\n";
+  var link = "";
+  try { link = shareLinkFor(d); } catch (e) {}
+  var withLink = link ? head + "**Play it here:** " + link + "\n\n" + attachNote : "";
+  var url = withLink ? repoIssueUrl(title, withLink, "fan-board") : "";
+  var hasLink = !!url && url.length <= ISSUE_URL_MAX;
+  if (!hasLink) url = repoIssueUrl(title, head + attachNote, "fan-board");
+
+  downloadBoardJson(d);
+  state.builder.error = "";
+  state.builder.submitMsg = "Your board file was downloaded. Attach it to the GitHub issue that just opened, " +
+    "and the site owner will review it.";
+  openExternal(url);
+  render();
+}
+function reportBoard(id) {
+  var b = BOARDS.filter(function (x) { return x.id === id; })[0];
+  if (!b) return;
+  var body =
+    "**Board:** " + b.name + "\n" +
+    "**Board id:** `" + b.id + "`\n\n" +
+    "**What is wrong with it?**\n\n" +
+    "<!-- Wrong answers, broken links, stolen work, or content that should not be here. -->\n";
+  hideBoardLocally(b.id);
+  rebuildBoards();
+  if (state.previewBoardId === b.id) state.previewBoardId = null;
+  if (state.boardId === b.id) state.boardId = null;
+  state.boardMsg = "\u201C" + b.name + "\u201D is hidden on this device. The report opened on GitHub \u2014 send it there so the owner sees it.";
+  openExternal(repoIssueUrl("Report: " + b.name, body, "board-report"));
+  render();
+}
+function openExternal(url) {
+  try { window.open(url, "_blank", "noopener"); } catch (e) {}
+}
 function builderSelectCat(i) {
   if (!state.builder) return;
   state.builder.catIndex = i;
@@ -3505,13 +3629,16 @@ function deleteCustomBoard(id) {
   render();
 }
 // Share a board by packing it into the URL hash (#b=<base64 json>).
+function shareLinkFor(d) {
+  var packed = btoa(unescape(encodeURIComponent(JSON.stringify(d))));
+  return location.origin + location.pathname + "#b=" + packed;
+}
 function shareBuilder() {
   if (!state.builder) return;
   var d = cleanDraft(state.builder.draft);
   if (!isValidBoard(d)) { state.builder.error = "Finish the board before sharing it."; render(); return; }
   try {
-    var packed = btoa(unescape(encodeURIComponent(JSON.stringify(d))));
-    state.builder.shareUrl = location.origin + location.pathname + "#b=" + packed;
+    state.builder.shareUrl = shareLinkFor(d);
     state.builder.error = "";
   } catch (e) { state.builder.error = "Could not build a share link."; }
   render();
@@ -3537,16 +3664,21 @@ function copyShareUrl() {
   } else fallback();
 }
 // JSON backup: download the current draft, or restore a board from a file.
-function exportBuilderJson() {
-  if (!state.builder) return;
-  var d = cleanDraft(state.builder.draft);
+function boardFileName(d) {
+  return ((d.name || "board").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "board") + ".json";
+}
+function downloadBoardJson(d) {
   var a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }));
-  a.download = ((d.name || "board").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "board") + ".json";
+  a.download = boardFileName(d);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+}
+function exportBuilderJson() {
+  if (!state.builder) return;
+  downloadBoardJson(cleanDraft(state.builder.draft));
 }
 var importMsgTimer = null;
 function importBoardFile(file) {
@@ -4647,6 +4779,12 @@ function renderHelp() {
           "<strong>One Buzz Per Question</strong> gives each player a single shot.",
           "<strong>Correct Answer Picks Next</strong> hands the board to whoever just got it right.",
         ]) +
+        helpSection("Fan boards", [
+          "The <strong>Fan Boards</strong> tab holds boards other people made and sent in.",
+          "Made one you are proud of? <strong>Submit to the Fan Boards</strong> in the board maker sends it to the site owner to look at.",
+          "Only the owner can add a board to that tab, so nothing shows up there without being checked first.",
+          "Spotted something wrong with a fan board? <strong>Report this board</strong> hides it on your device straight away and tells the owner.",
+        ]) +
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
           "First pick goes to a random player, so nobody gets it just for typing their name first.",
@@ -4812,6 +4950,7 @@ function confirmYes() {
   else if (action === "removePlayerInGame") removePlayerInGame(payload);
   else if (action === "deleteCustomBoard") deleteCustomBoard(payload);
   else if (action === "clearHistory") clearHistory();
+  else if (action === "reportBoard") reportBoard(payload);
   else render();
 }
 function confirmSwitchBoard() { askConfirm("Switch boards? Scores and used questions will reset, but your players stay the same.", "switchBoard"); }
@@ -4978,6 +5117,12 @@ function viewBoards() {
       '<div style="text-align:center;margin-bottom:14px"><span class="buzz-room-chip" style="border-color:#ffd166">Round 1 locked in &middot; ' +
       '<button data-action="cancelMatchSetup" style="background:none;border:none;color:#ff8aa0;font-weight:800;font-size:13px;cursor:pointer;padding:0">cancel match</button></span></div>'
     : '') +
+    (state.boardMsg ? '<p class="board-notice">' + esc(state.boardMsg) + '</p>' : '') +
+    (hiddenBoardIds().length
+      ? '<p class="board-notice board-notice-quiet">' + hiddenBoardIds().length +
+        ' board' + (hiddenBoardIds().length === 1 ? ' is' : 's are') + ' hidden on this device. ' +
+        '<button class="inline-link" data-action="unhideBoards">Show them again</button></p>'
+      : '') +
     '<div class="search-box">' +
       '<input class="input" id="searchInput" placeholder="Search boards by name..." value="' + esc(state.searchQuery || "") + '" />' +
       '<button class="search-clear" data-action="clearSearch" aria-label="Clear search">&times;</button>' +
@@ -5030,6 +5175,12 @@ function viewBoardPreview() {
         '</div>' +
         '<button class="big-gold" style="background:#3da9fc;color:#04203a;font-size:15px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Full Match: Round 1 here, then pick Round 2</button>'
       ) +
+      // Fan boards are submitted by strangers, so anyone can flag one. The
+      // built-in boards and your own are not reportable -- there is nobody to
+      // report them to.
+      (b.genre === "Fan Boards"
+        ? '<button class="danger-link" data-action="confirmReportBoard" data-id="' + esc(b.id) + '">Report this board</button>'
+        : '') +
     '</div>' +
   '</div></div>';
 }
@@ -5366,7 +5517,7 @@ function viewBuilder() {
             '<input class="input" id="shareUrlInput" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px;flex:1;min-width:0" />' +
             '<button class="confirm-btn-cancel" style="white-space:nowrap;padding:0 14px" data-action="copyShareUrl">' + (bd.copied ? "Copied!" : "Copy") + '</button>' +
           '</div>' +
-          '<p class="muted" style="text-align:left;margin-top:6px">To submit it to the Fan Boards tab, send this link to the game owner.</p></div>'
+          '<p class="muted" style="text-align:left;margin-top:6px">Anyone with this link can play your board straight away.</p></div>'
       : '') +
 
       '<div style="display:flex;gap:10px;margin-top:18px">' +
@@ -5374,6 +5525,9 @@ function viewBuilder() {
         '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="shareBuilder">Share Link</button>' +
         '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveBuilder">Save Board</button>' +
       '</div>' +
+      '<button class="big-gold" style="background:#2cb67d;color:#04210f" data-action="submitBoardForReview">Submit to the Fan Boards</button>' +
+      '<p class="muted" style="margin-top:6px;font-size:12px">Opens a GitHub issue with your board attached. The site owner reviews every submission before it becomes one of the Fan Boards.</p>' +
+      (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
       '<button class="my-import-link" data-action="exportBuilderJson">Download this board as a JSON backup</button>' +
       '<label class="my-import-link" style="display:block">Import a board from a JSON backup' +
         '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
@@ -7140,6 +7294,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "shareBuilder") shareBuilder();
   else if (action === "copyShareUrl") copyShareUrl();
   else if (action === "exportBuilderJson") exportBuilderJson();
+  else if (action === "submitBoardForReview") submitBoardForReview();
+  else if (action === "confirmReportBoard") askConfirm("Report this board to the owner? It will be hidden on this device and a GitHub issue will open for you to describe the problem.", "reportBoard", t.getAttribute("data-id"));
+  else if (action === "unhideBoards") unhideAllBoards();
   else if (action === "deleteCustomBoard") askConfirm("Delete this custom board? A saved share link can bring it back.", "deleteCustomBoard", t.getAttribute("data-id"));
   else if (action === "acceptSharedBoard") acceptSharedBoard();
   else if (action === "dismissSharedBoard") dismissSharedBoard();
