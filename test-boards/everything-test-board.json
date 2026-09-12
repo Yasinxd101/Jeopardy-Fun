@@ -1,0 +1,270 @@
+{
+  "name": "The Everything Test Board",
+  "tagline": "Thirty-six questions built to exercise every feature at once.",
+  "accent": "#e05c9a",
+  "icon": "T",
+  "art": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%230d1230'/%3E%3Ccircle cx='90' cy='90' r='52' fill='%23ffd166'/%3E%3Crect x='170' y='40' width='100' height='100' fill='%232cb67d'/%3E%3C/svg%3E",
+  "adult": false,
+  "textBoard": [
+    {
+      "category": "First Lines",
+      "questions": [
+        {
+          "value": 150,
+          "q": "“It was a bright cold day in April, and the clocks were striking thirteen.”",
+          "a": "What is Nineteen Eighty-Four?",
+          "note": "Orwell wrote it on Jura in 1948; the title is widely read as those digits reversed.",
+          "hint": "Accept 1984 in any form — digits or words."
+        },
+        {
+          "value": 300,
+          "q": "“Call me Ishmael.”",
+          "a": "What is Moby-Dick?",
+          "note": "Three words, and probably the most quoted opening in American fiction."
+        },
+        {
+          "value": 450,
+          "q": "“All happy families are alike; each unhappy family is unhappy in its own way.”",
+          "a": "What is Anna Karenina?",
+          "hint": "Tolstoy — not War and Peace, which is the usual wrong guess."
+        },
+        {
+          "value": 600,
+          "q": "“It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.”",
+          "a": "What is Pride and Prejudice?"
+        },
+        {
+          "value": 750,
+          "q": "“In a hole in the ground there lived a hobbit.”",
+          "a": "What is The Hobbit?",
+          "note": "Tolkien said he wrote the line on a blank page of an exam script he was marking."
+        },
+        {
+          "value": 1000,
+          "q": "“Many years later, as he faced the firing squad, Colonel Aureliano Buendía was to remember that distant afternoon when his father took him to discover ice.”",
+          "a": "What is One Hundred Years of Solitude?",
+          "hint": "García Márquez. Accept Cien años de soledad."
+        }
+      ]
+    },
+    {
+      "category": "Pictures & Places",
+      "questions": [
+        {
+          "value": 150,
+          "q": "Name the two shapes on this card, and the colour of each.",
+          "a": "What is a yellow circle and a green square?",
+          "img": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%230d1230'/%3E%3Ccircle cx='90' cy='90' r='52' fill='%23ffd166'/%3E%3Crect x='170' y='40' width='100' height='100' fill='%232cb67d'/%3E%3C/svg%3E",
+          "note": "This one is a data URI, so it renders with no network at all.",
+          "hint": "Testing the picture path — any sensible wording is fine."
+        },
+        {
+          "value": 300,
+          "q": "This landlocked country is the only one whose flag is not a rectangle.",
+          "a": "What is Nepal?",
+          "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Flag_of_Nepal.svg/240px-Flag_of_Nepal.svg.png",
+          "aimg": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Flag_of_Nepal.svg/240px-Flag_of_Nepal.svg.png",
+          "note": "Two stacked pennants. Its construction is written into the constitution."
+        },
+        {
+          "value": 450,
+          "q": "This question deliberately points at a picture that does not exist, to prove a broken image fails quietly.",
+          "a": "What is a broken image placeholder?",
+          "img": "https://example.invalid/definitely-not-a-real-image.png",
+          "note": "If you saw a dashed box rather than a crash, that is the correct behaviour."
+        },
+        {
+          "value": 600,
+          "q": "Only two countries in the world are doubly landlocked — name either.",
+          "a": "What are Liechtenstein and Uzbekistan?",
+          "hint": "Doubly landlocked: every neighbour is landlocked too."
+        },
+        {
+          "value": 750,
+          "q": "This sea is shrinking so fast that its former ports now sit in desert.",
+          "a": "What is the Aral Sea?",
+          "note": "Soviet irrigation of the Amu Darya and Syr Darya drained it from the 1960s on."
+        },
+        {
+          "value": 1000,
+          "q": "Africa's highest mountain is a dormant volcano with three cones. Name it, or any one cone.",
+          "a": "What is Kilimanjaro? (Kibo, Mawenzi or Shira)"
+        }
+      ]
+    },
+    {
+      "category": "Play That Clip",
+      "questions": [
+        {
+          "value": 150,
+          "a": "What is “Never Gonna Give You Up” by Rick Astley?",
+          "id": "dQw4w9WgXcQ",
+          "clipStart": 0,
+          "clipLen": 15,
+          "note": "A clip question with NO written text — the audio is the whole question.",
+          "hint": "Yes, really. It is here because a clip-only question is legal."
+        },
+        {
+          "value": 300,
+          "q": "Play the clip. Which decade is this from?",
+          "a": "What is the 1980s?",
+          "id": "dQw4w9WgXcQ",
+          "clipStart": 43,
+          "clipLen": 12,
+          "note": "This one starts 43 seconds in, to test the cue point."
+        },
+        {
+          "value": 450,
+          "q": "A question with both a clip and a picture attached.",
+          "a": "What is a question testing two kinds of media at once?",
+          "id": "dQw4w9WgXcQ",
+          "clipStart": 5,
+          "clipLen": 8,
+          "img": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%230d1230'/%3E%3Ccircle cx='90' cy='90' r='52' fill='%23ffd166'/%3E%3Crect x='170' y='40' width='100' height='100' fill='%232cb67d'/%3E%3C/svg%3E",
+          "aimg": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%230d1230'/%3E%3Ccircle cx='90' cy='90' r='52' fill='%23ffd166'/%3E%3Crect x='170' y='40' width='100' height='100' fill='%232cb67d'/%3E%3C/svg%3E"
+        },
+        {
+          "value": 600,
+          "q": "Which instrument traditionally opens an orchestra's tuning, giving the A?",
+          "a": "What is the oboe?",
+          "note": "Its pitch is stable and it cuts through, so everyone tunes to it."
+        },
+        {
+          "value": 750,
+          "q": "This composer wrote his ninth symphony while profoundly deaf.",
+          "a": "Who is Beethoven?",
+          "hint": "Accept Ludwig van Beethoven."
+        },
+        {
+          "value": 1000,
+          "q": "In standard notation, how many semiquavers fill one 4/4 bar?",
+          "a": "What is sixteen?",
+          "note": "Sixteenth notes — four to a beat, four beats to the bar."
+        }
+      ]
+    },
+    {
+      "category": "Awkward Characters",
+      "questions": [
+        {
+          "value": 150,
+          "q": "Ampersands & angle brackets < > and \"straight quotes\" and 'apostrophes' all in one question — does it render as text?",
+          "a": "What is <b>not bold</b> & still plain text?",
+          "note": "If you can read the tags rather than see formatting, escaping works.",
+          "hint": "Testing HTML escaping in the question, answer, note and hint: & < > \" '"
+        },
+        {
+          "value": 300,
+          "q": "Emoji and scripts: 😀 🎵 — 日本語, العربية, Русский, Ελληνικά. Do they all show?",
+          "a": "What is ✅ yes, they all show?",
+          "note": "Mixed scripts and emoji in one line."
+        },
+        {
+          "value": 450,
+          "q": "A very long one. This sentence exists only to make the question long enough to test wrapping, scrolling and the layout of a genuinely wordy question on a narrow phone screen. This sentence exists only to make the question long enough to test wrapping, scrolling and the layout of a genuinely wordy question on a narrow phone screen. This sentence exists only to make the question long enough to test wrapping, scrolling and the layout of a genuinely wordy question on a narrow phone screen. Now: what is being tested?",
+          "a": "What is text wrapping on a small screen?",
+          "note": "If this fitted without the page scrolling sideways, the layout holds."
+        },
+        {
+          "value": 600,
+          "q": "Short.",
+          "a": "What is brevity?",
+          "hint": "The opposite of the 450."
+        },
+        {
+          "value": 750,
+          "q": "A question with non-breaking spaces between every word — does it still wrap?",
+          "a": "What is a wrapping test?",
+          "note": "Non-breaking spaces can force a line to overflow if nothing guards against it."
+        },
+        {
+          "value": 1000,
+          "q": "Supercalifragilisticexpialidocious antidisestablishmentarianism pneumonoultramicroscopicsilicovolcanoconiosis — three unbroken words. Do they break to fit?",
+          "a": "What is a long-word overflow test?",
+          "note": "A single word wider than the screen is the classic way to break a layout."
+        }
+      ]
+    },
+    {
+      "category": "Screen Time",
+      "questions": [
+        {
+          "value": 150,
+          "q": "This 1977 film opens with a wall of yellow text crawling into space.",
+          "a": "What is Star Wars?"
+        },
+        {
+          "value": 300,
+          "q": "This 1988 Ghibli film has two sisters, a hospital, and a very large forest spirit.",
+          "a": "What is My Neighbour Totoro?",
+          "note": "Accept Tonari no Totoro."
+        },
+        {
+          "value": 450,
+          "q": "In this sitcom, the coffee shop is called Central Perk.",
+          "a": "What is Friends?"
+        },
+        {
+          "value": 600,
+          "q": "This director has made films about a shark, dinosaurs, and an alien who wants to phone home.",
+          "a": "Who is Steven Spielberg?"
+        },
+        {
+          "value": 750,
+          "q": "This 1999 film's twist is that Bruce Willis's character has been dead the whole time.",
+          "a": "What is The Sixth Sense?",
+          "hint": "Spoiler question — maybe warn the room first."
+        },
+        {
+          "value": 1000,
+          "q": "The first film to win all five major Academy Awards — Picture, Director, Actor, Actress and Screenplay.",
+          "a": "What is It Happened One Night?",
+          "note": "1934. Only two films have matched it since."
+        }
+      ]
+    },
+    {
+      "category": "Small Numbers",
+      "questions": [
+        {
+          "value": 150,
+          "q": "How many sides does a hexagon have?",
+          "a": "What is six?"
+        },
+        {
+          "value": 300,
+          "q": "How many degrees in the interior angles of any triangle, added together?",
+          "a": "What is 180 degrees?"
+        },
+        {
+          "value": 450,
+          "q": "This is the only even prime number.",
+          "a": "What is two?",
+          "note": "Every other even number is divisible by two, so it cannot be prime."
+        },
+        {
+          "value": 600,
+          "q": "How many bones are in an adult human body?",
+          "a": "What is 206?",
+          "hint": "Babies have about 270; some fuse as they grow."
+        },
+        {
+          "value": 750,
+          "q": "In binary, what number is 1010?",
+          "a": "What is ten?"
+        },
+        {
+          "value": 1000,
+          "q": "This is the smallest number that is the sum of two cubes in two different ways.",
+          "a": "What is 1729?",
+          "note": "The Hardy–Ramanujan number: 1³+12³ and 9³+10³."
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Last Words",
+    "q": "This two-word Latin phrase, meaning “thus passes”, opens a longer line about worldly glory.",
+    "a": "What is sic transit? (sic transit gloria mundi)"
+  }
+}
