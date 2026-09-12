@@ -684,8 +684,10 @@
     border-top: 1px solid #23284b; background: #0d1230;
   }
   .bbar-test, .bbar-save {
-    flex: 1; border: none; border-radius: 12px; padding: 13px; min-height: 46px;
-    font-family: inherit; font-weight: 900; font-size: 15px; cursor: pointer;
+    /* three across on a 390px phone, so the label shrinks rather than wraps */
+    flex: 1; border: none; border-radius: 12px; padding: 13px 6px; min-height: 46px;
+    font-family: inherit; font-weight: 900; font-size: clamp(12.5px, 3.5vw, 15px);
+    line-height: 1.15; cursor: pointer; min-width: 0;
   }
   .bbar-test { background: #20264d; color: #dfe3ff; border: 1px solid #343b6b; }
   .bbar-save { background: var(--ba); color: #0b0f24; }
@@ -1105,6 +1107,16 @@
     flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
     background: #ff5470; color: #2a0410; font-weight: 800; font-size: 14px;
   }
+
+  /* one question, played through, on a preview card */
+  .demo-head {
+    margin: 0 0 10px; text-align: center; font-size: 12px; font-weight: 900;
+    letter-spacing: 1.4px; color: #aab0d8;
+  }
+  .demo-value { color: #ffd166; }
+  .wheel-removed-note { margin: 10px 0 0; text-align: center; font-size: 13px; font-weight: 700; color: #7ee2b0; }
+  .demo-note { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: #aab0d8; text-align: center; }
+  .demo-tip { margin: 12px 0 0; font-size: 12.5px; line-height: 1.45; color: #8b92c0; text-align: center; }
 
   /* ---- per-question timer ---- */
   .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
@@ -2901,6 +2913,7 @@ var state = {
   milBuilder: null,       // {draft, index, error, submitMsg}
   testingBoard: null,     // the builder draft parked while its board is test-played
   exampleOpen: false,     // showing the worked example from inside the builder
+  questionDemo: null,     // {c,r,revealed} -- one question played out on a preview card
   modePickerOpen: false,  // the slide-in panel for choosing a game
   feud: null,             // Family Feud game in progress
   feudPackId: null,
@@ -3422,9 +3435,6 @@ function playerIndexByName(name) {
   var n = String(name).toLowerCase();
   for (var i = 0; i < state.players.length; i++) if (state.players[i].name.toLowerCase() === n) return i;
   return -1;
-}
-function toggleBuzzerRoom() {
-  if (state.buzzer.on) stopBuzzerRoom(); else startBuzzerRoom();
 }
 function startBuzzerRoom() {
   if (!buzzerAvailable()) { state.buzzer.status = "unavailable"; render(); return; }
@@ -4831,6 +4841,7 @@ function enterTestBoard(previewOnly) {
   // "See my whole board" opens straight onto the preview card -- every
   // category and the Final, which is the whole-board view players get.
   state.previewBoardId = previewOnly ? "__testing__" : null;
+  state.questionDemo = null;
   state.searchQuery = "";
   state.boardsTab = "My Boards";
   state.phase = "boards";
@@ -4848,6 +4859,7 @@ function stopTestingBoard() {
   state.finalStage = null;
   state.finalDone = false;
   state.previewBoardId = null;
+  state.questionDemo = null;
   state.boardsTab = null;
   if (t && t.tempPlayers) state.players = [];
   if (t) {
@@ -4871,6 +4883,7 @@ function viewExampleBoard() {
 function closeExampleBoard() {
   state.exampleOpen = false;
   state.previewBoardId = null;
+  state.questionDemo = null;
   BOARDS = BOARDS.filter(function (b) { return b.id !== "example-board"; });
   state.phase = "builder";
   render();
@@ -5182,9 +5195,10 @@ function previewBoard(id) {
   var b = BOARDS.filter(function (x) { return x.id === id; })[0];
   if (b && b.adult && (!state.adultEnabled || !adultOk())) { state.adultGate = { type: "preview", id: id }; render(); return; }
   state.previewBoardId = id;
+  state.questionDemo = null;
   render();
 }
-function cancelPreview() { state.previewBoardId = null; render(); }
+function cancelPreview() { state.previewBoardId = null; state.questionDemo = null; render(); }
 
 // ---- manage players mid-game (board screen) ----
 function openManagePlayers() {
@@ -7455,6 +7469,14 @@ function viewBoardPreview() {
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + catChips.join("") + '</div>' +
       '<p class="lbl" style="display:block;margin-bottom:8px">Final Jeopardy Category</p>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px">' + '<div class="preview-chip" style="border-color:#ffd166;color:#ffd166">' + esc(b.final.category) + '</div>' + '</div>' +
+      // Categories on their own only show the shape of a board. On the example
+      // and on your own draft you also want to see a question actually played,
+      // so the demo below runs one exactly as players meet it.
+      (b.id === "example-board" || b.id === "__testing__"
+        ? '<button class="big-gold" style="background:#2a2f55;color:#dfe3ff;font-size:15px" data-action="openQuestionDemo">' +
+            'See how a question plays' +
+          '</button>'
+        : '') +
       (state.exampleOpen && b.id === "example-board" ?
         '<p class="muted" style="margin-top:18px;text-align:left">This is what a finished board looks like: every category titled, all ' +
         (b.textBoard.length * boardRows(b)) + ' questions written with an answer, and a Final Jeopardy at the end.</p>'
@@ -7480,7 +7502,83 @@ function viewBoardPreview() {
         ? '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="closeExampleBoard">Back to my board</button>'
         : '') +
     '</div>' +
-  '</div></div>';
+  '</div></div>' + questionDemoHtml(b);
+}
+
+// One question from a board, played through the way it is played for real:
+// the question on its own, then Reveal, then the answer and any note. It only
+// ever runs on the worked example and on your own unsaved draft, so it can
+// never spoil a board somebody is about to play.
+function questionDemoHtml(b) {
+  var demo = state.questionDemo;
+  if (!demo || !b) return "";
+  var col = b.textBoard[demo.c];
+  var item = col && col.questions[demo.r];
+  if (!item) return "";
+  var value = item.value != null ? item.value : (demo.r + 1) * 100;
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card" style="max-width:400px">' +
+      '<p class="demo-head">' + esc((col.category || "Category").toUpperCase()) +
+        ' &middot; <span class="demo-value">' + value + '</span></p>' +
+      '<div class="clue-box" style="font-size:17px;padding:20px 16px;min-height:76px">' +
+        esc(item.q || "(a clip plays here)") +
+      '</div>' +
+      (demo.revealed
+        ? '<div class="answer-box" style="font-size:17px;margin-top:12px">' +
+            esc(item.a || "(no answer written yet)") + '</div>' +
+          (item.note ? '<p class="demo-note">' + esc(item.note) + '</p>' : '') +
+          '<p class="demo-tip">In a real game the host taps a player right or wrong here, ' +
+            'and the points move on their own.</p>'
+        : '<p class="demo-tip">Everyone answers out loud. Only the host taps Reveal.</p>') +
+      '<div class="confirm-actions" style="margin-top:14px">' +
+        (demo.revealed
+          ? '<button class="confirm-btn-cancel" data-action="demoNext">Another question</button>'
+          : '<button class="confirm-btn-yes" style="background:#2cb67d;color:#04210f" data-action="demoReveal">Reveal the answer</button>') +
+        '<button class="confirm-btn-cancel" data-action="closeQuestionDemo">Done</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+// Start on a written question where there is one, so the demo shows the real
+// thing rather than a half-filled tile of a draft.
+function openQuestionDemo() {
+  var b = BOARDS.filter(function (x) { return x.id === state.previewBoardId; })[0];
+  if (!b) return;
+  state.questionDemo = { c: 0, r: 0, revealed: false };
+  demoStepToWritten(b, 0);
+  render();
+}
+function closeQuestionDemo() { state.questionDemo = null; render(); }
+function demoReveal() {
+  if (!state.questionDemo) return;
+  state.questionDemo.revealed = true;
+  sndReveal();
+  render();
+}
+function demoNext() {
+  var b = BOARDS.filter(function (x) { return x.id === state.previewBoardId; })[0];
+  if (!b || !state.questionDemo) return;
+  state.questionDemo.revealed = false;
+  demoStepToWritten(b, 1);
+  render();
+}
+// Walk forward through the board looking for the next written question, and
+// settle wherever it stops -- a board with nothing written still shows a tile.
+function demoStepToWritten(b, startOffset) {
+  var d = state.questionDemo;
+  var rows = boardRows(b), total = rows * b.textBoard.length;
+  var at = d.c * rows + d.r;
+  for (var step = startOffset; step < total + startOffset; step++) {
+    var k = (at + step) % total;
+    var c = Math.floor(k / rows), r = k % rows;
+    var item = b.textBoard[c] && b.textBoard[c].questions[r];
+    if (item && (item.q || item.id)) { d.c = c; d.r = r; return; }
+  }
+  // Nothing written anywhere on the board: move along anyway, so the button
+  // still does something rather than looking broken.
+  var fallback = (at + startOffset) % total;
+  d.c = Math.floor(fallback / rows);
+  d.r = fallback % rows;
 }
 
 function viewPlayers() {
@@ -8054,7 +8152,12 @@ function viewBuilderBoard() {
       builderDangerHtml(d) +
     '</div>' +
 
+    // "See it whole" is the preview card players meet before they pick a
+    // board -- every category and the Final on one screen. The button went
+    // missing when the maker was rebuilt, leaving showDraftBoard with nothing
+    // to call it.
     '<div class="bboard-bar">' +
+      '<button class="bbar-test" data-action="showDraftBoard">See it whole</button>' +
       '<button class="bbar-test" data-action="testBoard">Play test</button>' +
       '<button class="bbar-save" data-action="saveBuilder">Save board</button>' +
     '</div>' +
@@ -10424,10 +10527,17 @@ function wheelSummaryHtml(w) {
   return '<p class="wheel-summary' + (w.summaryGood === false ? " wheel-summary-bad" : "") + '">' + esc(w.summary) + '</p>';
 }
 function wheelActionsRow() {
+  // Removing a segment only changes what LATER spins can land on, so without
+  // this the button looked broken: you tapped it and the screen was identical.
+  var w = state.wheel;
+  var gone = w && w.segmentId && state.wheelRemoved[w.activeWheel].indexOf(w.segmentId) !== -1;
   return '<div class="confirm-actions" style="margin-top:14px">' +
-    '<button class="wheel-big-btn confirm-btn-cancel" data-action="removeLandedSegment">Remove This Option</button>' +
+    (gone
+      ? '<button class="wheel-big-btn confirm-btn-cancel" disabled style="opacity:0.55">Removed &#10003;</button>'
+      : '<button class="wheel-big-btn confirm-btn-cancel" data-action="removeLandedSegment">Remove This Option</button>') +
     '<button class="wheel-big-btn confirm-btn-cancel" data-action="respinWheel">Respin</button>' +
-  '</div>';
+  '</div>' +
+  (gone ? '<p class="wheel-removed-note">It will not come up again this game.</p>' : '');
 }
 function wheelOutcomeControls(w, outcome) {
   if (!outcome) {
@@ -10799,7 +10909,6 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "backUnrevealed") backUnrevealed();
   else if (action === "setBoardsTab") setBoardsTab(t.getAttribute("data-genre"));
   else if (action === "clearSearch") clearSearch();
-  else if (action === "toggleBuzzerRoom") toggleBuzzerRoom();
   else if (action === "openBuzzerJoin") openBuzzerJoin();
   else if (action === "openHostRoom") openHostRoom();
   else if (action === "closeHostRoom") closeHostRoom();
@@ -10875,7 +10984,6 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "confirmQuitMil") askConfirm("Quit this game? Nobody's winnings will be recorded.", "quitMil");
   else if (action === "quitMil") quitMillionaire();
   else if (action === "milPlayAgain") startMillionaire(state.milPackId);
-  else if (action === "openMilPacks") openMilPacks();
   else if (action === "startMil") startMillionaire(t.getAttribute("data-id"));
   else if (action === "openMilBuilder") openMilBuilder(t.getAttribute("data-id"));
   else if (action === "closeMilBuilder") { state.milBuilder = null; state.phase = "milPacks"; render(); }
@@ -10927,6 +11035,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderClearQuestion") builderClearQuestion(t.getAttribute("data-row"));
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
+  else if (action === "openQuestionDemo") openQuestionDemo();
+  else if (action === "closeQuestionDemo") closeQuestionDemo();
+  else if (action === "demoReveal") demoReveal();
+  else if (action === "demoNext") demoNext();
   else if (action === "stopTestingBoard") stopTestingBoard();
   else if (action === "viewExampleBoard") viewExampleBoard();
   else if (action === "closeExampleBoard") closeExampleBoard();
