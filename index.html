@@ -1984,7 +1984,12 @@
     border-radius: 999px; padding: 7px 14px; color: #aab0d8; font-weight: 800;
     font-size: 12px; cursor: pointer; font-family: inherit;
   }
-  .code-toggle-inline { display: inline-block; margin: 0 0 0 4px; padding: 4px 10px; font-size: 11px; }
+  /* Small, but still a tap target: it was 23px tall, under the 24px floor
+     everything else on the page clears. */
+  .code-toggle-inline {
+    display: inline-block; margin: 0 0 0 4px; padding: 6px 10px;
+    font-size: 11px; min-height: 28px; line-height: 1.4;
+  }
   @media (hover: hover) { .code-toggle:hover { border-color: #ffd166; color: #ffd166; } }
 
   /* board card + read-only board map on Host Control */
@@ -5239,6 +5244,9 @@ function jfSaveSettings() {
     juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit, gameMode: state.gameMode,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
     playStyle: state.playStyle, teamMode: state.teamMode,
+    // The timer is a house rule like any other: it was the one switch on that
+    // panel that forgot itself every time the tab was closed.
+    timerEnabled: state.timerEnabled, timerDuration: state.timerDuration,
   });
 }
 function loadSettings() {
@@ -5253,6 +5261,8 @@ function loadSettings() {
   if (s0.playStyle === "screen" || s0.playStyle === "buzzers") state.playStyle = s0.playStyle;
   state.teamMode = !!s0.teamMode;
   if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
+  if (typeof s0.timerEnabled === "boolean") state.timerEnabled = s0.timerEnabled;
+  if (typeof s0.timerDuration === "number") state.timerDuration = Math.max(5, Math.min(120, s0.timerDuration));
   if (typeof s0.gameMode === "string" && GAME_MODES.some(function (m) { return m.id === s0.gameMode; })) state.gameMode = s0.gameMode;
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
   if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
@@ -6758,7 +6768,8 @@ function renderHelp() {
           "From there you can reveal, judge, score, start or stop the music, and run all of Final Jeopardy.",
         ]) +
         helpSection("Daily Double and Final", [
-          "One hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
+          "A hidden tile is a <strong>Daily Double</strong>. That player bets before seeing the question.",
+          "How many are hidden is up to you &mdash; none, one, two or three, set with the rest of the rules at the board.",
           "Bet high and a right answer pays big; a wrong one costs the same.",
           "In <strong>Final Jeopardy</strong> everyone bets secretly, then answers one last question.",
           "The host screen shows who has their answer in, then reveals it and marks each person.",
@@ -6786,7 +6797,7 @@ function renderHelp() {
           "In Final Jeopardy each team bets and answers once, not each person.",
         ]) +
         helpSection("Millionaire", [
-          "Pick <strong>Millionaire</strong> at the top of the start screen for a different game.",
+          "Tap <strong>SWITCH</strong> on the game badge, then pick <strong>Millionaire</strong>.",
           "One player sits in the hot seat and climbs fifteen questions, four answers each.",
           "Two rungs are safe: reach them and that money is yours however it ends.",
           "Three lifelines, once each: <strong>50:50</strong>, <strong>Audience</strong> and <strong>Phone</strong>.",
@@ -6795,7 +6806,7 @@ function renderHelp() {
           "With several players everyone takes a turn and the winnings are compared at the end.",
         ]) +
         helpSection("Family Feud", [
-          "Pick <strong>Family Feud</strong> at the top of the start screen.",
+          "Tap <strong>SWITCH</strong> on the game badge, then pick <strong>Family Feud</strong>.",
           "Split everyone into two teams &mdash; tap a name to move it across.",
           "Each survey has its answers hidden. Read it out, and tap whichever answer someone actually says.",
           "Win the face-off and your team plays the board. Three strikes and the other team gets one guess to steal the whole bank.",
@@ -6822,8 +6833,8 @@ function renderHelp() {
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
           "First pick goes to a random player, so nobody gets it just for typing their name first.",
-          "<strong>More options</strong> on the start screen holds sound, motion and the 18+ switch &mdash; the things that belong to this device rather than to one game.",
-          "Settings has sound, motion, vibration, and the 18+ section, which is off until you turn it on.",
+          "<strong>More options</strong> on the start screen holds Settings, the board maker, the guide and your stats.",
+          "Settings is sound, motion, vibration and the 18+ section &mdash; the things that belong to this device rather than to one game. The rules of the game itself are at the board.",
         ]) +
       '</div>' +
     '</div>' +
