@@ -1605,6 +1605,17 @@
   .pbar-btn-go { background: #ffd166; border-color: #ffd166; color: #0b0f24; }
   .pbar-btn-off { color: #ff8aa0; }
   .pbar-teams { margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b; }
+  .pbar-rules {
+    display: inline-flex; align-items: center; gap: 6px; background: #0d1230;
+    border: 1px solid #2a2f55; border-radius: 10px; color: #9aa2cc;
+    font-family: inherit; font-weight: 800; font-size: 12.5px;
+    padding: 7px 11px; min-height: 34px; cursor: pointer; white-space: nowrap;
+  }
+  .pbar-rules-on { border-color: #ffd166; color: #ffd166; }
+  .pbar-caret { font-size: 9px; }
+  .pbar-rules-panel { margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b; animation: mirror-fade 0.2s ease both; }
+  .pbar-rules-panel .set-group { margin-top: 10px; }
+  .pbar-rules-panel .set-group:first-child { margin-top: 0; }
 
   /* ---- Millionaire ---- */
   .mil-bg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(1200px 700px at 50% -10%, #10224a 0%, #070b1c 60%); }
@@ -2820,6 +2831,7 @@ var state = {
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
+  rulesOpen: false,      // the house rules, open on the board-pick screen
   mil: null,              // Millionaire run in progress
   milPackId: null,
   milVotes: null,         // {connId: optionIndex} while the room is voting
@@ -5260,7 +5272,17 @@ function applyClipVolume() {
 // One place for "a setting changed": repaint only what needs it.
 function settingsChanged() {
   if (state.phase === "players" && document.getElementById("settingsWrap")) updateSettingsPanel();
+  else if (state.phase === "boards" && document.getElementById("boardRulesWrap")) updateBoardRules();
   else { jfSaveSettings(); broadcastSync(); render(); }
+}
+function updateBoardRules() {
+  var wrap = document.getElementById("boardRulesWrap");
+  if (!wrap || state.phase !== "boards") { render(); return; }
+  wrap.innerHTML = state.rulesOpen ? boardRulesHtml() : "";
+  var btn = document.querySelector(".pbar-rules");
+  if (btn) btn.firstChild.textContent = activeRuleCount() + " rules";
+  jfSaveSettings();
+  broadcastSync();
 }
 function toggleSettings() { state.settingsOpen = !state.settingsOpen; render(); }
 function toggleWheelOfChaos() { state.wheelOfChaosEnabled = !state.wheelOfChaosEnabled; settingsChanged(); }
@@ -6749,6 +6771,8 @@ function renderHelp() {
           "The video stays hidden while it plays, so the picture cannot give it away.",
         ]) +
         helpSection("House rules you can turn on", [
+          "They live on the board screen, behind the <strong>rules</strong> button &mdash; they belong to the game, not to your device.",
+          "The button counts how many are on, so you can see at a glance before you open it.",
           "<strong>Host Reads It Out</strong> hides the question until the host shows it, so buzzing first is a gamble rather than a reading race.",
           "<strong>No Minus Points</strong> and <strong>Never Below Zero</strong> keep scores from going backwards.",
           "<strong>Streak Bonus</strong> pays +100 for every three right in a row.",
@@ -6798,7 +6822,7 @@ function renderHelp() {
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
           "First pick goes to a random player, so nobody gets it just for typing their name first.",
-          "<strong>More options</strong> on the start screen holds settings, the board maker, and your stats.",
+          "<strong>More options</strong> on the start screen holds sound, motion and the 18+ switch &mdash; the things that belong to this device rather than to one game.",
           "Settings has sound, motion, vibration, and the 18+ section, which is off until you turn it on.",
         ]) +
       '</div>' +
@@ -7487,11 +7511,32 @@ function playSetupBarHtml() {
         ? '<button class="pbar-team' + (state.teamMode ? ' pbar-team-on' : '') + '" data-action="toggleTeamMode">' +
             '<span class="play-opt-tick">' + (state.teamMode ? '&#10003;' : '') + '</span>Teams</button>'
         : '') +
+      '<button class="pbar-rules' + (state.rulesOpen ? ' pbar-rules-on' : '') + '" data-action="toggleBoardRules" ' +
+        'aria-expanded="' + (state.rulesOpen ? 'true' : 'false') + '">' +
+        activeRuleCount() + ' rules<span class="pbar-caret">' + (state.rulesOpen ? '▲' : '▼') + '</span>' +
+      '</button>' +
     '</div>' +
     room +
     (state.teamMode && state.players.length >= 2 ? '<div class="pbar-teams">' + teamSetupHtml(true) + '</div>' : '') +
+    '<div id="boardRulesWrap">' + (state.rulesOpen ? boardRulesHtml() : '') + '</div>' +
   '</div>';
 }
+// How many rules are actually on, so the button says something before you
+// open it -- "3 rules" beats a chevron you have to tap to learn anything.
+function activeRuleCount() {
+  var r = state.roomRules, n = 0;
+  if (state.timerEnabled) n++;
+  if (r.ddCount) n++;
+  ["streakBonus", "noMinus", "floorZero", "keepTurn", "readAloud"].forEach(function (k) { if (r[k]) n++; });
+  if (buzzModeOn() && r.oneBuzz) n++;
+  if (state.wheelOfChaosEnabled) n++;
+  if (state.phoneMirror) n++;
+  return n;
+}
+function boardRulesHtml() {
+  return '<div class="pbar-rules-panel">' + settingsPanelHtml("rules") + '</div>';
+}
+function toggleBoardRules() { state.rulesOpen = !state.rulesOpen; render(); }
 // One decision up front: are people buzzing in on their phones, or is everyone
 // crowded round one screen? It changes what the start button does.
 function playStyleHtml() {
@@ -9339,7 +9384,7 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
     setToggleRow("togglePhoneMirror", "Mirror Questions to Phones", "Players see the question and art on their phone", state.phoneMirror));
 }
-function settingsPanelHtml() {
+function settingsPanelHtml(which) {
   var r = state.roomRules;
   var vol = Math.round(state.volume * 100);
   var mode = gameMode();
@@ -9409,14 +9454,27 @@ function settingsPanelHtml() {
           '<span class="switch"></span>' +
         '</div>');
 
+  // Two different kinds of thing were living in one panel. How THIS GAME
+  // plays -- timers, daily doubles, house rules -- belongs next to the board
+  // you are about to play, so it lives on the board screen. How this DEVICE
+  // behaves -- sound, motion, the 18+ section -- is a preference and stays
+  // here, where you set it once and forget it.
+  if (which === "rules") {
+    if (mode.id !== "jeopardy") return modeNote ? '<div class="settings-panel">' + modeNote + '</div>' : "";
+    return '<div class="settings-panel">' +
+      setGroup("GAMEPLAY", gameplay) +
+      setGroup("PHONE ROOM", room) +
+    '</div>';
+  }
   return '<div class="settings-panel">' +
     modeNote +
     setGroup("AUDIO", audio) +
     setGroup("FEEL", feel) +
-    // Jeopardy's board rules mean nothing in the other two modes.
-    (mode.id === "jeopardy" ? setGroup("GAMEPLAY", gameplay) : "") +
-    (mode.id === "jeopardy" ? setGroup("PHONE ROOM", room) : "") +
     setGroup("CONTENT", content) +
+    (mode.id === "jeopardy"
+      ? '<p class="set-mode-note">Timers, Daily Doubles and the house rules are set where you pick the board, ' +
+        'so they belong to the game rather than to this device.</p>'
+      : '') +
   '</div>';
 }
 function ddCountAdj(d) {
@@ -10595,6 +10653,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderCloseEdit") builderCloseEdit();
   else if (action === "builderToggleExtras") builderToggleExtras();
   else if (action === "builderToggleTools") builderToggleTools();
+  else if (action === "toggleBoardRules") toggleBoardRules();
   else if (action === "builderAddRow") builderAddRow();
   else if (action === "confirmRemoveRow") confirmRemoveRow(t.getAttribute("data-row"));
   else if (action === "confirmRemoveCategory") confirmRemoveCategory(t.getAttribute("data-i"));
