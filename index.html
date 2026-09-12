@@ -681,10 +681,13 @@
   .builder-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   @media (max-width: 520px) { .builder-two { grid-template-columns: 1fr; } }
   .builder-swatch-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-  .builder-swatch {
-    width: 30px; height: 30px; border-radius: 8px; flex: none;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  .builder-wheel {
+    width: 46px; height: 42px; flex: none; padding: 3px; cursor: pointer;
+    background: #0d1230; border: 1px solid #2a2f55; border-radius: 9px;
   }
+  .builder-wheel::-webkit-color-swatch-wrapper { padding: 0; }
+  .builder-wheel::-webkit-color-swatch { border: none; border-radius: 6px; }
+  .builder-wheel::-moz-color-swatch { border: none; border-radius: 6px; }
   .builder-adult {
     display: flex; gap: 10px; align-items: flex-start; margin-top: 14px;
     cursor: pointer; color: #9aa2cc; font-size: 13px; line-height: 1.45; text-align: left;
@@ -1389,6 +1392,7 @@
   }
 
   /* test-run banner */
+  .test-banner-space { height: 50px; }
   .test-banner {
     position: fixed; top: 0; left: 0; right: 0; z-index: 28;
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -1399,7 +1403,13 @@
   .test-banner-btn {
     background: #04210f; color: #7ee2b0; border: none; border-radius: 8px;
     font-family: inherit; font-weight: 800; font-size: 12px;
-    padding: 8px 12px; min-height: 32px; cursor: pointer;
+    padding: 8px 12px; min-height: 32px; cursor: pointer; white-space: nowrap;
+  }
+  /* On a narrow phone the explanation pushed the bar onto a second line, so it
+     grew taller than the spacer and covered the screen underneath. */
+  @media (max-width: 430px) {
+    .test-banner { flex-wrap: nowrap; }
+    .test-banner-text { display: none; }
   }
 
   /* team setup on the start screen */
@@ -4103,7 +4113,16 @@ function testBoard() {
     state.testingBoard.tempPlayers = true;
   }
   state.builder = null;
-  selectBoard("__testing__");
+  // Start where a player starts -- at the board picker, so the card, the
+  // preview and the colour all get looked at before a tile is ever tapped.
+  state.boardId = null;
+  state.used = {};
+  state.active = null;
+  state.previewBoardId = null;
+  state.searchQuery = "";
+  state.boardsTab = "My Boards";
+  state.phase = "boards";
+  render();
 }
 function stopTestingBoard() {
   var t = state.testingBoard;
@@ -4116,6 +4135,8 @@ function stopTestingBoard() {
   state.used = {};
   state.finalStage = null;
   state.finalDone = false;
+  state.previewBoardId = null;
+  state.boardsTab = null;
   if (t && t.tempPlayers) state.players = [];
   if (t) {
     state.builder = { draft: t.draft, catIndex: t.catIndex, error: "", shareUrl: "",
@@ -6352,10 +6373,11 @@ function confirmNewPlayers() { askConfirm("Clear all players? This removes every
 function testingBannerHtml() {
   if (!state.testingBoard) return "";
   return '<div class="test-banner">' +
-    '<span class="test-banner-tag">TEST RUN</span>' +
-    '<span class="test-banner-text">Nothing here is saved or scored.</span>' +
-    '<button class="test-banner-btn" data-action="stopTestingBoard">Back to editing</button>' +
-  '</div>';
+      '<span class="test-banner-tag">TEST RUN</span>' +
+      '<span class="test-banner-text">Nothing here is saved or scored.</span>' +
+      '<button class="test-banner-btn" data-action="stopTestingBoard">Back to editing</button>' +
+    '</div>' +
+    '<div class="test-banner-space" aria-hidden="true"></div>';
 }
 function renderMenu(items) {
   var btn = '<button data-action="toggleMenu" aria-label="Menu" style="position:fixed;top:14px;right:14px;width:42px;height:42px;border-radius:10px;border:none;background:#161b3d;color:#fff;font-size:20px;cursor:pointer;z-index:30">&#9776;</button>';
@@ -6474,7 +6496,9 @@ function viewBoards() {
   var isAdultTab = activeTab === ADULT_TAB;
   var cards = tabBoards.map(function (b, i) {
     var card = boardCardHtml(b, i);
-    if (isMyBoards || (isAdultTab && /^custom-/.test(b.id))) {
+    // The board being test-played is not a saved board: Edit would open the
+    // builder looking for something that does not exist and lose the draft.
+    if (b.id !== "__testing__" && (isMyBoards || (isAdultTab && /^custom-/.test(b.id)))) {
       // custom boards get edit/delete controls under the card
       card = '<div class="my-board-wrap">' + card +
         '<div class="my-board-controls">' +
@@ -6507,7 +6531,7 @@ function viewBoards() {
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
-  return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + testingBannerHtml() + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title idle-float">JEOPARDY</h1>' +
       '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
@@ -6548,7 +6572,7 @@ function viewBoardPreview() {
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
-  return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px;' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + testingBannerHtml() + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px;' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="card">' +
       (b.art ? '<div class="preview-art-wrap"><img class="preview-art" src="' + esc(b.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;"></div>' : '') +
       '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
@@ -7114,6 +7138,7 @@ function viewBuilder() {
     '</div>';
   }).join("");
 
+  var accent = /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || "")) ? d.accent : DEFAULT_ACCENT;
   var detailsBody =
       '<label class="lbl">Board name</label>' +
       '<input class="input builder-input" data-bind="name" placeholder="e.g. Studio Ghibli Jeopardy" value="' + esc(d.name) + '" />' +
@@ -7122,8 +7147,8 @@ function viewBuilder() {
       '<div class="builder-two">' +
         '<div><label class="lbl">Accent colour</label>' +
           '<div class="builder-swatch-row">' +
-            '<span class="builder-swatch" style="background:' + esc(d.accent || DEFAULT_ACCENT) + '"></span>' +
-            '<input class="input builder-input" style="margin-top:0" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" />' +
+            '<input type="color" class="builder-wheel" id="builderAccentWheel" value="' + esc(accent) + '" aria-label="Pick the board colour" />' +
+            '<input class="input builder-input" style="margin-top:0" id="builderAccentHex" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" />' +
           '</div></div>' +
         '<div><label class="lbl">Cover image link</label>' +
           '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" /></div>' +
@@ -7133,7 +7158,6 @@ function viewBuilder() {
         '<span>18+ board &mdash; it will live in the After Dark tab, and by entering it players are warned they may see dark humor or images not suited for all ages.</span>' +
       '</label>';
 
-  var accent = /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || "")) ? d.accent : DEFAULT_ACCENT;
   var prog = builderProgress(d);
   var focusRow = state.builder.openRow >= 0 ? state.builder.openRow : (state.builder.lastRow || 0);
   return '<div class="builder-bg" style="--ba:' + esc(accent) + '"><div class="builder-inner">' +
@@ -9569,6 +9593,7 @@ function ensureConsistentState() {
 function render() {
   var root = document.getElementById("root");
   applyModeTheme();
+  if (document.body) document.body.classList.toggle("is-testing", !!state.testingBoard);
   ensureConsistentState();
   if (modalOpen()) stopShake();  // never leave a shake running under a sheet
   flipCapture(); // measure the outgoing DOM before it is replaced
@@ -9674,6 +9699,26 @@ function render() {
 
 document.getElementById("root").addEventListener("input", function (e) {
   var t = e.target;
+  if (t && t.id === "builderAccentWheel" && state.builder) {
+    // A colour input fires on every drag. Repaint the live bits by hand rather
+    // than re-rendering, which would close the picker mid-drag.
+    builderSetField("accent", t.value);
+    var hexField = document.getElementById("builderAccentHex");
+    if (hexField) hexField.value = t.value;
+    var bg = document.querySelector(".builder-bg");
+    if (bg) bg.style.setProperty("--ba", t.value);
+    return;
+  }
+  if (t && t.id === "builderAccentHex" && state.builder) {
+    builderSetField("accent", t.value);
+    if (/^#[0-9a-fA-F]{6}$/.test(t.value)) {
+      var wheel = document.getElementById("builderAccentWheel");
+      if (wheel) wheel.value = t.value;
+      var bg2 = document.querySelector(".builder-bg");
+      if (bg2) bg2.style.setProperty("--ba", t.value);
+    }
+    return;
+  }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
   if (t && t.getAttribute && t.getAttribute("data-milbind")) milBuilderSetField(t.getAttribute("data-milbind"), t.value);
   if (t && t.getAttribute && t.getAttribute("data-feudbind")) feudBuilderSetField(t.getAttribute("data-feudbind"), t.value);
@@ -9698,6 +9743,7 @@ document.getElementById("root").addEventListener("change", function (e) {
   var t = e.target;
   if (t && t.id === "importBoardFile" && t.files && t.files[0]) importBoardFile(t.files[0]);
   if (t && t.id === "builderAdult" && state.builder) state.builder.draft.adult = !!t.checked;
+  if (t && t.id === "builderAccentWheel" && state.builder) { hap("tap"); render(); }
   if (t && t.getAttribute && t.getAttribute("data-upload") && t.files && t.files[0]) {
     var up = t.getAttribute("data-upload").split(":");   // <row>:<field>
     builderUploadImage(+up[0], up[1], t.files[0]);
