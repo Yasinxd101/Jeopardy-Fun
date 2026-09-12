@@ -129,7 +129,9 @@
     background: radial-gradient(circle, rgba(20, 24, 56, 0.94), rgba(8, 10, 24, 0.98));
     transition: opacity 0.35s ease;
   }
-  .video-frame.video-blurred .video-blur-overlay { opacity: 1; }
+  .video-frame.video-blurred .video-blur-overlay { opacity: 1; pointer-events: auto; }
+  /* belt and braces: nothing in the frame can be hovered or focused while hidden */
+  .video-frame.video-blurred iframe { pointer-events: none; }
   .video-blur-hint {
     position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 14px;
@@ -891,7 +893,8 @@
   }
   .buzz-clip-veil-text { font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #fff; }
   /* the veil is opaque, so the clip is genuinely audio only on a phone */
-  .buzz-clip-hidden .buzz-clip-veil { background: #080b1c; }
+  .buzz-clip-hidden .buzz-clip-veil { background: #080b1c; pointer-events: auto; }
+  .buzz-clip-hidden iframe { pointer-events: none; }
   .buzz-clip-hidden iframe { filter: blur(40px) saturate(0); transform: scale(1.3); }
   .buzz-eq { display: flex; align-items: flex-end; gap: 4px; height: 26px; }
   .buzz-eq i { width: 5px; background: #ffd166; border-radius: 2px; animation: eq 0.9s ease-in-out infinite; }
@@ -957,6 +960,38 @@
     font-size: 12px; cursor: pointer; font-family: inherit;
   }
   @media (hover: hover) { .wheel-escape:hover { color: #ff8aa0; border-color: #ff8aa0; } }
+
+  /* everyone's score on everyone's phone */
+  .phone-scores { width: 100%; max-width: 340px; margin: 14px auto 0; }
+  .phone-scores-head { margin: 0 0 6px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; text-align: center; }
+  .phone-score-row {
+    display: flex; align-items: center; gap: 8px; background: #0d1230;
+    border-radius: 9px; padding: 7px 10px; margin-bottom: 5px;
+    transition: background 0.2s ease;
+  }
+  .phone-score-me { background: #1a2048; box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.45); }
+  .phone-score-rank { font-weight: 900; font-size: 11px; color: #6a72a8; min-width: 12px; }
+  .phone-score-name { flex: 1; min-width: 0; font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .phone-score-val { font-weight: 900; font-size: 13px; color: #ffd166; }
+
+  /* game mode picker on the main menu */
+  .mode-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 18px; }
+  .mode-chip {
+    position: relative; background: #10142e; border: 1px solid #2a2f55; border-radius: 999px;
+    padding: 9px 16px; color: #8b92c0; font-weight: 800; font-size: 12.5px;
+    cursor: pointer; font-family: inherit;
+  }
+  .mode-chip-on { background: var(--mc); border-color: var(--mc); color: #0b0f24; }
+  .mode-soon {
+    display: inline-block; margin-left: 6px; font-size: 8.5px; font-weight: 900;
+    letter-spacing: 1px; background: #2a2f55; color: #aab0d8; border-radius: 999px; padding: 2px 6px;
+    vertical-align: middle;
+  }
+  .mode-chip-on .mode-soon { background: rgba(11, 15, 36, 0.25); color: #0b0f24; }
+  .wip-card { text-align: center; border: 1px dashed #2a2f55; }
+  .wip-tag { margin: 0 0 8px; font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #ffd166; }
+  .wip-msg { margin: 0 0 6px; color: #aab0d8; font-size: 13.5px; line-height: 1.5; }
+  .pack-btn { font-size: 15px; }
 
   /* the help guide: a sheet you pull up, never forced on anyone */
   .help-overlay {
@@ -1535,7 +1570,7 @@ var RE5_TEXT_BOARD = [
 
 var BUILTIN_BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg", icon: "🎌", accent: "#a786df",
-    tagline: "Openings, endings, OSTs, and dubs from around the world. Every clue is a clip. (Updated 2026)",
+    tagline: "Openings, endings, OSTs, and dubs from around the world. Every question is a clip. (Updated 2026)",
     textBoard: ANIME_MUSIC_BOARD,
     final: { category: "The Composers",
       q: "This composer's jazz infused Cowboy Bebop soundtrack, opening with the big band barnstormer 'Tank!', made her a legend of anime music.",
@@ -1649,7 +1684,7 @@ function boardValidationError(b) {
   for (var c = 0; c < 5; c++) {
     var col = b.textBoard[c];
     if (!col || !col.category) return "category " + (c + 1) + " needs a title.";
-    if (!Array.isArray(col.questions) || col.questions.length !== 5) return 'category "' + col.category + '" needs exactly 5 clues.';
+    if (!Array.isArray(col.questions) || col.questions.length !== 5) return 'category "' + col.category + '" needs exactly 5 questions.';
     for (var q = 0; q < 5; q++) {
       var it = col.questions[q];
       if (!it || (!it.q && !it.id)) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
@@ -1657,7 +1692,7 @@ function boardValidationError(b) {
     }
   }
   if (!b.final || !b.final.category) return "Final Jeopardy needs a category.";
-  if (!b.final.q) return "Final Jeopardy needs a clue.";
+  if (!b.final.q) return "Final Jeopardy needs a question.";
   if (!b.final.a) return "Final Jeopardy needs an answer.";
   return "";
 }
@@ -1794,8 +1829,10 @@ var state = {
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
   phoneMirror: true,      // mirror clue text/art/audio cues to player phones
-  clipLimit: 20,          // seconds of a music clue to play, 0 = the whole thing
+  lastCorrectIndex: null, // who answered this clue correctly, for the keep-the-turn rule
+  clipLimit: 20,          // seconds of a music question to play, 0 = the whole thing
   clipStartedAt: 0,       // when the host hit play, so phones can join in sync
+  gameMode: "jeopardy",   // which game is selected on the main menu
   helpOpen: false,        // the pull-up help guide
   showRoomCode: false,    // room code and host PIN stay covered until asked for
   showHostPin: false,
@@ -2299,7 +2336,16 @@ function startBuzzerRoom() {
   });
 }
 function stopBuzzerRoom(reason) {
+  broadcastBuzzer({ type: "disarm" });
   broadcastBuzzer({ type: "roomClosed", reason: reason || "The host closed the buzzer room." });
+  var closing = hostConns.slice();
+  var peer = hostPeer;
+  hostPeer = null;
+  // give the close notice a moment to reach the phones before the link dies
+  setTimeout(function () {
+    closing.forEach(function (c) { try { c.close(); } catch (e) {} });
+    if (peer) { try { peer.destroy(); } catch (e) {} }
+  }, 400);
   state.buzzer.on = false;
   state.buzzer.status = "off";
   state.buzzer.code = null;
@@ -2307,8 +2353,8 @@ function stopBuzzerRoom(reason) {
   state.buzzer.armed = false;
   state.buzzer.winnerName = null;
   state.buzzer.winnerIndex = null;
+  state.buzzer.hostClaimed = false;
   hostConns = [];
-  if (hostPeer) { try { hostPeer.destroy(); } catch (e) {} hostPeer = null; }
   render();
 }
 // Remote control from the host's own phone. Every branch routes through the
@@ -2734,8 +2780,11 @@ function connectBuzzer(bc) {
       var cur = state.buzzClient;
       if (!cur) return;
       if (cur.stage === "ready") {
-        // connection dropped mid-game: keep the screen, offer a reconnect
+        // connection dropped mid-game: keep the screen, offer a reconnect, but
+        // the buzzer is dead until it is actually back
         cur.disconnected = true;
+        cur.buzzState = "idle";
+        cur.lockWinner = "";
         cur.buzzState = "idle";
       } else if (cur.stage !== "closed") {
         cur.stage = "join";
@@ -2839,6 +2888,7 @@ function handleClientData(d) {
 function sendBuzz() {
   var bc = state.buzzClient;
   if (!bc || bc.stage !== "ready" || bc.buzzState !== "armed") return;
+  if (bc.disconnected || !clientConn) return; // a dead link must not look live
   if (clientConn) { try { clientConn.send({ type: "buzz" }); } catch (e) {} }
 }
 // The phone plays the clip's audio itself; a tap is required so mobile
@@ -3060,7 +3110,7 @@ function saveBuilder() {
   if (!state.builder) return;
   var d = cleanDraft(state.builder.draft);
   if (!isValidBoard(d)) {
-    state.builder.error = "Every category needs a title, all 25 clues need a question and answer, and Final Jeopardy needs all three fields.";
+    state.builder.error = "Every category needs a title, all 25 questions need a question and answer, and Final Jeopardy needs all three fields.";
     render();
     return;
   }
@@ -3238,7 +3288,10 @@ function removePlayer(i) {
   state.players.splice(i, 1);
   render();
 }
-function continueToBoards() { if (state.players.length) { state.phase = "boards"; render(); } }
+function continueToBoards() {
+  if (!modeIsReady()) return; // the mode is scaffolding only
+  if (state.players.length) { state.phase = "boards"; render(); }
+}
 function editPlayers() { state.menuOpen = false; state.phase = "players"; render(); }
 function previewBoard(id) {
   var b = BOARDS.filter(function (x) { return x.id === id; })[0];
@@ -3350,6 +3403,7 @@ function surpriseMe() {
   previewBoard(pool[Math.floor(Math.random() * pool.length)].id);
 }
 function selectBoard(id) {
+  if (!modeIsReady()) return;
   // A recent-board chip or share link can point at a board that no longer
   // exists (a deleted custom board, a fan board that stopped loading).
   if (!BOARDS.some(function (b) { return b.id === id; })) {
@@ -3494,7 +3548,7 @@ function jfSaveSettings() {
   jfWrite("jf.settings.v1", {
     volume: state.volume, clipVolume: state.clipVolume, muted: state.muted,
     roomRules: state.roomRules, adultEnabled: state.adultEnabled,
-    juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit,
+    juice: state.juice, haptics: state.haptics, clipLimit: state.clipLimit, gameMode: state.gameMode,
     wheelOfChaosEnabled: state.wheelOfChaosEnabled, phoneMirror: state.phoneMirror,
   });
 }
@@ -3508,9 +3562,13 @@ function loadSettings() {
   if (typeof s0.wheelOfChaosEnabled === "boolean") state.wheelOfChaosEnabled = s0.wheelOfChaosEnabled;
   if (typeof s0.phoneMirror === "boolean") state.phoneMirror = s0.phoneMirror;
   if (typeof s0.clipLimit === "number") state.clipLimit = Math.max(0, Math.min(120, s0.clipLimit));
+  if (typeof s0.gameMode === "string" && GAME_MODES.some(function (m) { return m.id === s0.gameMode; })) state.gameMode = s0.gameMode;
   if (typeof s0.juice === "boolean") state.juice = s0.juice;
   if (typeof s0.haptics === "boolean") state.haptics = s0.haptics;
   if (s0.roomRules) {
+    state.roomRules.noMinus = !!s0.roomRules.noMinus;
+    state.roomRules.floorZero = !!s0.roomRules.floorZero;
+    state.roomRules.keepTurn = !!s0.roomRules.keepTurn;
     state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
     if (typeof s0.roomRules.ddCount === "number") state.roomRules.ddCount = Math.max(0, Math.min(3, s0.roomRules.ddCount));
@@ -3899,6 +3957,9 @@ function scoreQuestion(i, correct) {
   var val = activeValue();
   var old = pl.score;
   var delta = correct ? val : -val;
+  // House rules: a wrong answer can cost nothing, and scores can be floored at
+  // zero so nobody ends up in the red.
+  if (!correct && state.roomRules.noMinus) delta = 0;
   if (correct) {
     pl.streak = (pl.streak || 0) + 1;
     if (state.roomRules.streakBonus && pl.streak > 0 && pl.streak % 3 === 0) delta += 100;
@@ -3906,7 +3967,10 @@ function scoreQuestion(i, correct) {
     pl.streak = 0;
   }
   var next = old + delta;
+  if (state.roomRules.floorZero && next < 0) next = 0;
+  delta = next - old;
   pl.score = next;
+  if (correct) state.lastCorrectIndex = i;
   recordScore(i, delta);
   if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
   else { sndIncorrect(); sndScore(false, val); hap("wrong"); shakeScreen(8); }
@@ -4039,6 +4103,32 @@ function setBoardsTab(genre) {
   render();
 }
 // ---- 18+ section: one-time verification gate, stored on this device ----
+// ---- game modes ----
+// Only Jeopardy is playable today. The others are scaffolding: they own a name,
+// a look and their own content packs, so building them out later is additive.
+var GAME_MODES = [
+  { id: "jeopardy",   name: "JEOPARDY",    short: "Jeopardy",    status: "ready",
+    tagline: "Add players, then pick a board to play.",
+    packWord: "board", accent: "#ffd166" },
+  { id: "millionaire", name: "MILLIONAIRE", short: "Millionaire", status: "wip",
+    tagline: "One player in the hot seat, fifteen questions, three lifelines.",
+    packWord: "question pack", accent: "#3da9fc" },
+  { id: "feud",        name: "FAMILY FEUD", short: "Family Feud", status: "wip",
+    tagline: "Two teams, one survey, three strikes.",
+    packWord: "survey pack", accent: "#2cb67d" },
+];
+function gameMode(id) {
+  var want = id || state.gameMode;
+  return GAME_MODES.filter(function (m) { return m.id === want; })[0] || GAME_MODES[0];
+}
+function modeIsReady() { return gameMode().status === "ready"; }
+function setGameMode(id) {
+  if (state.gameMode === id) return;
+  state.gameMode = id;
+  sndSelect();
+  jfSaveSettings();
+  render();
+}
 var ADULT_TAB = "After Dark 18+";
 function adultOk() { return !!jfRead("jf.adult.v1", false); }
 function confirmAdultGate() {
@@ -4191,7 +4281,14 @@ function closeQuestion() {
   state.wagering = false;
   state.wager = null;
   state.seqOrder = null;
-  advanceTurn();
+  // Classic Jeopardy: whoever answered correctly picks the next tile.
+  if (state.roomRules.keepTurn && state.players[state.lastCorrectIndex]) {
+    state.players[state.lastCorrectIndex].skipNextTurn = false;
+    state.turn = state.lastCorrectIndex;
+  } else {
+    advanceTurn();
+  }
+  state.lastCorrectIndex = null;
   var board = currentBoard();
   if (isAllUsed() && state.match && state.match.round === 1) {
     state.phase = "interlude";
@@ -4409,11 +4506,10 @@ function viewBoards() {
   }).join("");
   // the create card always closes out the My Boards tab
   if (isMyBoards) {
-    cards += '<button class="board-card board-card-create" data-action="openBuilder">' +
-      '<div class="board-card-icon" style="background:rgba(255,209,102,0.18)">+</div>' +
-      '<div class="board-card-body"><div class="board-card-title">Create a Board</div>' +
-      '<div class="board-card-tagline">Build your own 5&times;5 board and share it by link.</div></div>' +
-    '</button>';
+    if (!tabBoards.length) {
+      cards += '<p class="muted" style="grid-column:1/-1;text-align:center">' +
+        'No boards of your own yet. Make one from the main menu.</p>';
+    }
   }
   // the 18+ tab keeps a non-playable example card that repeats the warning
   if (isAdultTab) {
@@ -4452,14 +4548,7 @@ function viewBoards() {
     '<div class="boards-tabs">' + tabs + '</div>' +
     (isAdultTab ? '<p class="adult-banner">18+ ONLY: boards here can contain dark humor or imagery not suited for all ages.</p>' : '') +
     '<div class="boards-grid">' + cards + '</div>' +
-    (isMyBoards ?
-      '<div class="my-import-row">' +
-        '<label class="my-import-link">Import a board from a JSON backup' +
-          '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
-        '</label>' +
-        (state.importFileMsg ? '<p class="muted" style="margin-top:6px">' + esc(state.importFileMsg) + '</p>' : '') +
-      '</div>'
-    : '') +
+    (isMyBoards && state.importFileMsg ? '<p class="muted" style="text-align:center;margin-top:12px">' + esc(state.importFileMsg) + '</p>' : '') +
   '</div></div>';
 }
 
@@ -4504,6 +4593,19 @@ function viewBoardPreview() {
 }
 
 function viewPlayers() {
+  var m = gameMode();
+  var modeChips = '<div class="mode-chips">' + GAME_MODES.map(function (g) {
+    var on = g.id === m.id;
+    return '<button class="mode-chip' + (on ? ' mode-chip-on' : '') + '" data-action="setGameMode" data-mode="' + g.id + '" style="--mc:' + g.accent + '">' +
+      esc(g.short) + (g.status === "ready" ? '' : '<span class="mode-soon">SOON</span>') +
+    '</button>';
+  }).join('') + '</div>';
+  // The board builder lives on the main menu now, one entry per game mode,
+  // rather than being buried inside the board picker.
+  var packButton = m.status === "ready"
+    ? '<button class="big-gold pack-btn" data-action="openBuilder">Make or import a ' + m.packWord + '</button>'
+    : '<button class="big-gold pack-btn" style="background:#2a2f55;color:#6a72a8" disabled>' +
+        esc(m.short) + ' ' + m.packWord + 's are not ready yet</button>';
   var playerRows = state.players.map(function (p, i) {
     return '<div class="row-item">' +
       avatarHtml(p, 14) +
@@ -4531,10 +4633,18 @@ function viewPlayers() {
     '</div>';
   }
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
-    '<h1 class="title idle-float">JEOPARDY</h1>' +
-    '<p class="sub">Add players, then pick a board to play.</p>' +
-    resumeCard +
-    '<div class="card">' +
+    '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
+    '<p class="sub">' + m.tagline + '</p>' +
+    modeChips +
+    (m.status === "ready" ? resumeCard : "") +
+    (m.status === "ready" ? "" :
+      '<div class="card wip-card">' +
+        '<p class="wip-tag">WORK IN PROGRESS</p>' +
+        '<p class="wip-msg">' + esc(m.short) + ' is not playable yet. The mode is here so its ' + m.packWord + 's can be built up first &mdash; everything you make now will be waiting when the game itself lands.</p>' +
+        packButton +
+        '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="setGameMode" data-mode="jeopardy">Back to Jeopardy</button>' +
+      '</div>') +
+    (m.status === "ready" ? '<div class="card">' : '<div class="card" hidden>') +
       '<label class="lbl">Player name</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
         '<input class="input" id="nameInput" placeholder="Type a name..." value="' + esc(state.nameInput) + '" />' +
@@ -4558,6 +4668,7 @@ function viewPlayers() {
         '<button class="big-gold" style="flex:1;margin-top:0;background:#3da9fc;color:#04203a" data-action="openHostRoom">HOST A ROOM</button>' +
         '<button class="big-gold" style="flex:1;margin-top:0;background:#2a2f55;color:#fff" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
       '</div>' +
+      packButton +
       '<p class="muted" style="margin-top:14px">' +
         '<button data-action="openHelp" class="inline-link" style="background:none;border:none;color:#ffd166;font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline">How it works</button>' +
         ' &middot; <button data-action="openStats" class="inline-link" style="background:none;border:none;color:#8b92c0;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Stats &amp; history</button>' +
@@ -4647,7 +4758,7 @@ function viewBuilder() {
   var clueFields = col.questions.map(function (q, r) {
     return '<div class="builder-clue">' +
       '<div class="builder-clue-head">' + q.value + ' pts</div>' +
-      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="Clue / question" value="' + esc(q.q) + '" />' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':q" placeholder="Question" value="' + esc(q.q) + '" />' +
       '<input class="input builder-input" data-bind="clue:' + r + ':a" placeholder="Answer" value="' + esc(q.a) + '" />' +
       '<div class="builder-optionals">' +
         '<input class="input builder-input" data-bind="clue:' + r + ':note" placeholder="Note (optional)" value="' + esc(q.note || "") + '" />' +
@@ -4684,7 +4795,7 @@ function viewBuilder() {
 
       '<p class="lbl" style="display:block;margin:18px 0 8px">FINAL JEOPARDY</p>' +
       '<input class="input builder-input" data-bind="finalCategory" placeholder="Final category" value="' + esc(d.final.category) + '" />' +
-      '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="Final clue" value="' + esc(d.final.q) + '" />' +
+      '<input class="input builder-input" style="margin-top:8px" data-bind="finalQ" placeholder="Final question" value="' + esc(d.final.q) + '" />' +
       '<input class="input builder-input" style="margin-top:8px" data-bind="finalA" placeholder="Final answer" value="' + esc(d.final.a) + '" />' +
 
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
@@ -4703,6 +4814,10 @@ function viewBuilder() {
         '<button class="big-gold" style="flex:1;margin-top:0" data-action="saveBuilder">Save Board</button>' +
       '</div>' +
       '<button class="my-import-link" data-action="exportBuilderJson">Download this board as a JSON backup</button>' +
+      '<label class="my-import-link" style="display:block">Import a board from a JSON backup' +
+        '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
+      '</label>' +
+      (state.importFileMsg ? '<p class="muted" style="margin-top:6px;text-align:center">' + esc(state.importFileMsg) + '</p>' : '') +
     '</div>' +
   '</div></div>';
 }
@@ -4723,7 +4838,7 @@ function viewInterlude() {
   var r2 = state.match ? BOARDS.filter(function (b) { return b.id === state.match.round2BoardId; })[0] : null;
   return '<div class="win-bg"><div class="win-wrap">' +
     '<h1 class="win-title">ROUND 1 COMPLETE</h1>' +
-    '<p class="win-champ-line">Next up: ' + esc(r2 ? r2.name : "Round 2") + ' &mdash; every clue worth double, with two Daily Doubles hiding on the board.</p>' +
+    '<p class="win-champ-line">Next up: ' + esc(r2 ? r2.name : "Round 2") + ' &mdash; every question worth double, with two Daily Doubles hiding on the board.</p>' +
     '<div class="win-board">' + rows + '</div>' +
     '<div class="win-actions">' +
       '<button class="big-gold" style="margin-top:0" data-action="startRound2">Start Double Jeopardy</button>' +
@@ -4736,6 +4851,25 @@ function phoneWagerInputHtml(bc, sendAction) {
   return '<div style="display:flex;gap:8px;margin-top:8px">' +
     '<input class="input" id="phoneWagerInput" type="number" min="0" placeholder="0" value="' + esc(bc.wagerInput || "") + '" style="flex:1" />' +
     '<button class="btn-gold" data-action="' + sendAction + '">Lock In</button>' +
+  '</div>';
+}
+// Everyone can see where they stand without looking at the big screen.
+function phoneScoreboardHtml(bc) {
+  var list = (bc.game && bc.game.players) || [];
+  if (list.length < 2) return "";
+  var ranked = list.slice().sort(function (a, b) { return b.score - a.score; });
+  var me = (bc.name || "").toLowerCase();
+  return '<div class="phone-scores">' +
+    '<p class="phone-scores-head">SCORES</p>' +
+    ranked.map(function (pl, i) {
+      var mine = String(pl.name).toLowerCase() === me;
+      return '<div class="phone-score-row' + (mine ? ' phone-score-me' : '') + '" data-key="ps-' + esc(pl.name) + '">' +
+          '<span class="phone-score-rank">' + (i + 1) + '</span>' +
+          avatarHtml(pl, 11) +
+          '<span class="phone-score-name">' + esc(pl.name) + '</span>' +
+          '<span class="phone-score-val">' + pl.score + '</span>' +
+        '</div>';
+    }).join('') +
   '</div>';
 }
 // What the phone mirrors from the host: clue text, timer, wheel, your score.
@@ -4826,7 +4960,7 @@ function buzzMirrorHtml(bc) {
         var src = 'https://www.youtube.com/embed/' + esc(c.videoId) +
           '?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&start=' + startAt;
         clipHtml = '<div class="buzz-clip-frame' + (c.revealed ? '' : ' buzz-clip-hidden') + '">' +
-            '<iframe src="' + src + '" allow="autoplay; encrypted-media"></iframe>' +
+            '<iframe title="Audio question" src="' + src + '" allow="autoplay; encrypted-media"></iframe>' +
             (c.revealed ? '' : '<div class="buzz-clip-veil">' +
                 '<span class="buzz-eq"><i></i><i></i><i></i><i></i></span>' +
                 '<span class="buzz-clip-veil-text">AUDIO ONLY</span>' +
@@ -4873,8 +5007,8 @@ function buzzMirrorHtml(bc) {
       return '<div class="buzz-mirror buzz-mirror-idle">' +
         '<p class="buzz-mirror-cat">' + (g.board ? 'NOW PLAYING' : 'ON THE BOARD') + '</p>' +
         (g.board ? '<p class="buzz-mirror-value">' + esc(g.board.name) + '</p>' : '') +
-        '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">' + esc(g.pick.turn || "Someone") + ' is picking the next tile.</p>' +
-        (g.board ? '<p class="buzz-timer-note">' + g.board.cluesLeft + ' clues left' + (g.board.round ? ' &middot; Round ' + g.board.round : '') + '</p>' : '') +
+        '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">' + esc(g.pick.turn || "Someone") + ' is picking the next question.</p>' +
+        (g.board ? '<p class="buzz-timer-note">' + g.board.cluesLeft + ' questions left' + (g.board.round ? ' &middot; Round ' + g.board.round : '') + '</p>' : '') +
       '</div>';
     }
     var usedSet = {};
@@ -4900,7 +5034,7 @@ function buzzMirrorHtml(bc) {
     : '';
   return '<div class="buzz-mirror buzz-mirror-idle">' +
     bInfo +
-    '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next clue shows up here too.</p>' +
+    '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next question shows up here too.</p>' +
   '</div>';
 }
 function spectateTimerHtml(bc) {
@@ -4936,14 +5070,14 @@ function viewHostControl(bc) {
     ? '<div class="hc-board" style="--pc:' + esc(g.board.accent) + '">' +
         '<span class="hc-board-name">' + esc(g.board.name) + '</span>' +
         (g.board.round ? '<span class="hc-board-round">ROUND ' + g.board.round + '</span>' : '') +
-        '<span class="hc-board-left">' + g.board.cluesLeft + ' clues left</span>' +
+        '<span class="hc-board-left">' + g.board.cluesLeft + ' questions left</span>' +
       '</div>'
     : '';
 
   if (!c) {
     var waiting = g.final
       ? 'Final Jeopardy &middot; ' + esc((g.final.category || '').toUpperCase())
-      : (g.pick && g.pick.turn ? esc(g.pick.turn) + ' is picking' : 'Waiting for the next clue');
+      : (g.pick && g.pick.turn ? esc(g.pick.turn) + ' is picking' : 'Waiting for the next question');
     var finalPeek = (g.final && bc.peek && g.final.a)
       ? '<div class="hc-answer">' + esc(g.final.a) + '</div>'
       : '';
@@ -4976,7 +5110,7 @@ function viewHostControl(bc) {
   }
 
   var peekBlock = bc.peek
-    ? '<div class="hc-answer">' + esc(c.a || '(no answer on this clue)') + '</div>' +
+    ? '<div class="hc-answer">' + esc(c.a || '(no answer on this question)') + '</div>' +
       (c.note ? '<p class="hc-note">' + esc(c.note) + '</p>' : '')
     : '<p class="hc-hidden">Answer hidden &mdash; only this phone can show it</p>';
 
@@ -4992,7 +5126,7 @@ function viewHostControl(bc) {
   return head +
     '<div class="hc-wrap">' +
       '<p class="hc-cat">' + esc((c.cat || '').toUpperCase()) + ' &middot; ' + (c.value || 0) + '</p>' +
-      '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio / video clue' : '')) + '</p>' +
+      '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio or video question' : '')) + '</p>' +
       (c.isVideo
         ? '<div class="clip-ctl-row">' +
             '<span class="clip-ctl-lbl">CLIP</span>' +
@@ -5046,7 +5180,7 @@ function viewSpectate(bc) {
       body = '<p class="spectate-kicker">' + esc(c.cat.toUpperCase()) + ' &middot; ' + c.value + '</p>' +
         (c.q ? '<p class="spectate-clue">' + esc(c.q) + '</p>' : '') +
         (c.img ? '<img class="answer-art" src="' + esc(c.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
-        (c.isVideo && !c.revealed ? '<p class="spectate-note">' + (c.playing ? "Clip is playing" : "Clip not started yet") + '</p>' : '') +
+        (c.isVideo && !c.revealed ? '<p class="spectate-note">' + (c.playing ? "Clip is playing" : "Audio not started yet") + '</p>' : '') +
         spectateTimerHtml(bc) +
         buzzLine +
         (c.revealed && c.a ?
@@ -5144,6 +5278,7 @@ function viewBuzzer() {
         '<span class="buzz-score">' + (myScore == null ? "&mdash;" : myScore) + '<em>pts</em></span>' +
       '</div>' +
       buzzMirrorHtml(bc) +
+      phoneScoreboardHtml(bc) +
       '<button class="' + cls + '" data-action="sendBuzz">' + label + '</button>' +
       '<p class="muted" style="margin:0">' + (bc.buzzState === "armed" ? "Tap the moment you know it!" : "The button lights up when a question opens.") + '</p>' +
       '<button class="confirm-btn-cancel" style="padding:12px 22px" data-action="leaveBuzzer">Leave Room</button>' +
@@ -5207,8 +5342,11 @@ function roomRulesGroupHtml() {
       '</span>' +
     '</div>' +
     setToggleRow("toggleStreakBonus", "Streak Bonus", "+100 for every 3 correct in a row", r.streakBonus) +
-    setToggleRow("toggleOneBuzz", "One Buzz Per Clue", "Each player gets one shot", r.oneBuzz) +
-    setToggleRow("togglePhoneMirror", "Mirror Clues to Phones", "Players see the clue and art on their phone", state.phoneMirror));
+    setToggleRow("toggleNoMinus", "No Minus Points", "A wrong answer costs nothing", r.noMinus) +
+    setToggleRow("toggleFloorZero", "Never Below Zero", "Scores stop at 0 instead of going negative", r.floorZero) +
+    setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
+    setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) +
+    setToggleRow("togglePhoneMirror", "Mirror Questions to Phones", "Players see the question and art on their phone", state.phoneMirror));
 }
 function settingsPanelHtml() {
   var r = state.roomRules;
@@ -5224,10 +5362,10 @@ function settingsPanelHtml() {
     '</div>';
 
   var gameplay =
-    setToggleRow("toggleTimer", "Question Timer", "Counts each clue down on screen", state.timerEnabled) +
+    setToggleRow("toggleTimer", "Question Timer", "Counts each question down on screen", state.timerEnabled) +
     (state.timerEnabled ?
       '<div class="set-row set-row-static">' +
-        '<span class="set-main"><span class="set-name">Seconds per clue</span></span>' +
+        '<span class="set-main"><span class="set-name">Seconds per question</span></span>' +
         '<span class="set-side">' +
           '<button data-action="decTimerDuration" aria-label="Decrease timer" class="stepper-btn">&minus;</button>' +
           '<span class="set-val">' + state.timerDuration + '</span>' +
@@ -5245,11 +5383,14 @@ function settingsPanelHtml() {
       '</span>' +
     '</div>' +
     setToggleRow("toggleStreakBonus", "Streak Bonus", "+100 for every 3 correct in a row", r.streakBonus) +
-    setToggleRow("toggleOneBuzz", "One Buzz Per Clue", "In buzzer rooms, each player gets one shot", r.oneBuzz) +
-    setToggleRow("toggleWheelOfChaos", "Wheel of Chaos", "Random challenges between clues", state.wheelOfChaosEnabled);
+    setToggleRow("toggleNoMinus", "No Minus Points", "A wrong answer costs nothing", r.noMinus) +
+    setToggleRow("toggleFloorZero", "Never Below Zero", "Scores stop at 0 instead of going negative", r.floorZero) +
+    setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
+    setToggleRow("toggleOneBuzz", "One Buzz Per Question", "In buzzer rooms, each player gets one shot", r.oneBuzz) +
+    setToggleRow("toggleWheelOfChaos", "Wheel of Chaos", "Random challenges between questions", state.wheelOfChaosEnabled);
 
-  var room = setToggleRow("togglePhoneMirror", "Mirror Clues to Phones",
-    "Players see the clue, art and audio cues on their own phone &mdash; for playing at a distance", state.phoneMirror);
+  var room = setToggleRow("togglePhoneMirror", "Mirror Questions to Phones",
+    "Players see the question, art and audio cues on their own phone &mdash; for playing at a distance", state.phoneMirror);
 
   var content = setToggleRow("toggleAdultMode", "After Dark 18+",
     state.adultEnabled ? "Unlocked &middot; mature boards are visible" : "Off &middot; hides the mature board section", state.adultEnabled, true);
@@ -5279,6 +5420,9 @@ function ddCountAdj(d) {
 }
 function toggleStreakBonus() { state.roomRules.streakBonus = !state.roomRules.streakBonus; settingsChanged(); }
 function toggleOneBuzz() { state.roomRules.oneBuzz = !state.roomRules.oneBuzz; settingsChanged(); }
+function toggleNoMinus() { state.roomRules.noMinus = !state.roomRules.noMinus; settingsChanged(); }
+function toggleFloorZero() { state.roomRules.floorZero = !state.roomRules.floorZero; settingsChanged(); }
+function toggleKeepTurn() { state.roomRules.keepTurn = !state.roomRules.keepTurn; settingsChanged(); }
 function viewHostRoom() {
   var b = state.buzzer;
   var joinUrl = (location.host || "this site") + location.pathname.replace(/index\.html$/, "");
@@ -5452,8 +5596,13 @@ function viewClueMedia() {
   var prompt = item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "";
   var player;
   if (state.playing) {
-    var src = "https://www.youtube.com/embed/" + item.id + "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=" + encodeURIComponent(window.location.origin);
-    player = '<iframe id="ytplayer" src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    var hideChrome = isVideoBlurred();
+    var src = "https://www.youtube.com/embed/" + item.id +
+      "?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1" +
+      (hideChrome ? "&controls=0&disablekb=1&fs=0" : "") +
+      "&origin=" + encodeURIComponent(window.location.origin);
+    player = '<iframe id="ytplayer" title="' + (hideChrome ? "Audio question" : "Question video") + '" src="' + src +
+      '" allow="autoplay; encrypted-media"' + (hideChrome ? '' : ' allowfullscreen') + '></iframe>';
   } else {
     player =
       '<button class="play-cover" data-action="play">' +
@@ -6191,6 +6340,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "ddCountAdj") ddCountAdj(+t.getAttribute("data-d"));
   else if (action === "toggleStreakBonus") toggleStreakBonus();
   else if (action === "toggleOneBuzz") toggleOneBuzz();
+  else if (action === "toggleNoMinus") toggleNoMinus();
+  else if (action === "toggleFloorZero") toggleFloorZero();
+  else if (action === "toggleKeepTurn") toggleKeepTurn();
   else if (action === "watchAsTv") watchAsTv();
   else if (action === "controlAsHost") controlAsHost();
   else if (action === "hostPeek") toggleHostPeek();
@@ -6255,6 +6407,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
+  else if (action === "setGameMode") setGameMode(t.getAttribute("data-mode"));
   else if (action === "openHelp") openHelp();
   else if (action === "closeHelp") closeHelp();
   else if (action === "toggleJuice") toggleJuice();
