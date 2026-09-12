@@ -668,7 +668,7 @@
   .bside-step {
     flex: 1 1 0; min-width: 0; background: #11152f; border: 1px solid #23284b;
     border-radius: 8px; color: #8b92c0; font-family: inherit; font-weight: 800;
-    font-size: 10px; letter-spacing: 0.2px; padding: 7px 3px; cursor: pointer;
+    font-size: 10px; letter-spacing: 0.2px; padding: 9px 3px; cursor: pointer;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
   }
@@ -995,6 +995,7 @@
      token stays visible down to a 320px screen -- a token you have to scroll
      sideways to find may as well not be there. */
   .shape-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: nowrap; }
+  @media (max-width: 380px) { .shape-row { gap: 3px; } }
   .shape-pick {
     flex: 1 1 0; min-width: 0; max-width: 44px;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 8px;
@@ -1527,8 +1528,8 @@
     max-height: 32vh; overflow-y: auto; scrollbar-width: thin;
   }
   .roster-2 { grid-template-columns: 1fr 1fr; }
-  .roster .row-item { padding: 7px 9px; gap: 8px; font-size: 13.5px; }
-  .roster .x-btn { min-width: 26px; min-height: 26px; font-size: 16px; }
+  .roster .row-item { padding: 5px 6px 5px 9px; gap: 8px; font-size: 13.5px; }
+  .roster .x-btn { min-width: 30px; min-height: 30px; font-size: 16px; }
   .roster-more {
     -webkit-mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
     mask-image: linear-gradient(#000 calc(100% - 38px), rgba(0, 0, 0, 0.22) 100%);
