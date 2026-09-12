@@ -4178,6 +4178,14 @@ function resumeGame() {
   state.lastScoreChange = null;
   state.scoreHistory = [];
   state.cascadeBoard = true; // stagger the tiles in on a fresh board
+  // A saved game is always a Jeopardy game. Resuming one while another mode
+  // is selected used to leave the board running under that mode's name,
+  // colours and menu.
+  if (state.gameMode !== "jeopardy") {
+    state.gameMode = "jeopardy";
+    applyModeTheme();
+    jfSaveSettings();
+  }
   state.phase = "board";
   render();
 }
@@ -7481,7 +7489,7 @@ function viewPlayers() {
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
     modeChips +
-    (m.status === "ready" ? resumeCard : "") +
+    (m.status === "ready" && m.id === "jeopardy" ? resumeCard : "") +
     (m.status === "ready" ? "" :
       '<div class="card wip-card">' +
         '<p class="wip-tag">WORK IN PROGRESS</p>' +
