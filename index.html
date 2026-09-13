@@ -684,7 +684,7 @@
     padding: 10px 12px; border-bottom: 1px solid #23284b; background: #0d1230;
     position: sticky; top: 0; z-index: 5;
   }
-  .bboard-back, .bboard-tools {
+  .bboard-back {
     flex: none; width: 38px; height: 38px; border-radius: 10px; background: #181e44;
     border: 1px solid #2a2f55; color: #dfe3ff; font-size: 17px; cursor: pointer; font-family: inherit;
   }
@@ -1186,6 +1186,12 @@
     font-family: inherit; font-weight: 800; font-size: 12.5px; cursor: pointer;
   }
   .btype-note { margin: 8px 0 0; font-size: 11.5px; color: #8b92c0; line-height: 1.4; }
+  /* In the flow rather than the top bar, so it reads as a section you open */
+  .bboard-more {
+    width: 100%; margin-top: 14px; text-align: center; font-size: 13px;
+    background: #141833; border: 1px solid #23284b; border-radius: 11px;
+    padding: 12px; min-height: 44px; color: #aab0d8;
+  }
 
   /* A typed question's list, on a phone -- a player's and the host's alike */
   .mini-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
@@ -1221,6 +1227,21 @@
   .mini-seq-wrong { border-color: rgba(255, 84, 112, 0.5); }
   .mini-seq-wrong .mini-seq-num { background: #ff5470; color: #2a0410; }
   .mini-note { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: #8b92c0; text-align: center; }
+
+  /* sending a board in, or reporting one: real links, not a blocked popup */
+  .sendit-note { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: #aab0d8; }
+  .sendit-btn {
+    display: block; width: 100%; box-sizing: border-box; margin-top: 8px;
+    padding: 13px; min-height: 46px; border-radius: 11px; text-align: center;
+    background: #20264d; border: 1px solid #343b6b; color: #dfe3ff; text-decoration: none;
+    font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  .sendit-btn-go { background: #ffd166; border-color: #ffd166; color: #2a2205; }
+  .sendit-text {
+    width: 100%; box-sizing: border-box; margin-top: 10px; padding: 9px 10px;
+    border-radius: 9px; background: #0d1230; border: 1px solid #23284b;
+    color: #8b92c0; font-family: inherit; font-size: 11.5px; line-height: 1.4; resize: vertical;
+  }
 
   /* ---- per-question timer ---- */
   .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
@@ -2807,6 +2828,11 @@ var FAN_BOARDS = [];
 // check and the repo owner decides. An "admin password" in a file anyone can
 // view-source would be theatre, not a gate.
 var REPO_FALLBACK = { owner: "Yasinxd101", repo: "Jeopardy-Fun" };
+// Where "email it instead" goes. This file is served publicly, so whatever
+// address sits here is readable by anyone who opens the page -- an alias or a
+// throwaway is kinder to your inbox than your main one. Blank switches the
+// email route off and leaves only the GitHub one.
+var OWNER_EMAIL = "yasindx101@gmail.com";
 function repoInfo() {
   // yasinxd101.github.io/Jeopardy-Fun/ -> owner from the host, repo from path.
   var host = String(location.hostname || "");
@@ -2907,6 +2933,21 @@ function boardValidationError(b) {
 // A board is playable if it has an id, a full grid of filled clues and a final.
 function isValidBoard(b) {
   return !!(b && b.id) && boardValidationError(b) === "";
+}
+
+// An inline SVG written by hand -- or by a model asked for a placeholder --
+// almost always carries a hex colour: fill="#c2410c". Inside a data: URI a
+// bare "#" starts the fragment, so the browser gets half an SVG and silently
+// draws nothing. Everything else in a raw SVG URI (< > " spaces) is fine; this
+// one character is the whole bug, so repair it rather than reject the picture.
+function fixImageUri(src) {
+  var s = String(src == null ? "" : src);
+  if (!/^data:image\/svg\+xml/i.test(s)) return s;
+  var comma = s.indexOf(",");
+  if (comma === -1) return s;
+  var head = s.slice(0, comma + 1), body = s.slice(comma + 1);
+  if (/;base64/i.test(head)) return s;      // base64 has no bare # to worry about
+  return head + body.replace(/#/g, "%23");
 }
 
 // ---- question types ----
@@ -3021,6 +3062,16 @@ function normalizeBoard(raw) {
       }
     });
   }
+  if (b.art) b.art = fixImageUri(b.art);
+  if (Array.isArray(b.textBoard)) {
+    b.textBoard.forEach(function (col) {
+      if (col && Array.isArray(col.questions)) col.questions.forEach(function (it) {
+        if (!it || typeof it !== "object") return;
+        if (it.img) it.img = fixImageUri(it.img);
+        if (it.aimg) it.aimg = fixImageUri(it.aimg);
+      });
+    });
+  }
   var f = b.final || b.finalJeopardy || b.finalJ;
   if (f && typeof f === "object") {
     if (f.q == null && f.question != null) f.q = f.question;
@@ -3117,6 +3168,7 @@ var state = {
   statsMsg: "",           // one-line confirmation on the stats screen
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
   homeMsg: "",            // one-line notice on the start screen (e.g. after saving a board)
+  sendIt: null,           // {title,note,url,subject,body} -- the send-a-board-in panel
   setupMoreOpen: false,   // the fold-away half of the start screen
   playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
@@ -3124,6 +3176,7 @@ var state = {
   wheel: null,            // {activeWheel, stage, targetIndex, segmentId, rotation, triviaQ, showTriviaAnswer, judged, summary, summaryGood, opponentIndex, chainNote}
   chosenAlignment: null,  // selected Hero/Villain/Other choice on an alignmentChoice clue
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
+  clipOverride: null,     // clip length the host nudged for the open question only
   searchQuery: "",        // host search on the board-select screen
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
   // hostPin gates the Host Control role: the room code alone must never hand
@@ -4932,7 +4985,7 @@ function builderSetField(path, value) {
   if (path === "name") d.name = value;
   else if (path === "tagline") d.tagline = value;
   else if (path === "accent") d.accent = value;
-  else if (path === "art") d.art = value;
+  else if (path === "art") d.art = fixImageUri(value);
   else if (path === "finalCategory") d.final.category = value;
   else if (path === "finalQ") d.final.q = value;
   else if (path === "finalA") d.final.a = value;
@@ -4943,6 +4996,7 @@ function builderSetField(path, value) {
       var it = d.textBoard[state.builder.catIndex].questions[+m[1]];
       var f = m[2];
       if (f === "id") it.id = youtubeId(value);
+      else if (f === "img" || f === "aimg") it[f] = fixImageUri(value);
       else if (f === "clipStart" || f === "clipLen") {
         var n = parseInt(value, 10);
         if (value === "" || !isFinite(n) || n < 0) delete it[f];
@@ -4972,10 +5026,9 @@ function builderLiveUpdate(path) {
   if (bd.step === "name") {
     if (path === "name") {
       set(".bname-card-name", d.name || "Untitled board", "bname-ghost");
-      var icon = document.querySelector(".bname-card-icon");
-      // only when the square is showing a letter -- typing a name must not
-      // wipe out the thumbnail sitting in there
-      if (icon && !icon.querySelector("img")) icon.textContent = (d.name || "?").trim().charAt(0).toUpperCase() || "?";
+      // The letter lives in its own span next to the (possibly hidden)
+      // thumbnail, so writing to it can never wipe out the picture.
+      set(".bname-card-letter", (d.name || "?").trim().charAt(0).toUpperCase() || "?");
     } else if (path === "tagline") {
       set(".bname-card-tag", d.tagline || "A short description", "bname-ghost");
     } else if (path === "accent") {
@@ -5084,10 +5137,15 @@ function submitBoardForReview() {
 
   downloadBoardJson(d);
   state.builder.error = "";
-  state.builder.submitMsg = "Your board file was downloaded. Attach it to the GitHub issue that just opened, " +
-    "and the site owner will review it.";
-  openExternal(url);
-  render();
+  state.builder.submitMsg = "";
+  openSendIt({
+    title: "Send \u201C" + d.name + "\u201D in",
+    note: boardFileName(d) + " has been downloaded to this device. Attach it to whichever " +
+          "of these you use, and the board gets reviewed before it becomes a Fan Board.",
+    url: url,
+    subject: title,
+    body: (hasLink ? withLink : head + attachNote),
+  });
 }
 function reportBoard(id) {
   var b = BOARDS.filter(function (x) { return x.id === id; })[0];
@@ -5101,9 +5159,80 @@ function reportBoard(id) {
   rebuildBoards();
   if (state.previewBoardId === b.id) state.previewBoardId = null;
   if (state.boardId === b.id) state.boardId = null;
-  state.boardMsg = "\u201C" + b.name + "\u201D is hidden on this device. The report opened on GitHub \u2014 send it there so the owner sees it.";
-  openExternal(repoIssueUrl("Report: " + b.name, body, "board-report"));
+  state.boardMsg = "\u201C" + b.name + "\u201D is hidden on this device.";
+  openSendIt({
+    title: "Report \u201C" + b.name + "\u201D",
+    note: "It is already hidden on this device. Sending the report is what lets the owner fix it for everyone else.",
+    url: repoIssueUrl("Report: " + b.name, body, "board-report"),
+    subject: "Report: " + b.name,
+    body: body,
+  });
+}
+// window.open is a popup, and a phone browser blocks popups silently -- the
+// button looked completely dead. So nothing is opened for you any more: you get
+// a panel with real links in it, which a browser treats as ordinary navigation,
+// plus an email route and the text to copy if neither works.
+function openSendIt(opts) {
+  state.sendIt = {
+    title: opts.title,
+    note: opts.note || "",
+    url: opts.url || "",
+    subject: opts.subject || opts.title,
+    body: opts.body || "",
+  };
   render();
+}
+function closeSendIt() { state.sendIt = null; render(); }
+function mailtoUrl(subject, body) {
+  // Long bodies get cut off by some mail apps, so keep it to the summary and
+  // let the attached file carry the rest.
+  return "mailto:" + encodeURIComponent(OWNER_EMAIL) +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(body.slice(0, 1800));
+}
+function copySendIt() {
+  var s = state.sendIt;
+  if (!s) return;
+  var text = s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
+  var mark = function () {
+    if (!state.sendIt) return;
+    state.sendIt.copied = true;
+    render();
+    setTimeout(function () {
+      if (state.sendIt && state.sendIt.copied) { state.sendIt.copied = false; render(); }
+    }, 1600);
+  };
+  var fallback = function () {
+    var el = document.getElementById("sendItText");
+    if (!el) return;
+    el.select();
+    try { document.execCommand("copy"); mark(); } catch (e) {}
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(mark, fallback);
+  } else fallback();
+}
+function renderSendIt() {
+  var s = state.sendIt;
+  if (!s) return "";
+  var text = s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card" style="max-width:400px">' +
+      '<p class="bpop-title" style="margin:0 0 4px">' + esc(s.title) + '</p>' +
+      (s.note ? '<p class="sendit-note">' + esc(s.note) + '</p>' : '') +
+      (s.url
+        ? '<a class="sendit-btn sendit-btn-go" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+            'Open it on GitHub</a>'
+        : '') +
+      (OWNER_EMAIL
+        ? '<a class="sendit-btn" href="' + esc(mailtoUrl(s.subject, s.body)) + '">Email it instead</a>'
+        : '') +
+      '<button class="sendit-btn" data-action="copySendIt">' +
+        (s.copied ? 'Copied' : 'Copy the details') + '</button>' +
+      '<textarea id="sendItText" class="sendit-text" readonly rows="4">' + esc(text) + '</textarea>' +
+      '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="closeSendIt">Done</button>' +
+    '</div>' +
+  '</div>';
 }
 function openExternal(url) {
   try { window.open(url, "_blank", "noopener"); } catch (e) {}
@@ -5667,6 +5796,7 @@ function selectBoard(id) {
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
+  state.clipOverride = null;
   state.cascadeBoard = true;
   state.phase = "board";
   render();
@@ -5700,6 +5830,7 @@ function selectRound2(id) {
   state.previewBoardId = null;
   state.menuOpen = false;
   state.seqOrder = null;
+  state.clipOverride = null;
   state.phase = "board";
   render();
 }
@@ -5732,6 +5863,7 @@ function switchBoard() {
   state.scoreHistory = [];
   state.previewBoardId = null;
   state.seqOrder = null;
+  state.clipOverride = null;
   state.phase = "boards";
   render();
 }
@@ -5776,6 +5908,7 @@ function newPlayers() {
   state.wheelRemoved = { chaos: [], success: [], failure: [] };
   state.wheel = null;
   state.seqOrder = null;
+  state.clipOverride = null;
   state.phase = "players";
   render();
 }
@@ -6157,6 +6290,7 @@ function openQuestion(catKey, qIndex) {
   state.wagerInput = "";
   state.phase = "question";
   state.seqOrder = null;
+  state.clipOverride = null;
   var openedItem = questionItem();
   if (clueFormat(openedItem) === "sequence") {
     var seqOrder = clueList(openedItem).map(function (_, i) { return i; });
@@ -6439,14 +6573,49 @@ function stopClip() {
   if (activeYtPlayer && activeYtPlayer.stopVideo) { try { activeYtPlayer.stopVideo(); } catch (e) {} }
   render();
 }
-function adjustClipLimit(delta) {
+function stepClipSeconds(from, delta) {
   // 0 means play the whole track; otherwise 5..120 seconds
-  var next = state.clipLimit + delta;
+  var next = from + delta;
   if (next < 5) next = 0;
   if (next > 120) next = 120;
-  if (state.clipLimit === 0 && delta > 0) next = 5;
-  state.clipLimit = next;
+  if (from === 0 && delta > 0) next = 5;
+  return next;
+}
+function adjustClipLimit(delta) {
+  // On a question these buttons must move THIS clip, not the default. A board
+  // that pins its own clipLen made them look dead: the number never changed,
+  // because clipLenFor() was answering with the board's value and ignoring the
+  // host's. The override is per question and thrown away when it closes, so
+  // nudging one clip never edits the board.
+  if (state.phase === "question" && state.active) {
+    state.clipOverride = stepClipSeconds(activeClipLen(), delta);
+    updateClipRow();
+    return;
+  }
+  state.clipLimit = stepClipSeconds(state.clipLimit, delta);
   settingsChanged();
+}
+// Patch the clip row where it stands. A full render rebuilds #root, which
+// destroys the YouTube iframe and builds a new one -- the clip visibly
+// vanished and came back, and started again from the top.
+function updateClipRow() {
+  var val = document.querySelector(".clip-ctl-val");
+  if (!val) { render(); return; }
+  var item = questionItem();
+  var runFor = activeClipLen(), fromSec = clipStartFor(item);
+  val.textContent = (runFor === 0 ? "Full" : runFor + "s") + (fromSec ? " from " + mmss(fromSec) : "");
+  // A clip already running takes the new length from where it actually is.
+  if (state.playing) {
+    clearClipStopTimer();
+    if (runFor > 0) {
+      var gone = state.clipStartedAt ? (Date.now() - state.clipStartedAt) / 1000 : 0;
+      var left = runFor - gone;
+      if (left <= 0) stopClip();
+      else clipStopTimer = setTimeout(function () { stopClip(); }, left * 1000);
+    }
+  }
+  jfSaveSettings();
+  broadcastSync();
 }
 // Where a clip starts and how long it runs. The board can pin both per
 // question ("play the chorus, 15 seconds from 1:12"); anything it leaves out
@@ -6462,7 +6631,9 @@ function clipLenFor(item) {
   return state.clipLimit;
 }
 function activeClipLen() {
-  return state.phase === "question" && state.active ? clipLenFor(questionItem()) : state.clipLimit;
+  if (state.phase !== "question" || !state.active) return state.clipLimit;
+  if (state.clipOverride != null) return state.clipOverride;   // the host nudged this one
+  return clipLenFor(questionItem());
 }
 function playVideo() {
   if (state.playing) return;
@@ -7435,6 +7606,7 @@ function backUnrevealed() {
   state.wager = null;
   state.wagerInput = "";
   state.seqOrder = null;
+  state.clipOverride = null;
   state.phase = "board";
   render();
 }
@@ -7456,6 +7628,7 @@ function closeQuestion() {
   state.wagering = false;
   state.wager = null;
   state.seqOrder = null;
+  state.clipOverride = null;
   // Classic Jeopardy: whoever answered correctly picks the next tile.
   if (state.roomRules.keepTurn && state.players[state.lastCorrectIndex]) {
     state.players[state.lastCorrectIndex].skipNextTurn = false;
@@ -7494,6 +7667,7 @@ function newRound() {
   state.lastScoreChange = null;
   state.scoreHistory = [];
   state.seqOrder = null;
+  state.clipOverride = null;
   state.phase = "board";
   render();
 }
@@ -8158,10 +8332,9 @@ function playSetupBarHtml() {
                 'everyone who joins on their phone is added as a player. Playing on your own? ' +
                 '<button class="inline-link" data-action="setPlayStyle" data-style="screen">Use one screen instead</button>' +
               '</span>'
-            : '<span class="pbar-room-hint">Everyone needs the room code before they can buzz.</span>') +
-          '<button class="pbar-btn pbar-btn-go" data-action="openHostRoom">' +
-            (state.players.length < 2 ? 'Open a room anyway' : 'Open the room') +
-          '</button>' +
+            : '') +
+          '<span class="pbar-room-hint">Everyone needs the room code before they can buzz.</span>' +
+          '<button class="pbar-btn pbar-btn-go" data-action="openHostRoom">Open the room</button>' +
         '</div>';
   }
   return '<div class="pbar">' +
@@ -8536,7 +8709,6 @@ function viewBuilderBoard() {
         '<p class="bboard-prog">' + prog.done + ' of ' + prog.total + ' written' +
           (prog.ready ? ' &middot; <span class="bboard-ready">ready to save</span>' : '') + '</p>' +
       '</div>' +
-      '<button class="bboard-tools" data-action="builderToggleTools" aria-label="More board options">&#8942;</button>' +
     '</div>' +
 
     '<div class="bboard-scroll">' +
@@ -8554,6 +8726,14 @@ function viewBuilderBoard() {
       '</button>' +
 
       (bd.error ? '<p class="err">' + esc(bd.error) + '</p>' : '') +
+      // In the flow, right above the panel it opens. It used to be a "⋮" in
+      // the sticky bar at the top, which opened a panel at the bottom -- so it
+      // threw you to the top of the board to show you something you could not
+      // see from there.
+      '<button class="builder-more bboard-more" data-action="builderToggleTools" ' +
+        'aria-expanded="' + (bd.toolsOpen ? 'true' : 'false') + '">' +
+        (bd.toolsOpen ? '&#9650; Hide the extra options' : '&#9660; More options &mdash; art, sharing, export, 18+') +
+      '</button>' +
       (bd.toolsOpen ? builderToolsHtml(d, bd) : '') +
       builderDangerHtml(d) +
     '</div>' +
@@ -10586,7 +10766,7 @@ function viewClueFooter() {
 
   var clipVolRow = "";
   if (isVideo) {
-    var runFor = clipLenFor(item), fromSec = clipStartFor(item);
+    var runFor = activeClipLen(), fromSec = clipStartFor(item);
     var lenLabel = (runFor === 0 ? "Full" : runFor + "s") + (fromSec ? " from " + mmss(fromSec) : "");
     clipVolRow =
       '<div class="clip-ctl-row">' +
@@ -11166,6 +11346,12 @@ function render() {
   ensureConsistentState();
   if (modalOpen()) stopShake();  // never leave a shake running under a sheet
   flipCapture(); // measure the outgoing DOM before it is replaced
+  // The maker scrolls inside its own frame, and rebuilding #root puts that
+  // scroller back at the top. Any change made from the bottom of a long board
+  // -- opening the options, removing a row -- threw you back to the first
+  // category. Remember where you were and put you back.
+  var keepScroll = document.querySelector(".bboard-scroll");
+  keepScroll = keepScroll ? keepScroll.scrollTop : null;
   var html;
   if (state.wheel) html = viewWheel();
   else if (state.phase === "millionaire") html = viewMillionaire();
@@ -11190,7 +11376,11 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker();
+  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt();
+  if (keepScroll) {
+    var scroller = document.querySelector(".bboard-scroll");
+    if (scroller) scroller.scrollTop = keepScroll;
+  }
   flipPlay(); // slide anything that moved from where it used to be
   saveGameSnapshot();
   broadcastSync();
@@ -11501,6 +11691,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "dismissHomeMsg") dismissHomeMsg();
   else if (action === "builderClearArt") builderClearArt();
+  else if (action === "closeSendIt") closeSendIt();
+  else if (action === "copySendIt") copySendIt();
   else if (action === "builderSetType") builderSetType(+t.getAttribute("data-row"), t.getAttribute("data-type"));
   else if (action === "builderAddListItem") builderAddListItem(+t.getAttribute("data-row"));
   else if (action === "builderRemoveListItem") builderRemoveListItem(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
