@@ -1499,6 +1499,7 @@
   .sequence-arrow-btn:disabled { opacity: 0.3; cursor: default; }
 
   /* host clip controls: length, play and stop for a music clue */
+  .clip-hint { margin: 5px 0 0; font-size: 11.5px; color: #8b92c0; text-align: center; }
   .clip-ctl-row {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     background: #10142e; border-radius: 12px; padding: 10px 12px; margin-top: 12px;
@@ -3849,7 +3850,17 @@ function applyHostCommand(d) {
   } else if (cmd === "stopClip") {
     stopClip();
   } else if (cmd === "clipLen") {
-    adjustClipLimit(+d.delta || 0);
+    // A held repeat arrives as a step bigger than one, and must not sail past
+    // the longest clip into Full any more than a local hold does.
+    var step = +d.delta || 0;
+    var held = Math.abs(step) > 1;
+    if (state.phase === "question" && state.active) {
+      state.clipOverride = stepClipSeconds(activeClipLen(), step, held);
+      updateClipRow();
+    } else {
+      state.clipLimit = stepClipSeconds(state.clipLimit, step, held);
+      settingsChanged();
+    }
   } else if (cmd === "undo") {
     undoLastScore();
   } else if (cmd === "showQuestion") {
@@ -6728,13 +6739,54 @@ function stopClip() {
   if (activeYtPlayer && activeYtPlayer.stopVideo) { try { activeYtPlayer.stopVideo(); } catch (e) {} }
   render();
 }
-function stepClipSeconds(from, delta) {
-  // 0 means play the whole track; otherwise 5..120 seconds
+// The ladder runs 1..120 seconds and then "Full" at the top, so it only ever
+// gets longer as you press +. Full used to sit below 5, which meant one tap of
+// the minus went from the shortest clip straight to the whole track.
+var CLIP_MAX = 120;
+function stepClipSeconds(from, delta, noWrap) {
+  if (from === 0) {
+    // Full: down lands on the longest real length, up has nowhere to go.
+    return delta < 0 ? CLIP_MAX : 0;
+  }
   var next = from + delta;
-  if (next < 5) next = 0;
-  if (next > 120) next = 120;
-  if (from === 0 && delta > 0) next = 5;
+  // Past the longest clip is the whole track -- but only by a deliberate tap.
+  // A hold would sail through 120 into Full in a couple of seconds, and then
+  // you are holding minus to get back to a number.
+  if (next > CLIP_MAX) return noWrap ? CLIP_MAX : 0;
+  if (next < 1) return 1;
   return next;
+}
+// Press and hold a stepper and it keeps going, faster, and then in fives --
+// so 1 second at a time is a tap and half a minute is a hold, without a second
+// control to learn. The button itself carries how far along the hold is.
+var clipHoldTimer = null, clipHoldTicks = 0, clipHeldFired = false;
+function clipStepFor(el, dir) {
+  // After a few repeats the step grows, so a long clip is not 100 taps.
+  var n = el === clipHoldEl ? clipHoldTicks : 0;
+  return dir * (n >= 14 ? 10 : n >= 6 ? 5 : 1);
+}
+var clipHoldEl = null;
+function clipHoldStart(el) {
+  var act = el.getAttribute("data-action");
+  var dir = /Up$/.test(act) ? 1 : -1;
+  var remote = /^host/.test(act);
+  clipHoldEl = el; clipHoldTicks = 0; clipHeldFired = false;
+  var tick = function () {
+    clipHoldTicks++;
+    clipHeldFired = true;
+    var step = clipStepFor(el, dir);
+    if (remote) sendHostCmd("clipLen", { delta: step });
+    else adjustClipLimit(step);
+    hap("tap");
+    clipHoldTimer = setTimeout(tick, clipHoldTicks < 4 ? 180 : 90);
+  };
+  clipHoldTimer = setTimeout(tick, 420);   // a tap is still just a tap
+}
+function clipHoldStop() {
+  if (clipHoldTimer) clearTimeout(clipHoldTimer);
+  clipHoldTimer = null;
+  clipHoldEl = null;
+  clipHoldTicks = 0;
 }
 function adjustClipLimit(delta) {
   // On a question these buttons must move THIS clip, not the default. A board
@@ -6742,12 +6794,13 @@ function adjustClipLimit(delta) {
   // because clipLenFor() was answering with the board's value and ignoring the
   // host's. The override is per question and thrown away when it closes, so
   // nudging one clip never edits the board.
+  var holding = !!clipHoldTimer;
   if (state.phase === "question" && state.active) {
-    state.clipOverride = stepClipSeconds(activeClipLen(), delta);
+    state.clipOverride = stepClipSeconds(activeClipLen(), delta, holding);
     updateClipRow();
     return;
   }
-  state.clipLimit = stepClipSeconds(state.clipLimit, delta);
+  state.clipLimit = stepClipSeconds(state.clipLimit, delta, holding);
   settingsChanged();
 }
 // Patch the clip row where it stands. A full render rebuilds #root, which
@@ -10386,7 +10439,8 @@ function viewHostControl(bc) {
             (c.playing
               ? '<button class="clip-stop" data-action="hostStopClip">Stop</button>'
               : '<button class="clip-play" data-action="hostPlayClip">Play</button>') +
-          '</div>'
+          '</div>' +
+          '<p class="clip-hint">A tap is one second. Hold to run through them.</p>'
         : '') +
       (c.hiddenQ
         ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
@@ -11084,6 +11138,11 @@ function viewClueFooter() {
           ? '<button class="clip-stop" data-action="stopClip">Stop</button>'
           : '<button class="clip-play" data-action="play">Play</button>') +
       '</div>' +
+      // A hold nobody knows about is not a feature, so it says so once -- and
+      // stops saying it the moment you have moved the number yourself.
+      (state.clipOverride == null
+        ? '<p class="clip-hint">A tap is one second. Hold to run through them.</p>'
+        : '') +
       (state.playing
         ? '<div class="clip-vol-row">' +
             '<span>CLIP VOLUME</span>' +
@@ -11844,9 +11903,20 @@ document.getElementById("root").addEventListener("change", function (e) {
   }
 });
 
+var CLIP_STEPPERS = "[data-action=clipLenUp],[data-action=clipLenDown]," +
+                    "[data-action=hostClipUp],[data-action=hostClipDown]";
+document.getElementById("root").addEventListener("pointerdown", function (e) {
+  var t = e.target.closest(CLIP_STEPPERS);
+  if (t && !t.hasAttribute("disabled")) clipHoldStart(t);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+  document.getElementById("root").addEventListener(ev, function () { clipHoldStop(); });
+});
 document.getElementById("root").addEventListener("click", function (e) {
   var t = e.target.closest("[data-action]");
   if (!t) return;
+  // A hold already moved it; the click that ends the hold must not move it again.
+  if (clipHeldFired && t.matches(CLIP_STEPPERS)) { clipHeldFired = false; return; }
   var action = t.getAttribute("data-action");
   hap(action === "open" || action === "selectBoard" ? "press" : "tap");
   if (action === "selectBoard") selectBoard(t.getAttribute("data-id"));
@@ -11862,8 +11932,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleAnswer") toggleAnswer();
   else if (action === "play") playVideo();
   else if (action === "stopClip") stopClip();
-  else if (action === "clipLenUp") adjustClipLimit(5);
-  else if (action === "clipLenDown") adjustClipLimit(-5);
+  else if (action === "clipLenUp") adjustClipLimit(clipStepFor(t, 1));
+  else if (action === "clipLenDown") adjustClipLimit(clipStepFor(t, -1));
   else if (action === "enablePhoneAudio") enablePhoneAudio();
   else if (action === "plus") scoreQuestion(+t.getAttribute("data-i"), true);
   else if (action === "minus") scoreQuestion(+t.getAttribute("data-i"), false);
@@ -11920,8 +11990,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "hostSkipFinal") sendHostCmd("skipFinal");
   else if (action === "hostPlayClip") sendHostCmd("playClip");
   else if (action === "hostStopClip") sendHostCmd("stopClip");
-  else if (action === "hostClipUp") sendHostCmd("clipLen", { delta: 5 });
-  else if (action === "hostClipDown") sendHostCmd("clipLen", { delta: -5 });
+  else if (action === "hostClipUp") sendHostCmd("clipLen", { delta: clipStepFor(t, 1) });
+  else if (action === "hostClipDown") sendHostCmd("clipLen", { delta: clipStepFor(t, -1) });
   else if (action === "hostJudge") sendHostCmd("judge", { correct: t.getAttribute("data-correct") === "1" });
   else if (action === "hostScore") sendHostCmd("score", { playerIndex: +t.getAttribute("data-i"), correct: t.getAttribute("data-correct") === "1" });
   else if (action === "giveTurn") giveTurn(+t.getAttribute("data-i"));
