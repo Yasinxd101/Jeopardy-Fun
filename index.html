@@ -1228,6 +1228,32 @@
   .mini-seq-wrong .mini-seq-num { background: #ff5470; color: #2a0410; }
   .mini-note { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: #8b92c0; text-align: center; }
 
+  /* a question answered by typing: the guesses, on the big screen */
+  .guess-block { margin-top: 14px; }
+  .guess-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+  .guess-row {
+    display: flex; align-items: center; gap: 9px; padding: 10px 13px;
+    border-radius: 10px; background: #1d2455; border: 1px solid #2a2f55;
+  }
+  .guess-row-right { border-color: #2cb67d; background: rgba(44, 182, 125, 0.16); }
+  .guess-name { font-weight: 800; font-size: 14px; color: #aab0d8; }
+  .guess-text { flex: 1; min-width: 0; font-weight: 800; font-size: 17px; color: #fff; word-break: break-word; }
+  .guess-off { flex: none; font-size: 12px; font-weight: 700; color: #8b92c0; }
+  .guess-entry { display: flex; gap: 8px; }
+  .guess-entry .input { flex: 1; min-width: 0; }
+  .guess-note { margin: 8px 0 0; font-size: 12.5px; color: #8b92c0; text-align: center; line-height: 1.4; }
+  /* and on a phone, a player's and the host's alike */
+  .mini-guesses { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .mini-guess {
+    padding: 9px 11px; border-radius: 10px; background: #141833; border: 1px solid #2a2f55;
+  }
+  .mini-guess-spot { border-color: rgba(44, 182, 125, 0.6); }
+  .mini-guess-top { display: flex; align-items: baseline; gap: 9px; }
+  .mini-guess-name { flex: none; font-size: 12px; font-weight: 800; color: #8b92c0; }
+  .mini-guess-text { flex: 1; min-width: 0; font-size: 15px; font-weight: 800; color: #dfe3ff; word-break: break-word; }
+  .mini-guess .hc-final-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .btype-unit { margin-top: 0 !important; flex: 0 0 68px; min-width: 0; text-align: center; }
+
   /* sending a board in, or reporting one: real links, not a blocked popup */
   .sendit-note { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: #aab0d8; }
   .sendit-btn {
@@ -2968,7 +2994,54 @@ var CLUE_TYPES = [
     listKey: "items", min: 2, max: 8,
     listLabel: "In the RIGHT order, top to bottom", addLabel: "Add another",
     note: "Write them correctly here. Players always see them shuffled." },
+  // The two that take an answer off a phone. They share one pipeline: whoever
+  // the question belongs to types, it lands on the host's device, and the host
+  // marks it -- except when it is word-for-word right, which marks itself.
+  { id: "typed", name: "Type the answer", icon: "⌨", typedIn: true,
+    blurb: "They type it on their phone. Spot on marks itself.",
+    listKey: "accept", min: 0, max: 6,
+    listLabel: "Also accept (optional)", addLabel: "Add another spelling",
+    note: "Case, spacing, punctuation and a leading \u201Cwhat is\u201D are ignored, so only real alternatives need listing." },
+  { id: "number", name: "Guess the number", icon: "%", typedIn: true, numeric: true,
+    blurb: "A number or a percent. Closest wins, or within a margin.",
+    note: "Leave the margin blank and nobody is automatically right \u2014 closest still shows on screen." },
 ];
+// Two answers are the same answer if they only differ by the things nobody
+// types consistently: case, spacing, punctuation, and the Jeopardy phrasing.
+function normalizeAnswer(text) {
+  return String(text == null ? "" : text)
+    .toLowerCase()
+    .replace(/^\s*(what|who|where|when|why|how)\s+(is|are|was|were)\s+/, "")
+    .replace(/^\s*(a|an|the)\s+/, "")
+    .replace(/[\u2018\u2019\u201c\u201d]/g, "'")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+function clueNumber(item) {
+  var n = item && parseFloat(item.target);
+  return isFinite(n) ? n : null;
+}
+function clueMargin(item) {
+  var n = item && parseFloat(item.margin);
+  return isFinite(n) && n >= 0 ? n : null;
+}
+// Is this guess right on its own, without the host having to decide? Only ever
+// used to mark something CORRECT -- a miss is never auto-marked wrong, because
+// "close enough" is the host's call and always was.
+function answerIsSpotOn(item, guess) {
+  if (!item || !String(guess == null ? "" : guess).trim()) return false;
+  if (clueFormat(item) === "number") {
+    var want = clueNumber(item), margin = clueMargin(item), got = parseFloat(guess);
+    if (want == null || margin == null || !isFinite(got)) return false;
+    return Math.abs(got - want) <= margin;
+  }
+  var g = normalizeAnswer(guess);
+  if (!g) return false;
+  if (g === normalizeAnswer(item.a)) return true;
+  var alts = Array.isArray(item.accept) ? item.accept : [];
+  for (var i = 0; i < alts.length; i++) if (g === normalizeAnswer(alts[i])) return true;
+  return false;
+}
 function clueType(id) {
   for (var i = 0; i < CLUE_TYPES.length; i++) if (CLUE_TYPES[i].id === (id || "")) return CLUE_TYPES[i];
   return CLUE_TYPES[0];
@@ -3001,6 +3074,7 @@ function clueTypeError(item) {
   var f = clueFormat(item);
   if (!f) return "";
   var t = clueType(f), list = clueList(item);
+  if (f === "number") return clueNumber(item) == null ? "needs the number it is looking for" : "";
   if (list.length < t.min) return "needs at least " + t.min + " " + t.listLabel.toLowerCase().replace(/ .*/, "");
   if (list.length > t.max) return "has more than " + t.max + " entries";
   for (var i = 0; i < list.length; i++) if (!String(list[i] == null ? "" : list[i]).trim()) return "has an empty entry";
@@ -3177,6 +3251,8 @@ var state = {
   chosenAlignment: null,  // selected Hero/Villain/Other choice on an alignmentChoice clue
   seqOrder: null,         // shuffled item order for a format:"sequence" clue
   clipOverride: null,     // clip length the host nudged for the open question only
+  guesses: {},            // playerIndex -> what they typed on this question
+  guessInput: "",         // the host's own box, for a typed question on one screen
   searchQuery: "",        // host search on the board-select screen
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
   // hostPin gates the Host Control role: the room code alone must never hand
@@ -3866,6 +3942,10 @@ function handleBuzzerData(conn, d) {
       var pkCats = getCategories();
       if (pkCats[pc] && pkCats[pc].questions[pr] && !state.used[pc + "-" + pr]) openQuestion(pc, pr);
     }
+  } else if (d.type === "clueGuess") {
+    var gi = conn.playerIndex != null && conn.playerIndex !== -1
+      ? conn.playerIndex : playerIndexByName(conn.buzzName || "");
+    if (gi !== -1) recordGuess(gi, d.text);
   } else if (d.type === "finalAnswer") {
     var ansI = playerIndexByName(conn.buzzName || "");
     if (state.phase === "final" && state.finalStage === "clue" && ansI !== -1) {
@@ -4027,10 +4107,25 @@ function buzzerSyncPayload() {
       p.clue.format = cf;
       p.clue.list = cf === "sequence"
         ? (state.seqOrder || []).map(function (n) { return clueList(item)[n]; })   // the order on the big screen
-        : clueList(item);
+        : (cf === "typed" || cf === "number" ? [] : clueList(item));
       p.clue.picked = cf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
       if (state.revealed) p.clue.correct = clueCorrectIndex(item);
       if (state.revealed && cf === "sequence") p.clue.rightList = clueList(item);
+      if (clueType(cf).typedIn) {
+        // Whose question it is, so only that phone shows a box, and what has
+        // been sent in so far. Never the answer -- that waits for the reveal.
+        var owner = state.players[clueOwnerIndex()];
+        p.clue.typeIn = {
+          owner: owner ? owner.name : "",
+          unit: item.unit || "",
+          numeric: cf === "number",
+          judged: !!state.judgedThisClue,
+          guesses: Object.keys(state.guesses).map(function (k) {
+            return { name: (state.players[k] || {}).name || "", text: state.guesses[k] };
+          }),
+        };
+        if (state.revealed && cf === "number") p.clue.typeIn.target = clueNumber(item);
+      }
     }
     if (state.phoneMirror && state.revealed) {
       p.clue.a = item.a;
@@ -4132,6 +4227,16 @@ function extendHostPayload(p) {
       p.clue.correct = clueCorrectIndex(hitem);
       p.clue.picked = hf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
       if (hf === "sequence") p.clue.rightList = clueList(hitem);
+      // On a typed question the host judges what was written, so they get each
+      // guess with the player's index to mark, and the number being looked for.
+      if (clueType(hf).typedIn && p.clue.typeIn) {
+        p.clue.typeIn.target = clueNumber(hitem);
+        p.clue.typeIn.margin = clueMargin(hitem);
+        p.clue.typeIn.guesses = Object.keys(state.guesses).map(function (k) {
+          return { name: (state.players[k] || {}).name || "", text: state.guesses[k], i: +k,
+                   spotOn: answerIsSpotOn(hitem, state.guesses[k]) };
+        });
+      }
     }
     p.clue.hint = hitem.hint || null;         // host-only nudge, never sent to players
     p.clue.hostRevealed = !!state.revealed;   // what the big screen is showing
@@ -4383,6 +4488,17 @@ function phoneSendWager() {
 function phonePick(cat, row) {
   if (!clientConn) return;
   try { clientConn.send({ type: "pick", cat: cat, row: row }); } catch (e) {}
+}
+// The phone half of a typed question: only the player it belongs to gets a box.
+function sendClueGuess() {
+  var bc = state.buzzClient;
+  if (!bc || !clientConn) return;
+  var t = String(bc.guessInput || "").trim();
+  if (!t) return;
+  try { clientConn.send({ type: "clueGuess", text: t }); } catch (e) {}
+  bc.guessSent = t;
+  bc.guessInput = "";
+  render();
 }
 function phoneSendFinalAnswer() {
   var bc = state.buzzClient;
@@ -4707,12 +4823,14 @@ function builderSetType(row, type) {
   if (!t.id) { delete q.format; }
   else {
     q.format = t.id;
-    var existing = Array.isArray(q[t.listKey]) ? q[t.listKey] : (q.options || q.items || []);
-    var list = existing.slice(0, t.max);
-    while (list.length < t.min) list.push("");
-    q[t.listKey] = list;
-    if (t.id === "choice" && (typeof q.correct !== "number" || q.correct >= list.length)) q.correct = 0;
-    if (t.id === "sequence") q.correctOrder = list.map(function (_, i) { return i; });
+    if (t.listKey) {
+      var existing = Array.isArray(q[t.listKey]) ? q[t.listKey] : (q.options || q.items || []);
+      var list = existing.slice(0, t.max);
+      while (list.length < t.min) list.push("");
+      q[t.listKey] = list;
+    }
+    if (t.id === "choice" && (typeof q.correct !== "number" || q.correct >= q.options.length)) q.correct = 0;
+    if (t.id === "sequence") q.correctOrder = q.items.map(function (_, i) { return i; });
   }
   state.builder.error = "";
   render();
@@ -4728,7 +4846,9 @@ function builderAddListItem(row) {
   var q = builderQuestionAt(row);
   if (!q) return;
   var t = clueType(q.format);
-  if (!t.listKey || !Array.isArray(q[t.listKey]) || q[t.listKey].length >= t.max) return;
+  if (!t.listKey) return;
+  if (!Array.isArray(q[t.listKey])) q[t.listKey] = [];
+  if (q[t.listKey].length >= t.max) return;
   q[t.listKey].push("");
   if (t.id === "sequence") q.correctOrder = q[t.listKey].map(function (_, i) { return i; });
   render();
@@ -5413,18 +5533,34 @@ function cleanDraft(d) {
       // A typed question keeps only the list its type actually uses, so
       // switching type twice does not leave a stray options[] in the file.
       var ct = clueType(it.format);
-      if (!ct.id) { delete it.format; delete it.options; delete it.items; delete it.correct; delete it.correctOrder; }
+      var TYPE_FIELDS = ["options", "items", "accept", "correct", "correctOrder", "target", "unit", "margin"];
+      var keep = {};
+      if (!ct.id) { delete it.format; }
       else {
         it.format = ct.id;
-        it[ct.listKey] = clueList(it).map(function (x) { return String(x == null ? "" : x).trim(); });
+        if (ct.listKey) {
+          keep[ct.listKey] = true;
+          it[ct.listKey] = clueList(it)
+            .map(function (x) { return String(x == null ? "" : x).trim(); })
+            .filter(function (x, i) { return x !== "" || i < ct.min; });
+        }
         if (ct.id === "choice") {
-          delete it.items; delete it.correctOrder;
+          keep.correct = true;
           it.correct = Math.max(0, Math.min(clueCorrectIndex(it), it.options.length - 1));
-        } else {
-          delete it.options; delete it.correct;
+        }
+        if (ct.id === "sequence") {
+          keep.correctOrder = true;
           it.correctOrder = it.items.map(function (_, i) { return i; });
         }
+        if (ct.id === "number") {
+          keep.target = keep.unit = keep.margin = true;
+          it.target = clueNumber(it);
+          if (clueMargin(it) == null) delete it.margin; else it.margin = clueMargin(it);
+          if (!it.unit) delete it.unit; else keep.unit = true;
+        }
       }
+      TYPE_FIELDS.forEach(function (f) { if (!keep[f]) delete it[f]; });
+      if (ct.listKey && keep[ct.listKey] && !it[ct.listKey].length) delete it[ct.listKey];
       // cue points only mean anything on a clip, and 0/blank is the default
       if (!it.id) { delete it.clipStart; delete it.clipLen; }
       if (!it.clipStart) delete it.clipStart;
@@ -5797,6 +5933,8 @@ function selectBoard(id) {
   state.menuOpen = false;
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.cascadeBoard = true;
   state.phase = "board";
   render();
@@ -5831,6 +5969,8 @@ function selectRound2(id) {
   state.menuOpen = false;
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.phase = "board";
   render();
 }
@@ -5864,6 +6004,8 @@ function switchBoard() {
   state.previewBoardId = null;
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.phase = "boards";
   render();
 }
@@ -5909,6 +6051,8 @@ function newPlayers() {
   state.wheel = null;
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.phase = "players";
   render();
 }
@@ -6291,6 +6435,8 @@ function openQuestion(catKey, qIndex) {
   state.phase = "question";
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   var openedItem = questionItem();
   if (clueFormat(openedItem) === "sequence") {
     var seqOrder = clueList(openedItem).map(function (_, i) { return i; });
@@ -7607,6 +7753,8 @@ function backUnrevealed() {
   state.wagerInput = "";
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.phase = "board";
   render();
 }
@@ -7629,6 +7777,8 @@ function closeQuestion() {
   state.wager = null;
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   // Classic Jeopardy: whoever answered correctly picks the next tile.
   if (state.roomRules.keepTurn && state.players[state.lastCorrectIndex]) {
     state.players[state.lastCorrectIndex].skipNextTurn = false;
@@ -7668,6 +7818,8 @@ function newRound() {
   state.scoreHistory = [];
   state.seqOrder = null;
   state.clipOverride = null;
+  state.guesses = {};
+  state.guessInput = "";
   state.phase = "board";
   render();
 }
@@ -8478,7 +8630,21 @@ function builderTypeHtml(q, r) {
     '</button>';
   }).join("");
   var body = "";
-  if (cur) {
+  if (cur === "number") {
+    body = '<div class="btype-body">' +
+      '<label class="lbl" style="display:block">The number</label>' +
+      '<div class="btype-row">' +
+        '<input class="input builder-input btype-in" data-bind="clue:' + r + ':target" inputmode="decimal" ' +
+          'placeholder="e.g. 64" value="' + esc(q.target == null ? "" : q.target) + '" />' +
+        '<input class="input builder-input btype-unit" data-bind="clue:' + r + ':unit" ' +
+          'placeholder="%" value="' + esc(q.unit || "") + '" aria-label="Unit" />' +
+      '</div>' +
+      '<label class="lbl" style="display:block;margin-top:10px">Right if they are within <span class="bname-opt">optional</span></label>' +
+      '<input class="input builder-input" data-bind="clue:' + r + ':margin" inputmode="decimal" ' +
+        'placeholder="leave blank for closest wins" value="' + esc(q.margin == null ? "" : q.margin) + '" />' +
+      '<p class="btype-note">' + clueType(cur).note + '</p>' +
+    '</div>';
+  } else if (cur) {
     var t = clueType(cur), list = clueList(q), correct = clueCorrectIndex(q);
     var rows = list.map(function (val, i) {
       return '<div class="btype-row">' +
@@ -8500,6 +8666,7 @@ function builderTypeHtml(q, r) {
     body = '<div class="btype-body">' +
       '<label class="lbl" style="display:block">' + t.listLabel + '</label>' +
       rows +
+      (!list.length ? '<p class="btype-note" style="margin-top:4px">Nothing listed \u2014 the written answer is the one to match.</p>' : '') +
       (list.length < t.max
         ? '<button class="btype-add" data-action="builderAddListItem" data-row="' + r + '">+ ' + t.addLabel + '</button>'
         : '<p class="btype-note">That is the most you can have.</p>') +
@@ -9893,6 +10060,7 @@ function buzzMirrorHtml(bc) {
           '</div>'
         : (c.q ? '<p class="buzz-mirror-q">' + esc(c.q) + '</p>' : '')) +
       (c.hiddenQ ? '' : clueListHtml(c, false)) +
+      typeInHtml(c, bc, false) +
       imgHtml +
       clipHtml +
       timerHtml +
@@ -9949,6 +10117,49 @@ function spectateTimerHtml(bc) {
 // difference is that the host is sent `correct` from the start and a player
 // only after the reveal, so "who can see the answer" stays a payload decision
 // rather than something each screen has to remember.
+// A typed question on a phone. For the player whose question it is, a box and
+// a Send. For everyone else, what has been sent in. For the host, the same
+// list plus a Right and a Wrong against each name, and the answer they are
+// judging against, which they already hold.
+function typeInHtml(c, bc, forHost) {
+  var t = c && c.typeIn;
+  if (!t) return "";
+  var mine = !forHost && bc && t.owner && t.owner.toLowerCase() === String(bc.name || "").toLowerCase();
+  var rows = (t.guesses || []).map(function (g) {
+    var judge = forHost && g.i != null && !t.judged
+      ? '<span class="hc-final-btns">' +
+          '<button class="hc-btn hc-right hc-mini2" data-action="hostScore" data-i="' + g.i + '" data-correct="1">Right</button>' +
+          '<button class="hc-btn hc-wrong hc-mini2" data-action="hostScore" data-i="' + g.i + '" data-correct="0">Wrong</button>' +
+        '</span>'
+      : '';
+    return '<div class="mini-guess' + (g.spotOn ? ' mini-guess-spot' : '') + '">' +
+        '<div class="mini-guess-top">' +
+          '<span class="mini-guess-name">' + esc(g.name) + '</span>' +
+          '<span class="mini-guess-text">' + esc(g.text) + esc(t.unit || "") + '</span>' +
+        '</div>' +
+        (g.spotOn ? '<p class="mini-note" style="text-align:left;color:#7ee2b0">Word for word \u2014 this one marked itself.</p>' : '') +
+        judge +
+      '</div>';
+  }).join("");
+  var box = "";
+  if (mine && !t.judged) {
+    box = bc.guessSent
+      ? '<p class="buzz-mirror-revealed">Sent: ' + esc(bc.guessSent) + '</p>'
+      : '<div style="display:flex;gap:8px;margin-top:10px">' +
+          '<input class="input" id="clueGuessInput"' + (t.numeric ? ' inputmode="decimal"' : '') +
+            ' placeholder="' + (t.numeric ? 'Your number' : 'Your answer') + '" value="' + esc(bc.guessInput || "") + '" style="flex:1;min-width:0" />' +
+          '<button class="btn-gold" data-action="sendClueGuess">Send</button>' +
+        '</div>' +
+        '<p class="buzz-timer-note">It goes to the host, not the big screen.</p>';
+  } else if (!forHost && !mine) {
+    box = '<p class="buzz-timer-note">' + esc(t.owner || "Someone") + ' is answering this one.</p>';
+  }
+  return (rows ? '<div class="mini-guesses">' + rows + '</div>' : "") + box +
+    (forHost && t.target != null
+      ? '<p class="mini-note">Looking for ' + t.target + esc(t.unit || "") +
+        (t.margin != null ? ', anything within ' + t.margin : '') + '.</p>'
+      : '');
+}
 function clueListHtml(c, forHost) {
   if (!c || !c.format || !Array.isArray(c.list) || !c.list.length) return "";
   var showRight = c.correct != null && c.correct >= 0;
@@ -10156,6 +10367,7 @@ function viewHostControl(bc) {
       '<p class="hc-cat">' + esc((c.cat || '').toUpperCase()) + ' &middot; ' + (c.value || 0) + '</p>' +
       '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio or video question' : '')) + '</p>' +
       clueListHtml(c, true) +
+      typeInHtml(c, bc, true) +
       (c.isVideo
         ? '<div class="clip-ctl-row">' +
             '<span class="clip-ctl-lbl">CLIP</span>' +
@@ -10622,6 +10834,41 @@ function chooseAlignment(choice) {
   broadcastSync();   // every phone in the room is watching the same options
   renderOrUpdateClue();
 }
+// Who this question belongs to right now: whoever buzzed in, or on a Daily
+// Double the player it landed on, or otherwise whoever's turn it is.
+function clueOwnerIndex() {
+  if (state.buzzer.winnerIndex != null && state.buzzer.winnerIndex !== -1) return state.buzzer.winnerIndex;
+  return state.turn;
+}
+// A guess arriving from a phone, or typed on the host screen. It never judges
+// anything by itself except the one case nobody would argue with.
+function recordGuess(i, text) {
+  if (state.phase !== "question" || !state.active) return;
+  if (!clueType(clueFormat(questionItem())).typedIn) return;
+  if (!state.players[i]) return;
+  state.guesses[i] = String(text == null ? "" : text).slice(0, 140);
+  // Word for word right marks itself, so the host is not rubber-stamping the
+  // obvious ones. Anything else waits for them -- "close enough" is their call.
+  if (!state.judgedThisClue && answerIsSpotOn(questionItem(), state.guesses[i])) {
+    if (!state.revealed) reveal();
+    scoreQuestion(i, true);
+    // Settled, the same way judgeBuzz settles one: without this the host could
+    // score it a second time and the phone would still offer a Send box.
+    state.judgedThisClue = true;
+    render();
+    return;
+  }
+  render();
+}
+function setGuessInput(text) { state.guessInput = String(text == null ? "" : text); }
+function sendOwnGuess() {
+  var t = String(state.guessInput || "").trim();
+  if (!t) return;
+  recordGuess(clueOwnerIndex(), t);
+  state.guessInput = "";
+  render();
+}
+function clearGuess(i) { delete state.guesses[i]; render(); }
 function seqMove(pos, dir) {
   if (!state.seqOrder || state.revealed) return;
   var order = state.seqOrder;
@@ -10652,6 +10899,45 @@ function viewSequenceClue(item) {
     '</div>';
   }).join("");
   return '<div class="sequence-list" style="margin-top:14px">' + rows + '</div>';
+}
+// A question answered by typing. On the big screen it shows whose question it
+// is, whatever has come in from the phones, and -- because not every room is
+// using phones -- a box the host can type into on this device instead.
+function viewTypeInClue(item) {
+  var numeric = clueFormat(item) === "number";
+  var owner = state.players[clueOwnerIndex()];
+  var unit = item.unit || "";
+  var rows = Object.keys(state.guesses).map(function (k) {
+    var p = state.players[k] || {};
+    var right = state.revealed && answerIsSpotOn(item, state.guesses[k]);
+    var off = "";
+    if (numeric && state.revealed && clueNumber(item) != null) {
+      var d = Math.abs(parseFloat(state.guesses[k]) - clueNumber(item));
+      if (isFinite(d)) off = d === 0 ? "spot on" : "off by " + (Math.round(d * 100) / 100);
+    }
+    return '<div class="guess-row' + (right ? ' guess-row-right' : '') + '">' +
+      '<span class="dot" style="background:' + esc(p.color || "#8b92c0") + '"></span>' +
+      '<span class="guess-name">' + esc(p.name || "") + '</span>' +
+      '<span class="guess-text">' + esc(state.guesses[k]) + (unit ? esc(unit) : "") + '</span>' +
+      (off ? '<span class="guess-off">' + esc(off) + '</span>' : '') +
+    '</div>';
+  }).join("");
+  var box = state.revealed ? "" :
+    '<div class="guess-entry">' +
+      '<input class="input" id="guessInput"' + (numeric ? ' inputmode="decimal"' : '') +
+        ' placeholder="' + (numeric ? 'A number' : 'Type the answer') +
+        (owner ? ' for ' + esc(owner.name) : '') + '" value="' + esc(state.guessInput || "") + '" />' +
+      '<button class="btn-gold" data-action="sendOwnGuess">Lock it in</button>' +
+    '</div>' +
+    '<p class="guess-note">' +
+      (state.buzzer.on
+        ? esc(owner ? owner.name : "Whoever it is") + ' can type it on their phone, or use this box.'
+        : 'Type what they said, or just judge it below.') +
+    '</p>';
+  return '<div class="guess-block">' +
+    (rows ? '<div class="guess-list">' + rows + '</div>' : '') +
+    box +
+  '</div>';
 }
 function viewAlignmentChoices(item) {
   var correct = clueCorrectIndex(item);
@@ -10689,7 +10975,8 @@ function viewClueMedia() {
     if (hidden) return hiddenBox + art;
     return '<div class="clue-box">' + esc(item.q) + '</div>' + art +
       (clueFormat(item) === "choice" ? viewAlignmentChoices(item) :
-        clueFormat(item) === "sequence" ? viewSequenceClue(item) : "");
+        clueFormat(item) === "sequence" ? viewSequenceClue(item) :
+        clueType(clueFormat(item)).typedIn ? viewTypeInClue(item) : "");
   }
   var prompt = hidden ? hiddenBox : (item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "");
   var player;
@@ -11488,6 +11775,8 @@ document.getElementById("root").addEventListener("input", function (e) {
     return;
   }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+  if (t && t.id === "guessInput") setGuessInput(t.value);
+  if (t && t.id === "clueGuessInput" && state.buzzClient) state.buzzClient.guessInput = t.value;
   if (t && t.getAttribute && t.getAttribute("data-listitem")) {
     var li = t.getAttribute("data-listitem").split(":");   // <row>:<index>
     builderSetListItem(+li[0], +li[1], t.value);           // no render: it would eat the caret
@@ -11693,6 +11982,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderClearArt") builderClearArt();
   else if (action === "closeSendIt") closeSendIt();
   else if (action === "copySendIt") copySendIt();
+  else if (action === "sendOwnGuess") sendOwnGuess();
+  else if (action === "clearGuess") clearGuess(+t.getAttribute("data-i"));
+  else if (action === "sendClueGuess") sendClueGuess();
   else if (action === "builderSetType") builderSetType(+t.getAttribute("data-row"), t.getAttribute("data-type"));
   else if (action === "builderAddListItem") builderAddListItem(+t.getAttribute("data-row"));
   else if (action === "builderRemoveListItem") builderRemoveListItem(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
