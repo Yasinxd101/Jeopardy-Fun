@@ -1239,6 +1239,11 @@
   .guess-name { font-weight: 800; font-size: 14px; color: #aab0d8; }
   .guess-text { flex: 1; min-width: 0; font-weight: 800; font-size: 17px; color: #fff; word-break: break-word; }
   .guess-off { flex: none; font-size: 12px; font-weight: 700; color: #8b92c0; }
+  .guess-x {
+    flex: none; width: 30px; min-height: 30px; border-radius: 8px; background: none;
+    border: 1px solid #4a2a3d; color: #ff8aa0; font-size: 17px; line-height: 1;
+    font-family: inherit; cursor: pointer;
+  }
   .guess-entry { display: flex; gap: 8px; }
   .guess-entry .input { flex: 1; min-width: 0; }
   .guess-note { margin: 8px 0 0; font-size: 12.5px; color: #8b92c0; text-align: center; line-height: 1.4; }
@@ -4435,11 +4440,15 @@ function handleClientData(d) {
     bc.msg = String(d.reason || "Host control was refused.");
     try { if (clientConn) clientConn.close(); } catch (e) {}
   }
-  else if (d.type === "arm") { if (bc.buzzState !== "spent") { bc.buzzState = "armed"; bc.lockWinner = ""; } }
+  else if (d.type === "arm") { if (bc.buzzState !== "spent") { bc.buzzState = "armed"; bc.lockWinner = ""; bc.guessSent = ""; } }
   else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
   else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
   else if (d.type === "youwon") { bc.buzzState = "won"; }
   else if (d.type === "spent") { bc.buzzState = "spent"; bc.lockWinner = ""; }
+  // The host threw this phone's guess away, so offer the box again.
+  else if (d.type === "guessCleared") {
+    if (String(d.name || "").toLowerCase() === String(bc.name || "").toLowerCase()) bc.guessSent = "";
+  }
   else if (d.type === "roomClosed") { bc.stage = "closed"; bc.msg = String(d.reason || "The room was closed."); bc.game = null; }
   else if (d.type === "booted") { bc.stage = "closed"; bc.msg = "The host removed this phone from the room. You are still in the game on the host screen."; bc.game = null; }
   else if (d.type === "sync") {
@@ -10868,7 +10877,12 @@ function sendOwnGuess() {
   state.guessInput = "";
   render();
 }
-function clearGuess(i) { delete state.guesses[i]; render(); }
+function clearGuess(i) {
+  delete state.guesses[i];
+  // Tell that phone to offer its box again, otherwise it still reads "Sent:".
+  broadcastBuzzer({ type: "guessCleared", name: (state.players[i] || {}).name || "" });
+  render();
+}
 function seqMove(pos, dir) {
   if (!state.seqOrder || state.revealed) return;
   var order = state.seqOrder;
@@ -10920,6 +10934,11 @@ function viewTypeInClue(item) {
       '<span class="guess-name">' + esc(p.name || "") + '</span>' +
       '<span class="guess-text">' + esc(state.guesses[k]) + (unit ? esc(unit) : "") + '</span>' +
       (off ? '<span class="guess-off">' + esc(off) + '</span>' : '') +
+      // A typo should not cost the question: until it is judged, the host can
+      // throw a guess away and the player can send another.
+      (state.revealed || state.judgedThisClue ? '' :
+        '<button class="guess-x" data-action="clearGuess" data-i="' + k + '" ' +
+          'aria-label="Clear what ' + esc(p.name || "they") + ' put">&times;</button>') +
     '</div>';
   }).join("");
   var box = state.revealed ? "" :
