@@ -956,7 +956,20 @@
     color: #c2c8ea; font-size: 13px; font-weight: 600; line-height: 1.45; text-align: center;
   }
   .board-notice-quiet { color: #9aa2cc; font-weight: 500; }
-  .board-notice .inline-link {
+  /* "your board is saved, here is where it went" -- on the start screen, so it
+     is the first thing you see when the maker hands you back */
+  .home-notice {
+    display: flex; align-items: flex-start; gap: 8px; text-align: left;
+    margin: 0 0 12px; padding: 11px 10px 11px 14px; border-radius: 12px;
+    background: rgba(44, 182, 125, 0.14); border: 1px solid rgba(44, 182, 125, 0.5);
+    color: #9fe8c6; font-size: 13.5px; font-weight: 700; line-height: 1.45;
+  }
+  .home-notice-x {
+    flex: none; background: none; border: none; color: #7ebda3; cursor: pointer;
+    font-size: 20px; line-height: 1; font-family: inherit; padding: 2px 6px;
+    min-width: 28px; min-height: 28px;
+  }
+  .inline-link {
     background: none; border: none; color: #ffd166; font-family: inherit;
     font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0;
   }
@@ -1499,27 +1512,13 @@
   .final-phone-right .final-phone-wager { color: #2cb67d; }
 
   /* "how are you playing" picker on the start screen */
-  .play-style { margin-top: 2px; }
-  .play-style-head { margin: 0 0 7px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
-  /* Side by side rather than stacked: the two choices are a pair, and the
-     start screen has no vertical room to spend on a paragraph each. */
-  .play-style-row { display: flex; gap: 8px; }
-  .play-opt {
-    flex: 1 1 0; min-width: 0;
-    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
-    background: #0d1230; border: 1px solid #2a2f55; border-radius: 12px;
-    padding: 9px 10px; color: #fff; cursor: pointer;
-    font-family: inherit; transition: border-color 0.18s ease, background 0.18s ease;
-  }
-  .play-opt-on { border-color: #ffd166; background: #191f44; }
+  /* The tick, label and sub-label of a toggle row -- the teams switch on the
+     start screen and the Teams button on the board bar both wear them. */
   .play-opt-tick {
     flex: none; width: 16px; height: 16px; border-radius: 50%;
     border: 2px solid #3a4070; display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 900; color: #0b0f24;
   }
-  .play-opt-on .play-opt-tick { background: #ffd166; border-color: #ffd166; }
-  .play-opt-top { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; }
-  /* still used by the team toggle, which stays a full-width row */
   .play-opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .play-opt-title { font-weight: 800; font-size: 13.5px; }
   .play-opt-sub { font-size: 11.5px; color: #8b92c0; line-height: 1.3; }
@@ -1666,6 +1665,15 @@
     margin-top: 9px; padding-top: 9px; border-top: 1px solid #23284b;
   }
   .pbar-room-hint { flex: 1; min-width: 140px; font-size: 12px; color: #8b92c0; line-height: 1.4; }
+  /* The warning is a sentence, not a hint, so it takes the whole width and the
+     button drops below it. Sharing the row squeezed it into a column of two
+     words per line. */
+  .pbar-room-warn {
+    flex: 1 0 100%; color: #ffd166; font-weight: 600; font-size: 12.5px;
+    background: rgba(255, 209, 102, 0.09); border: 1px solid rgba(255, 209, 102, 0.32);
+    border-radius: 10px; padding: 9px 11px;
+  }
+  .pbar-room-warn .inline-link { font-size: 12.5px; }
   .pbar-room-live { flex: 1; min-width: 120px; font-size: 12.5px; font-weight: 800; color: #7ee2b0; }
   .pbar-btn {
     background: #20264d; border: 1px solid #343b6b; border-radius: 9px; color: #dfe3ff;
@@ -2923,6 +2931,7 @@ var state = {
   feudBuilder: null,      // {draft, index, error, submitMsg}
   statsMsg: "",           // one-line confirmation on the stats screen
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
+  homeMsg: "",            // one-line notice on the start screen (e.g. after saving a board)
   setupMoreOpen: false,   // the fold-away half of the start screen
   playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
@@ -4365,12 +4374,9 @@ function openBuilder(existingId) {
     var found = customBoards().filter(function (b) { return b.id === existingId; })[0];
     if (found) draft = JSON.parse(JSON.stringify(found));
   }
+  state.homeMsg = "";
   state.builder = {
     draft: draft || blankDraft(),
-    // Cancel should put you back where you opened this from. It used to
-    // always land on the board picker, so opening the maker from the start
-    // screen and changing your mind moved you somewhere you had not been.
-    returnTo: state.phase === "players" ? "players" : "boards",
     // Two steps, and the first one asks a single question. An existing board
     // already has a name, so editing one goes straight to the grid.
     step: draft ? "board" : "name",
@@ -4620,12 +4626,22 @@ function draftIsUntouched(d) {
     return !col.category && col.questions.every(function (q) { return !questionHasWork(q); });
   }) && !d.final.category && !d.final.q && !d.final.a;
 }
-function closeBuilder() {
-  var back = (state.builder && state.builder.returnTo) || "boards";
+// Every way out of the maker lands in the same place: the start screen you
+// came from. Saving used to drop you on the board picker mid-way through
+// choosing a board for a game you had not started, which read as being thrown
+// somewhere you never asked to go.
+function goHome(msg) {
   state.builder = null;
-  state.phase = back;
+  state.previewBoardId = null;
+  state.questionDemo = null;
+  state.exampleOpen = false;
+  state.importPrompt = null;
+  state.homeMsg = msg || "";
+  state.phase = "players";
   render();
 }
+function dismissHomeMsg() { state.homeMsg = ""; render(); }
+function closeBuilder() { goHome(""); }
 function builderSetField(path, value) {
   if (!state.builder) return;
   var d = state.builder.draft;
@@ -4824,8 +4840,7 @@ function enterTestBoard(previewOnly) {
 
   // remember where in the build you were, so coming back is seamless
   state.testingBoard = { draft: state.builder.draft, catIndex: state.builder.catIndex,
-                         step: state.builder.step, toolsOpen: state.builder.toolsOpen,
-                         returnTo: state.builder.returnTo };
+                         step: state.builder.step, toolsOpen: state.builder.toolsOpen };
   BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; }).concat([draft]);
   if (!state.players.length) {
     state.players = [{ name: "You", score: 0, color: PLAYER_COLORS[0], shape: "circle",
@@ -4865,7 +4880,7 @@ function stopTestingBoard() {
   if (t) {
     state.builder = { draft: t.draft, catIndex: t.catIndex || 0, error: "", shareUrl: "",
                       step: t.step || "board", editing: null, extrasOpen: false,
-                      toolsOpen: !!t.toolsOpen, returnTo: t.returnTo || "boards" };
+                      toolsOpen: !!t.toolsOpen };
     state.phase = "builder";
   } else {
     state.phase = "players";
@@ -4988,10 +5003,8 @@ function saveBuilder() {
   if (idx !== -1) list[idx] = d; else list.push(d);
   jfWrite(JF_MYBOARDS_KEY, list);
   rebuildBoards();
-  state.builder = null;
-  state.phase = "boards";
   state.boardsTab = "My Boards";
-  render();
+  goHome("“" + d.name + "” is saved. Start a game and you will find it under My Boards.");
 }
 function deleteCustomBoard(id) {
   var list = jfRead(JF_MYBOARDS_KEY, []).filter(function (b) { return b.id !== id; });
@@ -5078,17 +5091,22 @@ function importBoardFile(file) {
         msg = "Could not import that board: " + err;
       }
     } catch (e) { msg = "Could not read that file as board JSON. Make sure it is valid JSON."; }
-    state.importFileMsg = msg;
     state.boardsTab = "My Boards";
-    // Importing from the first screen of the maker used to leave you sitting
-    // on "what are you calling it" with a success message and an empty draft.
-    // If there is nothing to lose, go and look at what you just imported.
-    // `ok`, not `!err`: a file that failed to parse never reaches the line
-    // that sets err, so err would be undefined and read as success.
-    if (ok && state.builder && draftIsUntouched(state.builder.draft)) {
-      state.builder = null;
-      state.phase = "boards";
+    // A board that imported is finished with, so it ends where a saved board
+    // ends -- back on the start screen, told where the board went.
+    //
+    // Unless there is a half-written board on the bench: leaving the maker
+    // would throw that away, and nobody asked for it to be thrown away. In
+    // that one case the message stays here, beside the button that did it.
+    // Failures always stay put too.
+    if (ok && (!state.builder || draftIsUntouched(state.builder.draft))) {
+      state.importFileMsg = "";
+      goHome(msg + " Start a game and you will find it under My Boards.");
+      return;
     }
+    state.importFileMsg = ok
+      ? msg + " It is in My Boards — this one is still open."
+      : msg;
     render();
     if (importMsgTimer) clearTimeout(importMsgTimer);
     importMsgTimer = setTimeout(function () {
@@ -5185,6 +5203,7 @@ function removePlayer(i) {
 function continueToBoards() {
   if (!modeIsReady()) return; // the mode is scaffolding only
   if (!state.players.length) return;
+  state.homeMsg = "";
   if (state.gameMode === "millionaire") { openMilPacks(); return; }
   if (state.gameMode === "feud") { openFeudTeams(); return; }
   state.phase = "boards";
@@ -7630,6 +7649,12 @@ function viewPlayers() {
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
     modeChips +
+    (state.homeMsg
+      ? '<div class="home-notice">' +
+          '<span>' + esc(state.homeMsg) + '</span>' +
+          '<button class="home-notice-x" data-action="dismissHomeMsg" aria-label="Hide this">&times;</button>' +
+        '</div>'
+      : '') +
     (m.status === "ready" && m.id === "jeopardy" ? resumeCard : "") +
     (m.status === "ready" ? "" :
       '<div class="card wip-card">' +
@@ -7805,8 +7830,19 @@ function playSetupBarHtml() {
           '<button class="pbar-btn pbar-btn-off" data-action="confirmStopRoom">Close</button>' +
         '</div>'
       : '<div class="pbar-room">' +
-          '<span class="pbar-room-hint">Everyone needs the room code before they can buzz.</span>' +
-          '<button class="pbar-btn pbar-btn-go" data-action="openHostRoom">Open the room</button>' +
+          // With one player on the list, opening a room is not "add buzzers to
+          // my solo game" -- it turns this device into the host of a game other
+          // people join and are added to. Say so before it happens.
+          (state.players.length < 2
+            ? '<span class="pbar-room-hint pbar-room-warn">' +
+                'You are the only player so far. Opening a room starts a game for several people &mdash; ' +
+                'everyone who joins on their phone is added as a player. Playing on your own? ' +
+                '<button class="inline-link" data-action="setPlayStyle" data-style="screen">Use one screen instead</button>' +
+              '</span>'
+            : '<span class="pbar-room-hint">Everyone needs the room code before they can buzz.</span>') +
+          '<button class="pbar-btn pbar-btn-go" data-action="openHostRoom">' +
+            (state.players.length < 2 ? 'Open a room anyway' : 'Open the room') +
+          '</button>' +
         '</div>';
   }
   return '<div class="pbar">' +
@@ -7848,29 +7884,6 @@ function boardRulesHtml() {
 function toggleBoardRules() { state.rulesOpen = !state.rulesOpen; render(); }
 // One decision up front: are people buzzing in on their phones, or is everyone
 // crowded round one screen? It changes what the start button does.
-function playStyleHtml() {
-  if (state.gameMode !== "jeopardy") return "";
-  var opts = [
-    { id: "screen", title: "One screen", sub: "Everyone round this device." },
-    { id: "buzzers", title: "Phone buzzers", sub: "Everyone joins on their own phone." },
-  ];
-  return '<div class="play-style">' +
-    '<p class="play-style-head">HOW ARE YOU PLAYING?</p>' +
-    '<div class="play-style-row">' +
-    opts.map(function (o) {
-      var on = state.playStyle === o.id;
-      return '<button class="play-opt' + (on ? ' play-opt-on' : '') + '" data-action="setPlayStyle" data-style="' + o.id + '">' +
-          '<span class="play-opt-top">' +
-            '<span class="play-opt-tick">' + (on ? '&#10003;' : '') + '</span>' +
-            '<span class="play-opt-title">' + o.title + '</span>' +
-          '</span>' +
-          '<span class="play-opt-sub">' + o.sub + '</span>' +
-        '</button>';
-    }).join('') +
-    '</div>' +
-  '</div>';
-}
-
 // All-time stats and recent matches, aggregated from local history.
 function viewStats() {
   var hist = jfRead(JF_HISTORY_KEY, []);
@@ -11035,6 +11048,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderClearQuestion") builderClearQuestion(t.getAttribute("data-row"));
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
+  else if (action === "dismissHomeMsg") dismissHomeMsg();
   else if (action === "openQuestionDemo") openQuestionDemo();
   else if (action === "closeQuestionDemo") closeQuestionDemo();
   else if (action === "demoReveal") demoReveal();
