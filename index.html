@@ -617,6 +617,24 @@
     border-radius: 16px; padding: 14px; box-shadow: 0 10px 30px rgba(4, 6, 16, 0.5);
   }
   .bname-card-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.22; }
+  /* a poster is taller than it is wide, so the square grows into one */
+  .bname-card-icon-art { width: 46px !important; height: 64px !important; overflow: hidden; }
+  .bname-card-icon-art .bname-card-letter { display: none; }
+  .bname-card-thumb { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+  .bname-thumb-row { display: flex; gap: 8px; margin-top: 6px; }
+  .bname-thumb-btn {
+    flex: 1; text-align: center; background: #20264d; border: 1px solid #343b6b;
+    border-radius: 10px; padding: 11px 10px; min-height: 44px; color: #dfe3ff;
+    font-family: inherit; font-weight: 800; font-size: 13.5px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .bname-thumb-x {
+    flex: none; background: none; border: 1px solid #5a3350; border-radius: 10px;
+    padding: 11px 14px; min-height: 44px; color: #ff8aa0;
+    font-family: inherit; font-weight: 800; font-size: 13.5px; cursor: pointer;
+  }
+  .bname-thumb-link { margin-top: 8px; }
+  .bname-thumb-note { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: #8b92c0; }
   .bname-card-icon {
     position: relative; flex: none; width: 52px; height: 52px; border-radius: 13px;
     display: flex; align-items: center; justify-content: center;
@@ -1131,6 +1149,79 @@
   .demo-note { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: #aab0d8; text-align: center; }
   .demo-tip { margin: 12px 0 0; font-size: 12.5px; line-height: 1.45; color: #8b92c0; text-align: center; }
 
+  /* picking how a question plays, in the maker */
+  .btype-row-pick { display: flex; gap: 6px; margin-top: 6px; }
+  .btype {
+    flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: #0d1230; border: 1px solid #2a2f55; border-radius: 11px; padding: 9px 5px;
+    min-height: 58px; color: #aab0d8; font-family: inherit; cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+  .btype-on { border-color: var(--ba, #ffd166); background: #191f44; color: #fff; }
+  .btype-icon { font-size: 17px; line-height: 1; }
+  .btype-name { font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
+  .btype-blurb { margin: 7px 0 0; font-size: 12px; color: #8b92c0; line-height: 1.4; }
+  .btype-body {
+    margin-top: 11px; padding: 11px; border-radius: 12px;
+    background: #0d1230; border: 1px solid #23284b;
+  }
+  .btype-row { display: flex; align-items: center; gap: 7px; margin-top: 6px; }
+  .btype-in { margin-top: 0 !important; flex: 1; min-width: 0; }
+  .btype-num, .btype-mark {
+    flex: none; width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; font-family: inherit;
+  }
+  .btype-num { background: #20264d; color: #aab0d8; }
+  .btype-mark { background: #20264d; border: 1px solid #343b6b; color: #8b92c0; cursor: pointer; }
+  .btype-mark-on { background: #2cb67d; border-color: #2cb67d; color: #04210f; }
+  .btype-del {
+    flex: none; width: 30px; min-height: 30px; border-radius: 8px; background: none;
+    border: 1px solid #4a2a3d; color: #ff8aa0; font-size: 17px; line-height: 1;
+    font-family: inherit; cursor: pointer;
+  }
+  .btype-add {
+    width: 100%; margin-top: 8px; background: none; border: 1px dashed #3a4070;
+    border-radius: 9px; padding: 9px; min-height: 38px; color: #aab0d8;
+    font-family: inherit; font-weight: 800; font-size: 12.5px; cursor: pointer;
+  }
+  .btype-note { margin: 8px 0 0; font-size: 11.5px; color: #8b92c0; line-height: 1.4; }
+
+  /* A typed question's list, on a phone -- a player's and the host's alike */
+  .mini-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .mini-opt {
+    display: flex; align-items: center; gap: 8px; text-align: left;
+    padding: 9px 11px; border-radius: 9px; border: 1px solid #2a2f55;
+    background: #141833; color: #dfe3ff; font-size: 14px; font-weight: 600; line-height: 1.35;
+  }
+  .mini-opt-letter {
+    flex: none; width: 20px; height: 20px; border-radius: 5px; background: #2a2f55;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #aab0d8;
+  }
+  .mini-opt-picked { border-color: #ffd166; color: #ffd166; }
+  .mini-opt-picked .mini-opt-letter { background: #ffd166; color: #2a2205; }
+  .mini-opt-right { border-color: #2cb67d; background: rgba(44, 182, 125, 0.16); color: #7ee2b0; }
+  .mini-opt-right .mini-opt-letter { background: #2cb67d; color: #04210f; }
+  .mini-opt-wrong { border-color: #ff5470; background: rgba(255, 84, 112, 0.14); color: #ff8aa0; }
+  .mini-opt-wrong .mini-opt-letter { background: #ff5470; color: #2a0410; }
+  .mini-seq { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+  .mini-seq-row {
+    display: flex; align-items: center; gap: 8px; text-align: left;
+    padding: 8px 11px; border-radius: 9px; border: 1px solid #2a2f55;
+    background: #141833; color: #dfe3ff; font-size: 14px; font-weight: 600; line-height: 1.35;
+  }
+  .mini-seq-num {
+    flex: none; width: 20px; height: 20px; border-radius: 50%; background: #2a2f55;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #aab0d8;
+  }
+  .mini-seq-right { border-color: rgba(44, 182, 125, 0.6); }
+  .mini-seq-right .mini-seq-num { background: #2cb67d; color: #04210f; }
+  .mini-seq-wrong { border-color: rgba(255, 84, 112, 0.5); }
+  .mini-seq-wrong .mini-seq-num { background: #ff5470; color: #2a0410; }
+  .mini-note { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: #8b92c0; text-align: center; }
+
   /* ---- per-question timer ---- */
   .timer-track { width: 100%; height: 10px; background: #1d2455; border-radius: 6px; overflow: hidden; margin: 14px 0 4px; }
   .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar linear forwards; animation-duration: var(--timer-duration, 20s); }
@@ -1321,9 +1412,20 @@
   }
   .alignment-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
   .alignment-btn {
-    flex: 1; min-width: 90px; padding: 14px 10px; font-size: 16px; font-weight: 800;
+    /* An authored option can be a sentence, so these wrap and grow rather than
+       staying the three equal chips the Hero/Villain/Other version needed. */
+    flex: 1 1 150px; min-width: 0; padding: 13px 12px; font-size: 16px; font-weight: 800;
     border-radius: 10px; border: 2px solid #4a4f8a; background: #1d2455; color: #f5f3ff; cursor: pointer;
+    display: flex; align-items: center; gap: 9px; text-align: left; line-height: 1.35;
+    font-family: inherit;
   }
+  .alignment-letter {
+    flex: none; width: 22px; height: 22px; border-radius: 6px; background: #313876;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; color: #cfd4ff;
+  }
+  .alignment-correct .alignment-letter { background: #2cb67d; color: #04210f; }
+  .alignment-wrong .alignment-letter { background: #ff5470; color: #2a0410; }
   .alignment-selected { border-color: #ffd166; color: #ffd166; }
   .alignment-correct { border-color: #7ee2b0; background: rgba(126, 226, 176, 0.18); color: #7ee2b0; }
   .alignment-wrong { border-color: #ff8aa0; background: rgba(255, 138, 160, 0.18); color: #ff8aa0; }
@@ -2793,6 +2895,8 @@ function boardValidationError(b) {
       var it = col.questions[q];
       if (!it || (!it.q && !it.id)) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
       if (!it.a) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
+      var tErr = clueTypeError(it);
+      if (tErr) return "clue " + (q + 1) + ' in "' + col.category + '" ' + tErr + ".";
     }
   }
   if (!b.final || !b.final.category) return "Final Jeopardy needs a category.";
@@ -2803,6 +2907,67 @@ function boardValidationError(b) {
 // A board is playable if it has an id, a full grid of filled clues and a final.
 function isValidBoard(b) {
   return !!(b && b.id) && boardValidationError(b) === "";
+}
+
+// ---- question types ----
+// One table, so a new kind of question is an entry here plus a body in the
+// maker and a body in each of the three places a question is looked at: the
+// big screen, the phones, and the host's own device. Everything else --
+// validation, saving, importing, mirroring -- reads this.
+var CLUE_TYPES = [
+  { id: "", name: "Straight question", icon: "✎",
+    blurb: "You read it out, they answer." },
+  { id: "choice", name: "Multiple choice", icon: "◉",
+    blurb: "A few options on screen, one of them right.",
+    listKey: "options", min: 2, max: 6,
+    listLabel: "Options", addLabel: "Add an option",
+    note: "Tap the circle to mark the right one. Everyone sees all of them." },
+  { id: "sequence", name: "Put it in order", icon: "⇅",
+    blurb: "Things to sort into the right order.",
+    listKey: "items", min: 2, max: 8,
+    listLabel: "In the RIGHT order, top to bottom", addLabel: "Add another",
+    note: "Write them correctly here. Players always see them shuffled." },
+];
+function clueType(id) {
+  for (var i = 0; i < CLUE_TYPES.length; i++) if (CLUE_TYPES[i].id === (id || "")) return CLUE_TYPES[i];
+  return CLUE_TYPES[0];
+}
+// The format an item actually plays as. "alignmentChoice" was a hard-wired
+// Hero/Villain/Other question; it is just a multiple choice with three fixed
+// options, so it is read as one and old boards keep working untouched.
+var ALIGNMENT_OPTIONS = ["Hero", "Villain", "Other"];
+function clueFormat(item) {
+  if (!item) return "";
+  if (item.format === "alignmentChoice") return "choice";
+  return clueType(item.format).id;
+}
+// The list a typed question carries, whatever it is called in the file.
+function clueList(item) {
+  if (!item) return [];
+  if (item.format === "alignmentChoice") return ALIGNMENT_OPTIONS.slice();
+  var t = clueType(item.format);
+  return t.listKey && Array.isArray(item[t.listKey]) ? item[t.listKey] : [];
+}
+// Which entry is the right one, for a choice. alignmentChoice never stored an
+// index -- it read the word out of the answer text.
+function clueCorrectIndex(item) {
+  if (!item) return -1;
+  if (item.format === "alignmentChoice") return ALIGNMENT_OPTIONS.indexOf(alignmentAnswerWord(item.a));
+  return typeof item.correct === "number" ? item.correct : -1;
+}
+// Anything typed needs its own list to be usable; say exactly what is missing.
+function clueTypeError(item) {
+  var f = clueFormat(item);
+  if (!f) return "";
+  var t = clueType(f), list = clueList(item);
+  if (list.length < t.min) return "needs at least " + t.min + " " + t.listLabel.toLowerCase().replace(/ .*/, "");
+  if (list.length > t.max) return "has more than " + t.max + " entries";
+  for (var i = 0; i < list.length; i++) if (!String(list[i] == null ? "" : list[i]).trim()) return "has an empty entry";
+  if (f === "choice") {
+    var c = clueCorrectIndex(item);
+    if (c < 0 || c >= list.length) return "has no right answer marked";
+  }
+  return "";
 }
 // Coerce common hand-written / AI-generated shapes into the canonical board
 // format: accept question/answer key names, categories/clues arrays, missing
@@ -2831,6 +2996,26 @@ function normalizeBoard(raw) {
           if (it.a == null && it.answer != null) it.a = it.answer;
           if (it.value == null && it.points != null) it.value = it.points;
           if (it.value == null) it.value = (i + 1) * 100;
+          // Typed questions, written by hand or by a model, arrive under
+          // whichever names seemed natural. Accept them all, then let
+          // clueTypeError say what is still missing.
+          if (it.format === "multipleChoice" || it.format === "mc") it.format = "choice";
+          if (it.format === "order" || it.format === "ordering") it.format = "sequence";
+          if (!it.format && Array.isArray(it.options)) it.format = "choice";
+          if (!it.format && Array.isArray(it.items) && it.items.length) it.format = "sequence";
+          if (it.format === "choice") {
+            if (!Array.isArray(it.options) && Array.isArray(it.choices)) it.options = it.choices;
+            if (typeof it.correct === "string" && Array.isArray(it.options)) {
+              // "B", or the option's own text
+              var byLetter = it.correct.trim().length === 1
+                ? it.correct.trim().toUpperCase().charCodeAt(0) - 65 : -1;
+              var byText = it.options.map(function (o) { return String(o).trim().toLowerCase(); })
+                .indexOf(it.correct.trim().toLowerCase());
+              it.correct = byText !== -1 ? byText : byLetter;
+            }
+            if (typeof it.correct !== "number" && typeof it.answerIndex === "number") it.correct = it.answerIndex;
+          }
+          if (it.format === "sequence" && !Array.isArray(it.items) && Array.isArray(it.order)) it.items = it.order;
           return it;
         });
       }
@@ -3780,6 +3965,20 @@ function buzzerSyncPayload() {
       mirror: !!state.phoneMirror,
       img: (state.phoneMirror && !state.wagering) ? (item.img || null) : null,
     };
+    // A typed question is unreadable without its list: "put these in order"
+    // with nothing to order, or "pick one" with nothing to pick. The list goes
+    // to every phone. What must NOT go before the reveal is which entry is
+    // right, or the order they belong in -- that is the answer.
+    var cf = clueFormat(item);
+    if (cf && !state.wagering) {
+      p.clue.format = cf;
+      p.clue.list = cf === "sequence"
+        ? (state.seqOrder || []).map(function (n) { return clueList(item)[n]; })   // the order on the big screen
+        : clueList(item);
+      p.clue.picked = cf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
+      if (state.revealed) p.clue.correct = clueCorrectIndex(item);
+      if (state.revealed && cf === "sequence") p.clue.rightList = clueList(item);
+    }
     if (state.phoneMirror && state.revealed) {
       p.clue.a = item.a;
       p.clue.note = item.note || null;
@@ -3868,6 +4067,19 @@ function extendHostPayload(p) {
     p.clue.note = hitem.note || null;
     p.clue.aimg = hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null);
     p.clue.q = hitem.q || "";                 // the host always has the text
+    // The host is trusted with the answer, so on a typed question they get the
+    // right option marked and the right order, revealed or not -- they cannot
+    // judge what they cannot see.
+    var hf = clueFormat(hitem);
+    if (hf && !state.wagering) {
+      p.clue.format = hf;
+      p.clue.list = hf === "sequence"
+        ? (state.seqOrder || []).map(function (n) { return clueList(hitem)[n]; })
+        : clueList(hitem);
+      p.clue.correct = clueCorrectIndex(hitem);
+      p.clue.picked = hf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
+      if (hf === "sequence") p.clue.rightList = clueList(hitem);
+    }
     p.clue.hint = hitem.hint || null;         // host-only nudge, never sent to players
     p.clue.hostRevealed = !!state.revealed;   // what the big screen is showing
     p.clue.judged = !!state.judgedThisClue;
@@ -4421,6 +4633,78 @@ function builderCloseEdit() {
   state.builder.extrasOpen = false;
   render();
 }
+// ---- authoring a typed question ----
+function builderQuestionAt(row) {
+  if (!state.builder) return null;
+  var col = state.builder.draft.textBoard[state.builder.catIndex];
+  return col ? col.questions[row] : null;
+}
+// Switching type keeps whatever list you had typed, so trying "order" and
+// changing your mind back does not cost you the four things you wrote.
+function builderSetType(row, type) {
+  var q = builderQuestionAt(row);
+  if (!q) return;
+  var t = clueType(type);
+  // alignmentChoice is read as a choice, so converting one writes its three
+  // options down properly rather than leaving a format nothing can edit.
+  if (q.format === "alignmentChoice") {
+    q.options = ALIGNMENT_OPTIONS.slice();
+    q.correct = clueCorrectIndex(q);
+  }
+  if (!t.id) { delete q.format; }
+  else {
+    q.format = t.id;
+    var existing = Array.isArray(q[t.listKey]) ? q[t.listKey] : (q.options || q.items || []);
+    var list = existing.slice(0, t.max);
+    while (list.length < t.min) list.push("");
+    q[t.listKey] = list;
+    if (t.id === "choice" && (typeof q.correct !== "number" || q.correct >= list.length)) q.correct = 0;
+    if (t.id === "sequence") q.correctOrder = list.map(function (_, i) { return i; });
+  }
+  state.builder.error = "";
+  render();
+}
+function builderSetListItem(row, i, value) {
+  var q = builderQuestionAt(row);
+  if (!q) return;
+  var key = clueType(q.format).listKey;
+  if (!key || !Array.isArray(q[key])) return;
+  q[key][i] = value;
+}
+function builderAddListItem(row) {
+  var q = builderQuestionAt(row);
+  if (!q) return;
+  var t = clueType(q.format);
+  if (!t.listKey || !Array.isArray(q[t.listKey]) || q[t.listKey].length >= t.max) return;
+  q[t.listKey].push("");
+  if (t.id === "sequence") q.correctOrder = q[t.listKey].map(function (_, i) { return i; });
+  render();
+}
+function builderRemoveListItem(row, i) {
+  var q = builderQuestionAt(row);
+  if (!q) return;
+  var t = clueType(q.format);
+  if (!t.listKey || !Array.isArray(q[t.listKey]) || q[t.listKey].length <= t.min) return;
+  q[t.listKey].splice(i, 1);
+  if (t.id === "choice" && typeof q.correct === "number") {
+    if (q.correct === i) q.correct = 0;
+    else if (q.correct > i) q.correct--;
+  }
+  if (t.id === "sequence") q.correctOrder = q[t.listKey].map(function (_, n) { return n; });
+  render();
+}
+function builderSetCorrect(row, i) {
+  var q = builderQuestionAt(row);
+  if (!q || clueFormat(q) !== "choice") return;
+  if (q.format === "alignmentChoice") { q.format = "choice"; q.options = ALIGNMENT_OPTIONS.slice(); }
+  q.correct = i;
+  render();
+}
+function builderClearArt() {
+  if (!state.builder) return;
+  state.builder.draft.art = "";
+  render();
+}
 function builderToggleExtras() {
   if (!state.builder) return;
   state.builder.extrasOpen = !state.builder.extrasOpen;
@@ -4689,12 +4973,24 @@ function builderLiveUpdate(path) {
     if (path === "name") {
       set(".bname-card-name", d.name || "Untitled board", "bname-ghost");
       var icon = document.querySelector(".bname-card-icon");
-      if (icon) icon.textContent = (d.name || "?").trim().charAt(0).toUpperCase() || "?";
+      // only when the square is showing a letter -- typing a name must not
+      // wipe out the thumbnail sitting in there
+      if (icon && !icon.querySelector("img")) icon.textContent = (d.name || "?").trim().charAt(0).toUpperCase() || "?";
     } else if (path === "tagline") {
       set(".bname-card-tag", d.tagline || "A short description", "bname-ghost");
     } else if (path === "accent") {
       var bg = document.querySelector(".bname-bg");
       if (bg && /^#[0-9a-fA-F]{3,6}$/.test(String(d.accent || ""))) bg.style.setProperty("--ba", d.accent);
+    } else if (path === "art") {
+      // A pasted link lands on the card while you are still looking at it, so
+      // you can see straight away whether the picture is the right one. Patched
+      // in place: a re-render here would take the caret out of the link box.
+      var box = document.querySelector(".bname-card-icon");
+      var thumb = document.querySelector(".bname-card-thumb");
+      var wide = document.querySelector(".bname-card-art");
+      if (thumb) { if (d.art) { thumb.src = d.art; thumb.hidden = false; } else thumb.hidden = true; }
+      if (box) box.classList.toggle("bname-card-icon-art", !!d.art);
+      if (wide) { if (d.art) { wide.src = d.art; wide.hidden = false; } else wide.hidden = true; }
     }
     return;
   }
@@ -4916,6 +5212,9 @@ function builderClearMedia(r, field) {
 // photos can outgrow what a share link will carry, so the size is capped and
 // the author is told plainly.
 var BUILDER_IMG_MAX = 400 * 1024;
+// r is the row the picture belongs to, or BUILDER_BOARD_ART for the board's
+// own thumbnail -- the same size check, the same reader, the same error line.
+var BUILDER_BOARD_ART = -1;
 function builderUploadImage(r, field, file) {
   if (!state.builder || !file) return;
   if (!/^image\//.test(file.type)) {
@@ -4931,9 +5230,14 @@ function builderUploadImage(r, field, file) {
   }
   var reader = new FileReader();
   reader.onload = function (e) {
-    var it = state.builder && state.builder.draft.textBoard[state.builder.catIndex].questions[r];
-    if (!it) return;
-    it[field] = String(e.target.result || "");
+    if (!state.builder) return;
+    if (r === BUILDER_BOARD_ART) {
+      state.builder.draft.art = String(e.target.result || "");
+    } else {
+      var it = state.builder.draft.textBoard[state.builder.catIndex].questions[r];
+      if (!it) return;
+      it[field] = String(e.target.result || "");
+    }
     state.builder.error = "";
     render();
   };
@@ -4977,6 +5281,21 @@ function cleanDraft(d) {
   out.textBoard.forEach(function (col) {
     col.questions.forEach(function (it) {
       ["note", "id", "img", "aimg", "hint"].forEach(function (f) { if (!it[f]) delete it[f]; });
+      // A typed question keeps only the list its type actually uses, so
+      // switching type twice does not leave a stray options[] in the file.
+      var ct = clueType(it.format);
+      if (!ct.id) { delete it.format; delete it.options; delete it.items; delete it.correct; delete it.correctOrder; }
+      else {
+        it.format = ct.id;
+        it[ct.listKey] = clueList(it).map(function (x) { return String(x == null ? "" : x).trim(); });
+        if (ct.id === "choice") {
+          delete it.items; delete it.correctOrder;
+          it.correct = Math.max(0, Math.min(clueCorrectIndex(it), it.options.length - 1));
+        } else {
+          delete it.options; delete it.correct;
+          it.correctOrder = it.items.map(function (_, i) { return i; });
+        }
+      }
       // cue points only mean anything on a clip, and 0/blank is the default
       if (!it.id) { delete it.clipStart; delete it.clipLen; }
       if (!it.clipStart) delete it.clipStart;
@@ -5839,8 +6158,8 @@ function openQuestion(catKey, qIndex) {
   state.phase = "question";
   state.seqOrder = null;
   var openedItem = questionItem();
-  if (openedItem.format === "sequence") {
-    var seqOrder = openedItem.items.map(function (_, i) { return i; });
+  if (clueFormat(openedItem) === "sequence") {
+    var seqOrder = clueList(openedItem).map(function (_, i) { return i; });
     for (var si = seqOrder.length - 1; si > 0; si--) {
       var sj = Math.floor(Math.random() * (si + 1));
       var stmp = seqOrder[si]; seqOrder[si] = seqOrder[sj]; seqOrder[sj] = stmp;
@@ -7975,6 +8294,50 @@ function builderImageRowHtml(q, r, field, label) {
     '</label>' +
   '</div>';
 }
+// How this question plays: the three chips, and whatever the chosen one needs.
+function builderTypeHtml(q, r) {
+  var cur = clueFormat(q);
+  var chips = CLUE_TYPES.map(function (t) {
+    return '<button class="btype' + (t.id === cur ? ' btype-on' : '') + '" ' +
+      'data-action="builderSetType" data-row="' + r + '" data-type="' + t.id + '">' +
+      '<span class="btype-icon">' + t.icon + '</span>' +
+      '<span class="btype-name">' + t.name + '</span>' +
+    '</button>';
+  }).join("");
+  var body = "";
+  if (cur) {
+    var t = clueType(cur), list = clueList(q), correct = clueCorrectIndex(q);
+    var rows = list.map(function (val, i) {
+      return '<div class="btype-row">' +
+        (cur === "choice"
+          ? '<button class="btype-mark' + (i === correct ? ' btype-mark-on' : '') + '" ' +
+              'data-action="builderSetCorrect" data-row="' + r + '" data-i="' + i + '" ' +
+              'aria-label="Mark option ' + String.fromCharCode(65 + i) + ' correct">' +
+              (i === correct ? '&#10003;' : String.fromCharCode(65 + i)) + '</button>'
+          : '<span class="btype-num">' + (i + 1) + '</span>') +
+        '<input class="input builder-input btype-in" data-listitem="' + r + ':' + i + '" ' +
+          'placeholder="' + (cur === "choice" ? 'Option ' + String.fromCharCode(65 + i) : 'Number ' + (i + 1)) + '" ' +
+          'value="' + esc(val == null ? "" : val) + '" />' +
+        (list.length > t.min
+          ? '<button class="btype-del" data-action="builderRemoveListItem" data-row="' + r + '" data-i="' + i + '" ' +
+              'aria-label="Remove this one">&times;</button>'
+          : '') +
+      '</div>';
+    }).join("");
+    body = '<div class="btype-body">' +
+      '<label class="lbl" style="display:block">' + t.listLabel + '</label>' +
+      rows +
+      (list.length < t.max
+        ? '<button class="btype-add" data-action="builderAddListItem" data-row="' + r + '">+ ' + t.addLabel + '</button>'
+        : '<p class="btype-note">That is the most you can have.</p>') +
+      '<p class="btype-note">' + t.note + '</p>' +
+    '</div>';
+  }
+  return '<label class="lbl" style="display:block;margin-top:12px">How it plays</label>' +
+    '<div class="btype-row-pick">' + chips + '</div>' +
+    '<p class="btype-blurb">' + clueType(cur).blurb + '</p>' +
+    body;
+}
 function builderExtrasHtml(q, r) {
   return '<div class="builder-optionals">' +
     builderImageRowHtml(q, r, "img", "Picture shown with the question") +
@@ -8059,8 +8422,19 @@ function viewBuilderName() {
       '<p class="bname-sub">Just the name for now. You build the questions next, and nothing here is locked in.</p>' +
       // the board card, drawn exactly as it appears in the picker
       '<div class="bname-card">' +
-        (d.art ? '<img class="bname-card-art" src="' + esc(d.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
-        '<div class="bname-card-icon">' + esc(letter) + '</div>' +
+        '<img class="bname-card-art" alt="" referrerpolicy="no-referrer"' +
+          (d.art ? ' src="' + esc(d.art) + '"' : '') + (d.art ? '' : ' hidden') +
+          ' onerror="this.hidden=true">' +
+        // The same poster thumb the picker draws, so the preview does not
+        // promise a letter and then show a picture. Both halves are always in
+        // the markup and one is hidden, so pasting a link can swap them
+        // without a re-render taking the caret out of the box you are typing in.
+        '<div class="bname-card-icon' + (d.art ? ' bname-card-icon-art' : '') + '">' +
+          '<span class="bname-card-letter">' + esc(letter) + '</span>' +
+          '<img class="bname-card-thumb" alt="" referrerpolicy="no-referrer"' +
+            (d.art ? ' src="' + esc(d.art) + '"' : '') + (d.art ? '' : ' hidden') +
+            ' onerror="this.hidden=true;this.parentNode.classList.remove(&quot;bname-card-icon-art&quot;)">' +
+        '</div>' +
         '<div class="bname-card-text">' +
           '<p class="bname-card-name' + (d.name ? '' : ' bname-ghost') + '">' + esc(d.name || "Untitled board") + '</p>' +
           '<p class="bname-card-tag' + (d.tagline ? '' : ' bname-ghost') + '">' + esc(d.tagline || "A short description") + '</p>' +
@@ -8079,6 +8453,25 @@ function viewBuilderName() {
         '<input type="color" class="builder-wheel" id="builderAccentWheel" value="' + esc(accent) + '" aria-label="Pick the board colour" />' +
         '<input class="input builder-input" style="margin-top:0" id="builderAccentHex" data-bind="accent" placeholder="#a786df" value="' + esc(d.accent) + '" />' +
       '</div>' +
+      // The thumbnail used to be a "cover image link" box folded away in the
+      // tools drawer, which is nowhere near where you decide what a board
+      // looks like. It belongs next to the card it changes.
+      '<label class="lbl" style="display:block;margin-top:12px">Thumbnail <span class="bname-opt">optional</span></label>' +
+      '<div class="bname-thumb-row">' +
+        '<label class="bname-thumb-btn">' + (d.art ? 'Choose another' : 'Upload a picture') +
+          '<input type="file" accept="image/*" data-upload="' + BUILDER_BOARD_ART + ':art" style="display:none" />' +
+        '</label>' +
+        (d.art
+          ? '<button class="bname-thumb-x" data-action="builderClearArt">Remove</button>'
+          : '') +
+      '</div>' +
+      '<input class="input builder-input bname-thumb-link" data-bind="art" ' +
+        'placeholder="or paste an image link" value="' + esc(/^data:/.test(d.art || "") ? "" : (d.art || "")) + '" />' +
+      '<p class="bname-thumb-note">' +
+        (/^data:/.test(d.art || "")
+          ? 'Using the picture you uploaded. It is saved inside the board, so it travels with the file.'
+          : 'It shows on the card above, and behind the board when you play it.') +
+      '</p>' +
       (state.builder.error ? '<p class="err">' + esc(state.builder.error) + '</p>' : '') +
       '<button class="big-gold bname-go" data-action="builderStep" data-step="board">Start building &rarr;</button>' +
       '<p class="bname-or">or</p>' +
@@ -8227,8 +8620,6 @@ function builderToolsHtml(d, bd) {
   return '<div class="btools">' +
     '<label class="lbl">Tagline</label>' +
     '<input class="input builder-input" data-bind="tagline" placeholder="What is it about?" value="' + esc(d.tagline) + '" />' +
-    '<label class="lbl" style="display:block;margin-top:10px">Cover image link</label>' +
-    '<input class="input builder-input" data-bind="art" placeholder="https://..." value="' + esc(d.art || "") + '" />' +
     '<label class="builder-adult">' +
       '<input type="checkbox" id="builderAdult"' + (d.adult ? ' checked' : '') + ' />' +
       '<span>18+ board &mdash; it lives in the After Dark tab, and players are warned before they enter.</span>' +
@@ -8305,6 +8696,7 @@ function builderPopupHtml(d, ed) {
       '<label class="lbl" style="display:block;margin-top:10px">Question</label>' +
       '<textarea class="input builder-input bpop-area bpop-first" data-bind="clue:' + ed.row + ':q" rows="3" ' +
         'placeholder="' + esc(builderHint(ed.row).q) + '">' + esc(q.q) + '</textarea>' +
+      builderTypeHtml(q, ed.row) +
       '<label class="lbl" style="display:block;margin-top:10px">Answer</label>' +
       '<input class="input builder-input" data-bind="clue:' + ed.row + ':a" ' +
         'placeholder="' + esc(builderHint(ed.row).a) + '" value="' + esc(q.a) + '" />' +
@@ -9320,6 +9712,7 @@ function buzzMirrorHtml(bc) {
             '<span class="read-aloud-sub">Buzz when you know it.</span>' +
           '</div>'
         : (c.q ? '<p class="buzz-mirror-q">' + esc(c.q) + '</p>' : '')) +
+      (c.hiddenQ ? '' : clueListHtml(c, false)) +
       imgHtml +
       clipHtml +
       timerHtml +
@@ -9371,6 +9764,49 @@ function spectateTimerHtml(bc) {
 
 // Final Jeopardy, driven from the host's phone. The answer is on this device
 // from the moment wagers are locked, but stays behind Peek until tapped.
+// The list half of a typed question, as it arrives over the wire. The same
+// markup serves a player's phone and the host's own device -- the only
+// difference is that the host is sent `correct` from the start and a player
+// only after the reveal, so "who can see the answer" stays a payload decision
+// rather than something each screen has to remember.
+function clueListHtml(c, forHost) {
+  if (!c || !c.format || !Array.isArray(c.list) || !c.list.length) return "";
+  var showRight = c.correct != null && c.correct >= 0;
+  if (c.format === "choice") {
+    var opts = c.list.map(function (opt, i) {
+      var cls = "mini-opt";
+      if (showRight && i === c.correct) cls += " mini-opt-right";
+      else if (c.picked === i) cls += showRight ? " mini-opt-wrong" : " mini-opt-picked";
+      return '<div class="' + cls + '">' +
+        '<span class="mini-opt-letter">' + String.fromCharCode(65 + i) + '</span>' +
+        '<span>' + esc(opt) + '</span>' +
+      '</div>';
+    }).join("");
+    return '<div class="mini-opts">' + opts + '</div>' +
+      (forHost && showRight
+        ? '<p class="mini-note">' + String.fromCharCode(65 + c.correct) + ' is the right one.</p>' : '');
+  }
+  if (c.format === "sequence") {
+    // Two lists once it is settled: what is on the big screen, and what it
+    // should have been. Before that, just the one everybody is looking at.
+    var rows = c.list.map(function (t, i) {
+      var cls = "mini-seq-row";
+      if (c.rightList) cls += c.rightList[i] === t ? " mini-seq-right" : " mini-seq-wrong";
+      return '<div class="' + cls + '"><span class="mini-seq-num">' + (i + 1) + '</span><span>' + esc(t) + '</span></div>';
+    }).join("");
+    var right = "";
+    if (c.rightList && c.rightList.join(" ") !== c.list.join(" ")) {
+      right = '<p class="mini-note">The right order:</p>' +
+        '<div class="mini-seq">' + c.rightList.map(function (t, i) {
+          return '<div class="mini-seq-row mini-seq-right"><span class="mini-seq-num">' + (i + 1) + '</span><span>' + esc(t) + '</span></div>';
+        }).join("") + '</div>';
+    }
+    return '<div class="mini-seq">' + rows + '</div>' + right +
+      (c.rightList ? "" : '<p class="mini-note">' +
+        (forHost ? 'Drag order on the big screen; this follows it.' : 'The host moves these on the big screen.') + '</p>');
+  }
+  return "";
+}
 function hostFinalHtml(bc, f) {
   var board = f.board || [];
   var stage = f.stage;
@@ -9539,6 +9975,7 @@ function viewHostControl(bc) {
     '<div class="hc-wrap">' +
       '<p class="hc-cat">' + esc((c.cat || '').toUpperCase()) + ' &middot; ' + (c.value || 0) + '</p>' +
       '<p class="hc-q">' + esc(c.q || (c.isVideo ? 'Audio or video question' : '')) + '</p>' +
+      clueListHtml(c, true) +
       (c.isVideo
         ? '<div class="clip-ctl-row">' +
             '<span class="clip-ctl-lbl">CLIP</span>' +
@@ -9996,9 +10433,13 @@ function alignmentAnswerWord(a) {
   if (/^Villain/i.test(a)) return "Villain";
   return "Other";
 }
+// One tap picks an option. Held by index so two options can read the same and
+// the pick is still unambiguous; alignmentChoice's old word-based pick is
+// translated on the way in.
 function chooseAlignment(choice) {
   if (state.revealed) return;
-  state.chosenAlignment = choice;
+  state.chosenAlignment = +choice;
+  broadcastSync();   // every phone in the room is watching the same options
   renderOrUpdateClue();
 }
 function seqMove(pos, dir) {
@@ -10007,12 +10448,17 @@ function seqMove(pos, dir) {
   var swapWith = pos + dir;
   if (swapWith < 0 || swapWith >= order.length) return;
   var tmp = order[pos]; order[pos] = order[swapWith]; order[swapWith] = tmp;
+  broadcastSync();   // every phone in the room is watching this list move
   renderOrUpdateClue();
 }
 function viewSequenceClue(item) {
   var order = state.seqOrder;
+  var list = clueList(item);
+  var correctOrder = Array.isArray(item.correctOrder)
+    ? item.correctOrder
+    : list.map(function (_, i) { return i; });   // authored in order, so it is 0..n
   var rows = order.map(function (itemIdx, pos) {
-    var correctPos = item.correctOrder.indexOf(itemIdx);
+    var correctPos = correctOrder.indexOf(itemIdx);
     var statusCls = state.revealed ? (correctPos === pos ? " sequence-row-correct" : " sequence-row-wrong") : "";
     var arrows = state.revealed ? "" :
       '<div class="sequence-arrows">' +
@@ -10021,23 +10467,24 @@ function viewSequenceClue(item) {
       '</div>';
     return '<div class="sequence-row' + statusCls + '">' +
       '<span class="sequence-num">' + (pos + 1) + '</span>' +
-      '<span class="sequence-text">' + esc(item.items[itemIdx]) + '</span>' +
+      '<span class="sequence-text">' + esc(list[itemIdx]) + '</span>' +
       arrows +
     '</div>';
   }).join("");
   return '<div class="sequence-list" style="margin-top:14px">' + rows + '</div>';
 }
 function viewAlignmentChoices(item) {
-  var correct = alignmentAnswerWord(item.a);
-  var buttons = ["Hero", "Villain", "Other"].map(function (opt) {
+  var correct = clueCorrectIndex(item);
+  var buttons = clueList(item).map(function (opt, i) {
     var cls = "alignment-btn";
     if (state.revealed) {
-      if (opt === correct) cls += " alignment-correct";
-      else if (opt === state.chosenAlignment) cls += " alignment-wrong";
-    } else if (opt === state.chosenAlignment) {
+      if (i === correct) cls += " alignment-correct";
+      else if (i === state.chosenAlignment) cls += " alignment-wrong";
+    } else if (i === state.chosenAlignment) {
       cls += " alignment-selected";
     }
-    return '<button class="' + cls + '" data-action="chooseAlignment" data-choice="' + opt + '">' + opt + '</button>';
+    return '<button class="' + cls + '" data-action="chooseAlignment" data-choice="' + i + '">' +
+      '<span class="alignment-letter">' + String.fromCharCode(65 + i) + '</span>' + esc(opt) + '</button>';
   }).join("");
   return '<div class="alignment-row">' + buttons + '</div>';
 }
@@ -10061,8 +10508,8 @@ function viewClueMedia() {
   if (!isVideo) {
     if (hidden) return hiddenBox + art;
     return '<div class="clue-box">' + esc(item.q) + '</div>' + art +
-      (item.format === "alignmentChoice" ? viewAlignmentChoices(item) :
-        item.format === "sequence" ? viewSequenceClue(item) : "");
+      (clueFormat(item) === "choice" ? viewAlignmentChoices(item) :
+        clueFormat(item) === "sequence" ? viewSequenceClue(item) : "");
   }
   var prompt = hidden ? hiddenBox : (item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "");
   var player;
@@ -10851,6 +11298,10 @@ document.getElementById("root").addEventListener("input", function (e) {
     return;
   }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
+  if (t && t.getAttribute && t.getAttribute("data-listitem")) {
+    var li = t.getAttribute("data-listitem").split(":");   // <row>:<index>
+    builderSetListItem(+li[0], +li[1], t.value);           // no render: it would eat the caret
+  }
   if (t && t.getAttribute && t.getAttribute("data-rowvalue") != null) {
     builderSetRowValue(t.getAttribute("data-rowvalue"), t.value);
     var gridNow = document.querySelector(".bgrid");
@@ -11049,6 +11500,11 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "dismissHomeMsg") dismissHomeMsg();
+  else if (action === "builderClearArt") builderClearArt();
+  else if (action === "builderSetType") builderSetType(+t.getAttribute("data-row"), t.getAttribute("data-type"));
+  else if (action === "builderAddListItem") builderAddListItem(+t.getAttribute("data-row"));
+  else if (action === "builderRemoveListItem") builderRemoveListItem(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
+  else if (action === "builderSetCorrect") builderSetCorrect(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
   else if (action === "openQuestionDemo") openQuestionDemo();
   else if (action === "closeQuestionDemo") closeQuestionDemo();
   else if (action === "demoReveal") demoReveal();
