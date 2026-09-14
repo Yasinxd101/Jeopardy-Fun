@@ -3909,7 +3909,12 @@ function stopBuzzerRoom(reason) {
 function applyHostCommand(d) {
   var cmd = String(d.cmd || "");
   if (cmd === "reveal") {
-    if (!state.revealed) reveal();
+    // Not while a Daily Double wager is still being typed. The big screen is
+    // showing the wager form, not the question, so "show the answer" put the
+    // game into a state the screen could not display -- and its only way out,
+    // "Back to Board (Keep This Question)", refuses to act once something has
+    // been revealed. Closing is already held back here for the same reason.
+    if (!state.revealed && !state.wagering) reveal();
   } else if (cmd === "judge") {
     judgeBuzz(!!d.correct);
   } else if (cmd === "score") {
@@ -10914,9 +10919,11 @@ function viewHostControl(bc) {
       buzzLine +
       judge +
       '<div class="hc-actions">' +
-        (c.hostRevealed
-          ? '<button class="hc-btn hc-dim" data-action="hostToggleScreenAnswer">Toggle on big screen</button>'
-          : '<button class="hc-btn hc-reveal" data-action="hostReveal">Show answer on big screen</button>') +
+        (c.wagering
+          ? '<button class="hc-btn hc-dim" disabled>Waiting on the wager</button>'
+          : c.hostRevealed
+            ? '<button class="hc-btn hc-dim" data-action="hostToggleScreenAnswer">Toggle on big screen</button>'
+            : '<button class="hc-btn hc-reveal" data-action="hostReveal">Show answer on big screen</button>') +
         (c.wagering
           ? '<button class="hc-btn hc-dim" disabled>Waiting on the wager</button>'
           : '<button class="hc-btn hc-next" data-action="hostClose">' +
@@ -11327,7 +11334,12 @@ function viewDailyDoubleWager() {
         '<button class="btn-gold" data-action="submitWager">Lock In</button>' +
       '</div>' +
     '</div>' +
-    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>' +
+    // Putting the tile back is only honest while nothing has been shown, and
+    // backUnrevealed refuses to act once something has. Offer the exit that
+    // matches the state rather than one that quietly does nothing.
+    (state.revealed
+      ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>'
+      : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>') +
   '</div></div>';
 }
 
