@@ -1,0 +1,153 @@
+{
+  "id": "custom-question-styles",
+  "name": "Every Question Style",
+  "tagline": "A short one. Every kind of question the app can play, once each.",
+  "accent": "#a786df",
+  "icon": "?",
+  "adult": false,
+  "genre": "My Boards",
+  "textBoard": [
+    {
+      "category": "Just Ask Me",
+      "questions": [
+        {
+          "value": 100,
+          "q": "This planet is famous for its rings.",
+          "a": "What is Saturn?",
+          "note": "A straight question: read it, they shout it, you judge it."
+        },
+        {
+          "value": 200,
+          "q": "Type it in: what do you call a group of crows?",
+          "a": "A murder",
+          "format": "typed",
+          "accept": [
+            "Murder of crows"
+          ],
+          "note": "Typed. “murder”, “a murder” and “What is a murder?” all mark themselves."
+        },
+        {
+          "value": 300,
+          "q": "What percent of the human body is water, roughly?",
+          "a": "About 60%",
+          "format": "number",
+          "target": 60,
+          "unit": "%",
+          "margin": 8,
+          "note": "Guess the number. Within 8 marks itself; otherwise closest still shows."
+        }
+      ]
+    },
+    {
+      "category": "Pick Wisely",
+      "questions": [
+        {
+          "value": 100,
+          "q": "Which of these is a prime number?",
+          "a": "17",
+          "format": "choice",
+          "options": [
+            "21",
+            "17",
+            "27",
+            "33"
+          ],
+          "correct": 1
+        },
+        {
+          "value": 200,
+          "q": "Tick every one of these that is a mammal.",
+          "a": "Dolphin, bat and platypus",
+          "format": "multi",
+          "options": [
+            "Dolphin",
+            "Penguin",
+            "Bat",
+            "Shark",
+            "Platypus"
+          ],
+          "correct": [
+            0,
+            2,
+            4
+          ],
+          "note": "Pick them all. The screen says how many, never which."
+        },
+        {
+          "value": 300,
+          "q": "Tick the two countries that are NOT in Europe.",
+          "a": "Morocco and Chile",
+          "format": "multi",
+          "options": [
+            "Portugal",
+            "Morocco",
+            "Croatia",
+            "Chile"
+          ],
+          "correct": [
+            1,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "category": "In What Order",
+      "questions": [
+        {
+          "value": 100,
+          "q": "Put these in order, smallest first.",
+          "a": "Gram, kilogram, tonne",
+          "format": "sequence",
+          "items": [
+            "Gram",
+            "Kilogram",
+            "Tonne"
+          ],
+          "correctOrder": [
+            0,
+            1,
+            2
+          ],
+          "note": "Written in the right order here; players always see them shuffled."
+        },
+        {
+          "value": 200,
+          "q": "Put these in the order they were invented, earliest first.",
+          "a": "Printing press, telephone, television, internet",
+          "format": "sequence",
+          "items": [
+            "Printing press",
+            "Telephone",
+            "Television",
+            "The internet"
+          ],
+          "correctOrder": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "value": 300,
+          "q": "Name all four of these: the suits in a deck of cards.",
+          "a": "Hearts, diamonds, clubs, spades",
+          "format": "list",
+          "items": [
+            "Hearts",
+            "Diamonds",
+            "Clubs",
+            "Spades"
+          ],
+          "note": "Name them all. Tap a slot as each one gets shouted out."
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Last One",
+    "q": "Name the only mammal capable of true sustained flight.",
+    "a": "What is the bat?"
+  }
+}

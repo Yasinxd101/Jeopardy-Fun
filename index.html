@@ -1477,6 +1477,41 @@
     font-size: 12px; font-weight: 900; color: #cfd4ff;
   }
   .alignment-correct .alignment-letter { background: #2cb67d; color: #04210f; }
+  /* right, but nobody ticked it -- neither a win nor a mistake */
+  .alignment-missed {
+    border-color: #7ee2b0; border-style: dashed;
+    background: rgba(126, 226, 176, 0.08); color: #7ee2b0;
+  }
+  .alignment-missed .alignment-letter { background: rgba(126, 226, 176, 0.3); color: #04210f; }
+  .multi-count {
+    margin: 14px 0 8px; text-align: center; font-size: 13px; font-weight: 800;
+    letter-spacing: 0.4px; color: #aab0d8;
+  }
+  .multi-count-got { color: #7ee2b0; }
+  /* "name them all": numbered slots that turn over as the room gets them */
+  .list-slots { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+  .list-slot {
+    display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    padding: 13px 14px; min-height: 50px; border-radius: 11px;
+    background: #141833; border: 2px dashed #3a4070; color: #fff;
+    font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .list-slot-up {
+    border-style: solid; border-color: #2cb67d;
+    background: rgba(44, 182, 125, 0.16); color: #7ee2b0; cursor: default;
+  }
+  .list-slot-num {
+    flex: none; width: 24px; height: 24px; border-radius: 50%; background: #2a2f55;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; color: #aab0d8;
+  }
+  .list-slot-up .list-slot-num { background: #2cb67d; color: #04210f; }
+  .list-slot-text { flex: 1; min-width: 0; word-break: break-word; }
+  .mini-opt-missed {
+    border-color: rgba(126, 226, 176, 0.55); border-style: dashed; color: #7ee2b0;
+  }
+  .mini-opt-missed .mini-opt-letter { background: rgba(126, 226, 176, 0.3); color: #04210f; }
   .alignment-wrong .alignment-letter { background: #ff5470; color: #2a0410; }
   .alignment-selected { border-color: #ffd166; color: #ffd166; }
   .alignment-correct { border-color: #7ee2b0; background: rgba(126, 226, 176, 0.18); color: #7ee2b0; }
@@ -3013,6 +3048,20 @@ var CLUE_TYPES = [
   { id: "number", name: "Guess the number", icon: "%", typedIn: true, numeric: true,
     blurb: "A number or a percent. Closest wins, or within a margin.",
     note: "Leave the margin blank and nobody is automatically right \u2014 closest still shows on screen." },
+  // Not "one of these" -- several of these. The interesting part is knowing
+  // where the list stops, so the count is on screen and the rest is nerve.
+  { id: "multi", name: "Pick them all", icon: "☑", multi: true,
+    blurb: "Several are right. Miss one and the whole thing is wrong.",
+    listKey: "options", min: 3, max: 8,
+    listLabel: "Options", addLabel: "Add an option",
+    note: "Tick every option that is right. Players are told how many to find, not which." },
+  // Nothing to choose from at all: a set of answers behind blanks, turned over
+  // as the room shouts them out.
+  { id: "list", name: "Name them all", icon: "▦", listy: true,
+    blurb: "A set of answers behind blanks. Turn each one as they get it.",
+    listKey: "items", min: 2, max: 10,
+    listLabel: "The answers", addLabel: "Add an answer",
+    note: "Players see empty slots and how many there are. Tap one to turn it over when somebody says it." },
 ];
 // Two answers are the same answer if they only differ by the things nobody
 // types consistently: case, spacing, punctuation, and the Jeopardy phrasing.
@@ -3077,6 +3126,19 @@ function clueCorrectIndex(item) {
   if (item.format === "alignmentChoice") return ALIGNMENT_OPTIONS.indexOf(alignmentAnswerWord(item.a));
   return typeof item.correct === "number" ? item.correct : -1;
 }
+// "Pick them all" keeps a set instead of one index.
+function clueCorrectSet(item) {
+  if (!item || !Array.isArray(item.correct)) return [];
+  var n = clueList(item).length;
+  return item.correct.map(Number)
+    .filter(function (i, at, all) { return i >= 0 && i < n && all.indexOf(i) === at; })
+    .sort(function (a, b) { return a - b; });
+}
+function sameSet(a, b) {
+  if (a.length !== b.length) return false;
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
 // Anything typed needs its own list to be usable; say exactly what is missing.
 function clueTypeError(item) {
   var f = clueFormat(item);
@@ -3089,6 +3151,11 @@ function clueTypeError(item) {
   if (f === "choice") {
     var c = clueCorrectIndex(item);
     if (c < 0 || c >= list.length) return "has no right answer marked";
+  }
+  if (f === "multi") {
+    var set = clueCorrectSet(item);
+    if (set.length < 2) return "needs at least two options ticked \u2014 use Multiple choice for one";
+    if (set.length >= list.length) return "cannot have every option right";
   }
   return "";
 }
@@ -3261,6 +3328,8 @@ var state = {
   clipOverride: null,     // clip length the host nudged for the open question only
   guesses: {},            // playerIndex -> what they typed on this question
   guessInput: "",         // the host's own box, for a typed question on one screen
+  chosenMulti: [],        // options ticked on a "pick them all" question
+  listFound: [],          // slots turned over on a "name them all" question
   searchQuery: "",        // host search on the board-select screen
   boardsTab: null,        // active genre tab on the board-select screen (null = first genre)
   // hostPin gates the Host Control role: the room code alone must never hand
@@ -4127,8 +4196,12 @@ function buzzerSyncPayload() {
         ? (state.seqOrder || []).map(function (n) { return clueList(item)[n]; })   // the order on the big screen
         : (cf === "typed" || cf === "number" ? [] : clueList(item));
       p.clue.picked = cf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
+      if (cf === "multi") { p.clue.multi = true; p.clue.pickedSet = (state.chosenMulti || []).slice();
+                            p.clue.need = clueCorrectSet(item).length; }
+      if (cf === "list") { p.clue.listy = true; p.clue.found = (state.listFound || []).slice(); }
       if (state.revealed) p.clue.correct = clueCorrectIndex(item);
       if (state.revealed && cf === "sequence") p.clue.rightList = clueList(item);
+      if (state.revealed && cf === "multi") p.clue.rightSet = clueCorrectSet(item);
       if (clueType(cf).typedIn) {
         // Whose question it is, so only that phone shows a box, and what has
         // been sent in so far. Never the answer -- that waits for the reveal.
@@ -4245,6 +4318,11 @@ function extendHostPayload(p) {
       p.clue.correct = clueCorrectIndex(hitem);
       p.clue.picked = hf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
       if (hf === "sequence") p.clue.rightList = clueList(hitem);
+      // The host holds the answer from the off on these two as well.
+      if (hf === "multi") { p.clue.multi = true; p.clue.rightSet = clueCorrectSet(hitem);
+                            p.clue.pickedSet = (state.chosenMulti || []).slice();
+                            p.clue.need = clueCorrectSet(hitem).length; }
+      if (hf === "list") { p.clue.listy = true; p.clue.found = (state.listFound || []).slice(); }
       // On a typed question the host judges what was written, so they get each
       // guess with the player's index to mark, and the number being looked for.
       if (clueType(hf).typedIn && p.clue.typeIn) {
@@ -4852,6 +4930,7 @@ function builderSetType(row, type) {
       q[t.listKey] = list;
     }
     if (t.id === "choice" && (typeof q.correct !== "number" || q.correct >= q.options.length)) q.correct = 0;
+    if (t.id === "multi" && !Array.isArray(q.correct)) q.correct = [];
     if (t.id === "sequence") q.correctOrder = q.items.map(function (_, i) { return i; });
   }
   state.builder.error = "";
@@ -4886,6 +4965,16 @@ function builderRemoveListItem(row, i) {
     else if (q.correct > i) q.correct--;
   }
   if (t.id === "sequence") q.correctOrder = q[t.listKey].map(function (_, n) { return n; });
+  render();
+}
+function builderToggleCorrect(row, i) {
+  var q = builderQuestionAt(row);
+  if (!q || clueFormat(q) !== "multi") return;
+  var set = clueCorrectSet(q);
+  i = +i;
+  q.correct = set.indexOf(i) !== -1
+    ? set.filter(function (x) { return x !== i; })
+    : set.concat([i]).sort(function (a, b) { return a - b; });
   render();
 }
 function builderSetCorrect(row, i) {
@@ -5570,6 +5659,7 @@ function cleanDraft(d) {
           keep.correct = true;
           it.correct = Math.max(0, Math.min(clueCorrectIndex(it), it.options.length - 1));
         }
+        if (ct.id === "multi") { keep.correct = true; it.correct = clueCorrectSet(it); }
         if (ct.id === "sequence") {
           keep.correctOrder = true;
           it.correctOrder = it.items.map(function (_, i) { return i; });
@@ -5957,6 +6047,8 @@ function selectBoard(id) {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.cascadeBoard = true;
   state.phase = "board";
   render();
@@ -5993,6 +6085,8 @@ function selectRound2(id) {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.phase = "board";
   render();
 }
@@ -6028,6 +6122,8 @@ function switchBoard() {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.phase = "boards";
   render();
 }
@@ -6075,6 +6171,8 @@ function newPlayers() {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.phase = "players";
   render();
 }
@@ -6459,6 +6557,8 @@ function openQuestion(catKey, qIndex) {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   var openedItem = questionItem();
   if (clueFormat(openedItem) === "sequence") {
     var seqOrder = clueList(openedItem).map(function (_, i) { return i; });
@@ -7909,6 +8009,8 @@ function backUnrevealed() {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.phase = "board";
   render();
 }
@@ -7933,6 +8035,8 @@ function closeQuestion() {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   // Classic Jeopardy: whoever answered correctly picks the next tile.
   if (state.roomRules.keepTurn && state.players[state.lastCorrectIndex]) {
     state.players[state.lastCorrectIndex].skipNextTurn = false;
@@ -7974,6 +8078,8 @@ function newRound() {
   state.clipOverride = null;
   state.guesses = {};
   state.guessInput = "";
+  state.chosenMulti = [];
+  state.listFound = [];
   state.phase = "board";
   render();
 }
@@ -8800,6 +8906,7 @@ function builderTypeHtml(q, r) {
     '</div>';
   } else if (cur) {
     var t = clueType(cur), list = clueList(q), correct = clueCorrectIndex(q);
+    var multiSet = clueCorrectSet(q);
     var rows = list.map(function (val, i) {
       return '<div class="btype-row">' +
         (cur === "choice"
@@ -8807,6 +8914,11 @@ function builderTypeHtml(q, r) {
               'data-action="builderSetCorrect" data-row="' + r + '" data-i="' + i + '" ' +
               'aria-label="Mark option ' + String.fromCharCode(65 + i) + ' correct">' +
               (i === correct ? '&#10003;' : String.fromCharCode(65 + i)) + '</button>'
+          : cur === "multi"
+          ? '<button class="btype-mark' + (multiSet.indexOf(i) !== -1 ? ' btype-mark-on' : '') + '" ' +
+              'data-action="builderToggleCorrect" data-row="' + r + '" data-i="' + i + '" ' +
+              'aria-label="Tick option ' + String.fromCharCode(65 + i) + '">' +
+              (multiSet.indexOf(i) !== -1 ? '&#10003;' : String.fromCharCode(65 + i)) + '</button>'
           : '<span class="btype-num">' + (i + 1) + '</span>') +
         '<input class="input builder-input btype-in" data-listitem="' + r + ':' + i + '" ' +
           'placeholder="' + (cur === "choice" ? 'Option ' + String.fromCharCode(65 + i) : 'Number ' + (i + 1)) + '" ' +
@@ -8821,6 +8933,9 @@ function builderTypeHtml(q, r) {
       '<label class="lbl" style="display:block">' + t.listLabel + '</label>' +
       rows +
       (!list.length ? '<p class="btype-note" style="margin-top:4px">Nothing listed \u2014 the written answer is the one to match.</p>' : '') +
+      (cur === "multi"
+        ? '<p class="btype-note">' + multiSet.length + ' ticked. Players are told how many to find, not which.</p>'
+        : '') +
       (list.length < t.max
         ? '<button class="btype-add" data-action="builderAddListItem" data-row="' + r + '">+ ' + t.addLabel + '</button>'
         : '<p class="btype-note">That is the most you can have.</p>') +
@@ -10369,6 +10484,38 @@ function clueListHtml(c, forHost) {
       (forHost && showRight
         ? '<p class="mini-note">' + String.fromCharCode(65 + c.correct) + ' is the right one.</p>' : '');
   }
+  if (c.multi) {
+    var right = c.rightSet || [], picked = c.pickedSet || [];
+    var opts = c.list.map(function (opt, i) {
+      var isRight = right.indexOf(i) !== -1, isPicked = picked.indexOf(i) !== -1;
+      var cls = "mini-opt";
+      if (c.rightSet) {
+        if (isRight && isPicked) cls += " mini-opt-right";
+        else if (isRight) cls += " mini-opt-missed";
+        else if (isPicked) cls += " mini-opt-wrong";
+      } else if (isPicked) cls += " mini-opt-picked";
+      return '<div class="' + cls + '">' +
+        '<span class="mini-opt-letter">' + (isPicked ? "&#10003;" : String.fromCharCode(65 + i)) + '</span>' +
+        '<span>' + esc(opt) + '</span></div>';
+    }).join("");
+    return '<p class="mini-note">' + (c.rightSet ? right.length + ' of these are right.'
+             : 'Pick ' + (c.need || 0) + ' \u2014 ' + picked.length + ' ticked so far.') + '</p>' +
+      '<div class="mini-opts">' + opts + '</div>';
+  }
+  if (c.listy) {
+    var found = c.found || [];
+    var slots = c.list.map(function (text, i) {
+      var up = found.indexOf(i) !== -1 || (forHost && c.rightSet !== undefined);
+      // The host is holding the answers, so they always read; a player's phone
+      // only fills a slot once the host has turned it over.
+      var show = forHost || found.indexOf(i) !== -1;
+      return '<div class="mini-seq-row' + (found.indexOf(i) !== -1 ? ' mini-seq-right' : '') + '">' +
+        '<span class="mini-seq-num">' + (i + 1) + '</span>' +
+        '<span>' + (show ? esc(text) : '&nbsp;') + '</span></div>';
+    }).join("");
+    return '<p class="mini-note">' + found.length + ' of ' + c.list.length + ' turned over</p>' +
+      '<div class="mini-seq">' + slots + '</div>';
+  }
   if (c.format === "sequence") {
     // Two lists once it is settled: what is on the big screen, and what it
     // should have been. Before that, just the one everybody is looking at.
@@ -11067,6 +11214,29 @@ function clearGuess(i) {
   broadcastBuzzer({ type: "guessCleared", name: (state.players[i] || {}).name || "" });
   render();
 }
+// Tick one of several. Nothing is judged until the host says so -- the count
+// on screen is the only hint, which is the whole game.
+function toggleMulti(i) {
+  if (state.revealed) return;
+  i = +i;
+  var at = state.chosenMulti.indexOf(i);
+  if (at === -1) state.chosenMulti = state.chosenMulti.concat([i]).sort(function (a, b) { return a - b; });
+  else state.chosenMulti = state.chosenMulti.filter(function (x) { return x !== i; });
+  hap("tap");
+  broadcastSync();
+  renderOrUpdateClue();
+}
+// Turn one slot over on a "name them all" question, the way a Feud board works.
+function turnListSlot(i) {
+  if (state.revealed) return;
+  i = +i;
+  if (state.listFound.indexOf(i) !== -1) return;
+  state.listFound = state.listFound.concat([i]);
+  sndReveal();
+  hap("good");
+  broadcastSync();
+  renderOrUpdateClue();
+}
 function seqMove(pos, dir) {
   if (!state.seqOrder || state.revealed) return;
   var order = state.seqOrder;
@@ -11142,6 +11312,47 @@ function viewTypeInClue(item) {
     box +
   '</div>';
 }
+function viewMultiChoices(item) {
+  var want = clueCorrectSet(item);
+  var picked = state.chosenMulti || [];
+  var buttons = clueList(item).map(function (opt, i) {
+    var isRight = want.indexOf(i) !== -1, isPicked = picked.indexOf(i) !== -1;
+    var cls = "alignment-btn";
+    if (state.revealed) {
+      // Right and ticked, right and missed, wrong and ticked -- three different
+      // things, and a player wants to see which of them they did.
+      if (isRight && isPicked) cls += " alignment-correct";
+      else if (isRight) cls += " alignment-missed";
+      else if (isPicked) cls += " alignment-wrong";
+    } else if (isPicked) cls += " alignment-selected";
+    return '<button class="' + cls + '" data-action="toggleMulti" data-i="' + i + '">' +
+      '<span class="alignment-letter">' + (isPicked ? "&#10003;" : String.fromCharCode(65 + i)) + '</span>' +
+      esc(opt) + '</button>';
+  }).join("");
+  var head = state.revealed
+    ? (sameSet(picked.slice().sort(function (a, b) { return a - b; }), want)
+        ? '<p class="multi-count multi-count-got">All ' + want.length + ' of them.</p>'
+        : '<p class="multi-count">The ' + want.length + ' right ones are lit up.</p>')
+    : '<p class="multi-count">Pick ' + want.length + ' &mdash; ' + picked.length + ' ticked.</p>';
+  return head + '<div class="alignment-row">' + buttons + '</div>';
+}
+function viewListClue(item) {
+  var list = clueList(item), found = state.listFound || [];
+  var slots = list.map(function (text, i) {
+    var up = state.revealed || found.indexOf(i) !== -1;
+    return '<button class="list-slot' + (up ? ' list-slot-up' : '') + '" ' +
+      (up ? 'disabled' : 'data-action="turnListSlot" data-i="' + i + '"') + '>' +
+      '<span class="list-slot-num">' + (i + 1) + '</span>' +
+      '<span class="list-slot-text">' + (up ? esc(text) : "") + '</span>' +
+    '</button>';
+  }).join("");
+  var left = list.length - found.length;
+  return '<p class="multi-count">' +
+      (state.revealed ? 'All ' + list.length + '.'
+        : found.length + ' of ' + list.length + ' &mdash; ' + left + ' to go') +
+    '</p>' +
+    '<div class="list-slots">' + slots + '</div>';
+}
 function viewAlignmentChoices(item) {
   var correct = clueCorrectIndex(item);
   var buttons = clueList(item).map(function (opt, i) {
@@ -11169,7 +11380,9 @@ function clueExtrasHtml(item, hidden) {
   // away, so that one stays.
   if (hidden) return clueType(f).typedIn ? viewTypeInClue(item) : "";
   if (f === "choice") return viewAlignmentChoices(item);
+  if (f === "multi") return viewMultiChoices(item);
   if (f === "sequence") return viewSequenceClue(item);
+  if (f === "list") return viewListClue(item);
   return clueType(f).typedIn ? viewTypeInClue(item) : "";
 }
 function viewClueMedia() {
@@ -12218,12 +12431,15 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "closeSendIt") closeSendIt();
   else if (action === "copySendIt") copySendIt();
   else if (action === "sendOwnGuess") sendOwnGuess();
+  else if (action === "toggleMulti") toggleMulti(t.getAttribute("data-i"));
+  else if (action === "turnListSlot") turnListSlot(t.getAttribute("data-i"));
   else if (action === "clearGuess") clearGuess(+t.getAttribute("data-i"));
   else if (action === "sendClueGuess") sendClueGuess();
   else if (action === "builderSetType") builderSetType(+t.getAttribute("data-row"), t.getAttribute("data-type"));
   else if (action === "builderAddListItem") builderAddListItem(+t.getAttribute("data-row"));
   else if (action === "builderRemoveListItem") builderRemoveListItem(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
   else if (action === "builderSetCorrect") builderSetCorrect(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
+  else if (action === "builderToggleCorrect") builderToggleCorrect(+t.getAttribute("data-row"), +t.getAttribute("data-i"));
   else if (action === "openQuestionDemo") openQuestionDemo();
   else if (action === "closeQuestionDemo") closeQuestionDemo();
   else if (action === "demoReveal") demoReveal();
