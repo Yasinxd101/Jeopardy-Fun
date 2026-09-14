@@ -6961,6 +6961,59 @@ function milSafeFloor(index) {
   return banked;
 }
 function milMoney(index) { return MIL_LADDER[index] || 0; }
+// Packs that ship with the app, so the extra modes are playable the moment you
+// open them. Jeopardy has always had built-in boards; Millionaire and Feud had
+// none at all, which meant a fifteen-question ladder or three full surveys had
+// to be written by hand before either mode would do anything -- and on your own
+// there is nobody to split that with. These are read-only: they can be played
+// and copied, never edited or deleted out from under you.
+var BUILTIN_MIL_PACKS = [
+  {
+    id: "milpack-builtin-general", name: "General Knowledge",
+    tagline: "Fifteen questions, easy to brutal. The one everybody can start with.",
+    accent: "#3da9fc",
+    ladder: [
+      {"q": "Which of these is a primary colour?", "options": ["Red", "Green", "Orange", "Purple"], "correct": 0, "note": "Red, blue and yellow are the traditional primaries."},
+      {"q": "How many sides does a hexagon have?", "options": ["Five", "Seven", "Six", "Eight"], "correct": 2},
+      {"q": "Which planet is closest to the Sun?", "options": ["Venus", "Mercury", "Earth", "Mars"], "correct": 1},
+      {"q": "What is the largest ocean on Earth?", "options": ["The Atlantic", "The Indian", "The Arctic", "The Pacific"], "correct": 3},
+      {"q": "Who wrote the play Romeo and Juliet?", "options": ["Charles Dickens", "William Shakespeare", "Jane Austen", "Oscar Wilde"], "correct": 1},
+      {"q": "What is the chemical symbol for gold?", "options": ["Au", "Go", "Gd", "Ag"], "correct": 0, "note": "From aurum, the Latin for gold. Ag is silver."},
+      {"q": "In which country would you find the Great Barrier Reef?", "options": ["Brazil", "Indonesia", "Australia", "Mexico"], "correct": 2},
+      {"q": "How many keys does a standard full-size piano have?", "options": ["76", "92", "64", "88"], "correct": 3},
+      {"q": "Which element has the atomic number 1?", "options": ["Hydrogen", "Helium", "Oxygen", "Carbon"], "correct": 0},
+      {"q": "The Rosetta Stone was key to deciphering which writing system?", "options": ["Sumerian cuneiform", "Egyptian hieroglyphs", "Linear B", "Mayan glyphs"], "correct": 1},
+      {"q": "Which of these countries has the most time zones?", "options": ["Russia", "The United States", "China", "France"], "correct": 3, "note": "Counting its overseas territories, France spans twelve."},
+      {"q": "Who painted the ceiling of the Sistine Chapel?", "options": ["Raphael", "Leonardo da Vinci", "Michelangelo", "Donatello"], "correct": 2},
+      {"q": "What is the smallest country in the world by land area?", "options": ["Monaco", "Vatican City", "Nauru", "San Marino"], "correct": 1},
+      {"q": "Which sea creature has three hearts and blue blood?", "options": ["The jellyfish", "The starfish", "The sea turtle", "The octopus"], "correct": 3, "note": "Two pump blood to the gills, one to the rest of the body."},
+      {"q": "In computing, what does the acronym 'GUI' stand for?", "options": ["General Utility Interface", "Guided User Input", "Graphical User Interface", "Graphical Unit Integration"], "correct": 2},
+    ],
+  },
+];
+var BUILTIN_FEUD_PACKS = [
+  {
+    id: "feudpack-builtin-everyday", name: "Everyday Things",
+    tagline: "The ones a whole room can shout at. Good for a first game.",
+    accent: "#2cb67d",
+    rounds: [
+      {"q": "Name something people do the moment they wake up.", "multiplier": 1, "answers": [{"text": "Check their phone", "points": 34}, {"text": "Go to the toilet", "points": 26}, {"text": "Turn off the alarm", "points": 18}, {"text": "Stretch", "points": 12}, {"text": "Go back to sleep", "points": 10}]},
+      {"q": "Name something you always find in a kitchen drawer.", "multiplier": 1, "answers": [{"text": "Cutlery", "points": 38}, {"text": "Scissors", "points": 22}, {"text": "Takeaway menus", "points": 16}, {"text": "Batteries", "points": 14}, {"text": "Random keys", "points": 10}]},
+      {"q": "Name a reason someone would be late for work.", "multiplier": 2, "answers": [{"text": "Traffic", "points": 40}, {"text": "Overslept", "points": 30}, {"text": "Public transport", "points": 14}, {"text": "The weather", "points": 9}, {"text": "Lost their keys", "points": 7}]},
+      {"q": "Name something people take to the beach.", "multiplier": 2, "answers": [{"text": "A towel", "points": 36}, {"text": "Sunscreen", "points": 28}, {"text": "Food and drink", "points": 16}, {"text": "An umbrella", "points": 12}, {"text": "A book", "points": 8}]},
+    ],
+  },
+  {
+    id: "feudpack-builtin-athome", name: "Around the House",
+    tagline: "Arguments waiting to happen, in survey form.",
+    accent: "#ff9f45",
+    rounds: [
+      {"q": "Name a chore people put off for as long as possible.", "multiplier": 1, "answers": [{"text": "Washing up", "points": 32}, {"text": "Laundry", "points": 25}, {"text": "Cleaning the bathroom", "points": 20}, {"text": "Hoovering", "points": 13}, {"text": "Ironing", "points": 10}]},
+      {"q": "Name something that always goes missing at home.", "multiplier": 1, "answers": [{"text": "Socks", "points": 35}, {"text": "Keys", "points": 27}, {"text": "The TV remote", "points": 19}, {"text": "Pens", "points": 11}, {"text": "Phone chargers", "points": 8}]},
+      {"q": "Name something people argue about on a road trip.", "multiplier": 2, "answers": [{"text": "Directions", "points": 33}, {"text": "The music", "points": 26}, {"text": "When to stop", "points": 21}, {"text": "How fast to drive", "points": 12}, {"text": "The temperature", "points": 8}]},
+    ],
+  },
+];
 function milPackError(p) {
   if (!p || typeof p !== "object" || Array.isArray(p)) return "that file is not a question pack.";
   if (!p.name) return 'the pack needs a "name".';
@@ -6982,10 +7035,19 @@ function milPackError(p) {
   return "";
 }
 function isValidMilPack(p) { return !!(p && p.id) && milPackError(p) === ""; }
+// Built-ins first, then anything made on this device. A pack saved with the
+// same id as a built-in replaces it, so a copy you have edited wins.
 function milPacks() {
   var list = jfRead(JF_MILPACKS_KEY, []);
-  if (!Array.isArray(list)) return [];
-  return list.filter(isValidMilPack);
+  if (!Array.isArray(list)) list = [];
+  var mine = list.filter(isValidMilPack);
+  var mineIds = {};
+  mine.forEach(function (p) { mineIds[p.id] = true; });
+  return BUILTIN_MIL_PACKS.filter(function (p) { return !mineIds[p.id] && isValidMilPack(p); })
+    .concat(mine);
+}
+function isBuiltinPack(id) {
+  return BUILTIN_MIL_PACKS.concat(BUILTIN_FEUD_PACKS).some(function (p) { return p.id === id; });
 }
 function blankMilQuestion() {
   return { q: "", options: ["", "", "", ""], correct: 0, note: "", hint: "" };
@@ -7283,8 +7345,12 @@ function feudPackError(p) {
 function isValidFeudPack(p) { return !!(p && p.id) && feudPackError(p) === ""; }
 function feudPacks() {
   var list = jfRead(JF_FEUDPACKS_KEY, []);
-  if (!Array.isArray(list)) return [];
-  return list.filter(isValidFeudPack);
+  if (!Array.isArray(list)) list = [];
+  var mine = list.filter(isValidFeudPack);
+  var mineIds = {};
+  mine.forEach(function (p) { mineIds[p.id] = true; });
+  return BUILTIN_FEUD_PACKS.filter(function (p) { return !mineIds[p.id] && isValidFeudPack(p); })
+    .concat(mine);
 }
 function blankFeudRound() {
   return { q: "", multiplier: 1, answers: [
@@ -9327,8 +9393,10 @@ function viewMilPacks() {
         '</div>' +
       '</button>' +
       '<div class="my-board-controls">' +
-        '<button data-action="openMilBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
-        '<button data-action="deleteMilPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>' +
+        (isBuiltinPack(p.id)
+          ? '<button data-action="openMilBuilder" data-id="' + esc(p.id) + '">Make a copy</button>'
+          : '<button data-action="openMilBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
+            '<button data-action="deleteMilPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>') +
       '</div></div>';
   }).join("");
   if (!packs.length) {
@@ -9357,6 +9425,12 @@ function openMilBuilder(existingId) {
   if (existingId) {
     var found = milPacks().filter(function (p) { return p.id === existingId; })[0];
     if (found) draft = JSON.parse(JSON.stringify(found));
+    // A pack that ships with the app opens as a copy: riff on it all you like
+    // and the original is still there for the next game.
+    if (draft && isBuiltinPack(draft.id)) {
+      draft.id = "milpack-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      draft.name = draft.name + " (my copy)";
+    }
   }
   state.milBuilder = { draft: draft || blankMilPack(), index: 0, error: "", submitMsg: "" };
   state.phase = "milBuilder";
@@ -9730,8 +9804,10 @@ function viewFeudPacks() {
         '</div>' +
       '</button>' +
       '<div class="my-board-controls">' +
-        '<button data-action="openFeudBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
-        '<button data-action="deleteFeudPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>' +
+        (isBuiltinPack(p.id)
+          ? '<button data-action="openFeudBuilder" data-id="' + esc(p.id) + '">Make a copy</button>'
+          : '<button data-action="openFeudBuilder" data-id="' + esc(p.id) + '">Edit</button>' +
+            '<button data-action="deleteFeudPack" data-id="' + esc(p.id) + '" style="color:#ff8aa0">Delete</button>') +
       '</div></div>';
   }).join("");
   if (!packs.length) {
@@ -9758,6 +9834,12 @@ function openFeudBuilder(existingId) {
   if (existingId) {
     var found = feudPacks().filter(function (p) { return p.id === existingId; })[0];
     if (found) draft = JSON.parse(JSON.stringify(found));
+    // A pack that ships with the app opens as a copy: riff on it all you like
+    // and the original is still there for the next game.
+    if (draft && isBuiltinPack(draft.id)) {
+      draft.id = "feudpack-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      draft.name = draft.name + " (my copy)";
+    }
   }
   state.feudBuilder = { draft: draft || blankFeudPack(), index: 0, error: "", submitMsg: "" };
   state.phase = "feudBuilder";
