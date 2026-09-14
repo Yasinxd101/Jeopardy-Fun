@@ -5998,6 +5998,10 @@ function previewBoard(id) {
   if (b && b.adult && (!state.adultEnabled || !adultOk())) { state.adultGate = { type: "preview", id: id }; render(); return; }
   state.previewBoardId = id;
   state.questionDemo = null;
+  // Showing a board's card means being on the screen that shows cards. Setting
+  // the id alone left you wherever you were -- a no-op from the picker, where
+  // this is normally called from, and wrong from anywhere else.
+  state.phase = "boards";
   render();
 }
 function cancelPreview() {
@@ -8044,8 +8048,8 @@ function renderHelp() {
           "Nothing you write is lost by one tap. <strong>Remove this category</strong> and <strong>Remove this row</strong> put it on a shelf above the board &mdash; <strong>Bring it back</strong> returns it with every question still in it.",
           "<strong>Clear just this question</strong> empties one tile and leaves the rest alone. That is the way to empty a board out on purpose.",
           "<strong>Erase for good</strong> is the only thing here that really destroys something. It sits on its own at the very bottom, names what it would take with it, and cannot be undone.",
-          "<strong>Play test</strong> plays it for real on this device. Nothing is scored and you come straight back.",
-          "The <strong>&#8942;</strong> button holds the tagline, cover art, 18+, sharing, download and import.",
+          "<strong>Play it</strong> starts your board for real on this device, and <strong>Preview card</strong> shows the card players meet before they pick. Nothing is scored either way, and a green bar across the top takes you back to editing from anywhere.",
+          "<strong>More options</strong> at the bottom of the board holds the tagline, 18+, sharing, export and import. The name, colour and thumbnail are on the first step, next to the card they change.",
         ]) +
         helpSection("Good to know", [
           "The game saves itself. Close the tab and you can pick it back up.",
