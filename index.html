@@ -4655,6 +4655,11 @@ function jfRemove(key) {
 // Persist the durable slice of an in-progress game (board-level only; open
 // clues, videos, and wheel spins are transient and not restored).
 function saveGameSnapshot() {
+  // The TEST RUN banner says nothing here is saved, and it has to be true: a
+  // test wrote a resume snapshot for a board that only exists while you are
+  // testing it, so the start screen then offered to resume a game it could not
+  // find and the button did nothing at all.
+  if (state.testingBoard) return;
   var inGame = state.boardId && !state.finalDone &&
     (state.phase === "board" || state.phase === "question" || state.phase === "interlude");
   if (!inGame) return;
@@ -4679,7 +4684,14 @@ function saveGameSnapshot() {
 }
 function savedGame() {
   var s = jfRead(JF_SAVE_KEY, null);
-  return s && s.v === 1 && s.boardId && s.players && s.players.length ? s : null;
+  if (!s || s.v !== 1 || !s.boardId || !s.players || !s.players.length) return null;
+  // The board has to still be here, or Resume is a button that cannot do
+  // anything. Anyone who test-played before this was fixed is carrying a
+  // snapshot of a board that never existed outside that test. The snapshot is
+  // left alone rather than deleted: the fan boards arrive over the network, so
+  // a board missing right now may simply not have landed yet.
+  if (!BOARDS.some(function (b) { return b.id === s.boardId; })) return null;
+  return s;
 }
 function discardSave() {
   jfRemove(JF_SAVE_KEY);
@@ -4721,6 +4733,9 @@ function resumeGame() {
   render();
 }
 function recordMatchHistory() {
+  // ...and nothing here is scored either. A draft played to the end used to
+  // land on the leaderboard under whatever the half-written board was called.
+  if (state.testingBoard) return;
   function nameOf(id) {
     var b = BOARDS.filter(function (x) { return x.id === id; })[0];
     return b ? b.name : String(id);
