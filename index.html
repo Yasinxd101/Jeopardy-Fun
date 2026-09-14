@@ -8338,7 +8338,7 @@ function viewBoards() {
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
-  return menu + testingBannerHtml() + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title idle-float">JEOPARDY</h1>' +
       '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
@@ -8379,7 +8379,7 @@ function viewBoardPreview() {
     { label: "Edit Players", action: "editPlayers" },
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
-  return menu + testingBannerHtml() + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px;' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap" style="max-width:480px;' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="card">' +
       (b.art ? '<div class="preview-art-wrap"><img class="preview-art" src="' + esc(b.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;"></div>' : '') +
       '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
@@ -11584,7 +11584,7 @@ function viewQuestion() {
       (questionItem().value * roundMultiplier()) + ' + ' + state.wager + ' WAGERED = ' + value + ' AT STAKE</div>';
   }
 
-  return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + testingBannerHtml() + stageBackdropHtml() +
+  return '<div id="clueMenuWrap">' + viewQuestionMenu() + '</div>' + stageBackdropHtml() +
     '<div class="wrap"><div class="inner" style="max-width:620px;margin:0 auto">' +
     '<div class="clue-enter">' +
       ddBanner +
@@ -11713,7 +11713,7 @@ function viewBoard() {
 
   var menu = renderMenu(withUndo(gameMenuItems(true)));
 
-  return menu + testingBannerHtml() + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
+  return menu + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
     '<div class="board-chiprow">' + chips + '</div>' +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(teamModeOn() ? teamLabel(teamOf(state.turn)) : state.players[state.turn].name) + "'s pick" +
@@ -12100,7 +12100,12 @@ function render() {
   }
   else html = viewBoard();
   if (state.phase === "board" && !state.wheel) html += viewManagePlayers();
-  root.innerHTML = html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt();
+  // The way out of a test play belongs on EVERY screen a test play can reach,
+  // not on the four that happened to ask for it. It was missing from the Daily
+  // Double wager, all of Final Jeopardy, the win screen and the interlude --
+  // so test-playing your own board and clearing it, which is the whole point
+  // of a test play, stranded you in it with no way back to the maker.
+  root.innerHTML = testingBannerHtml() + html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt();
   if (keepScroll) {
     var scroller = document.querySelector(".bboard-scroll");
     if (scroller) scroller.scrollTop = keepScroll;
