@@ -11157,6 +11157,21 @@ function viewAlignmentChoices(item) {
   }).join("");
   return '<div class="alignment-row">' + buttons + '</div>';
 }
+// Whatever a typed question needs on top of the text: the options, the list to
+// order, or the box to put an answer in. It has to hang off every shape a
+// question comes in -- plain, with a picture, on a clip, and while the host is
+// reading it out -- or the question is unanswerable in that shape.
+function clueExtrasHtml(item, hidden) {
+  var f = clueFormat(item);
+  if (!f) return "";
+  // Read-aloud holds back the text so nobody can read ahead of the host, and
+  // options or a list to sort ARE the text. A box to type into gives nothing
+  // away, so that one stays.
+  if (hidden) return clueType(f).typedIn ? viewTypeInClue(item) : "";
+  if (f === "choice") return viewAlignmentChoices(item);
+  if (f === "sequence") return viewSequenceClue(item);
+  return clueType(f).typedIn ? viewTypeInClue(item) : "";
+}
 function viewClueMedia() {
   var item = questionItem();
   var isVideo = !!item.id;
@@ -11175,11 +11190,8 @@ function viewClueMedia() {
     ? '<img class="clue-img" src="' + esc(item.img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">'
     : '';
   if (!isVideo) {
-    if (hidden) return hiddenBox + art;
-    return '<div class="clue-box">' + esc(item.q) + '</div>' + art +
-      (clueFormat(item) === "choice" ? viewAlignmentChoices(item) :
-        clueFormat(item) === "sequence" ? viewSequenceClue(item) :
-        clueType(clueFormat(item)).typedIn ? viewTypeInClue(item) : "");
+    if (hidden) return hiddenBox + art + clueExtrasHtml(item, true);
+    return '<div class="clue-box">' + esc(item.q) + '</div>' + art + clueExtrasHtml(item, false);
   }
   var prompt = hidden ? hiddenBox : (item.q ? '<p class="video-prompt">' + esc(item.q) + '</p>' : "");
   var player;
@@ -11205,6 +11217,10 @@ function viewClueMedia() {
   return '<div>' + prompt +
     '<div class="video-frame' + (blurred ? " video-blurred" : "") + '">' + player + '<div class="video-blur-overlay">' + overlayHint + '</div></div>' +
     videoFallbackLinkHtml(item) +
+    // A clip IS the question -- "name the year this came out" is a number
+    // question with no text at all -- so the way to answer belongs here too,
+    // and below the player, because you have to hear it before you can answer.
+    clueExtrasHtml(item, hidden) +
   '</div>';
 }
 function videoBlurHintHtml() {
