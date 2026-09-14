@@ -3092,8 +3092,10 @@ function answerIsSpotOn(item, guess) {
   if (!item || !String(guess == null ? "" : guess).trim()) return false;
   if (clueFormat(item) === "number") {
     var want = clueNumber(item), margin = clueMargin(item), got = parseFloat(guess);
-    if (want == null || margin == null || !isFinite(got)) return false;
-    return Math.abs(got - want) <= margin;
+    if (want == null || !isFinite(got)) return false;
+    // No margin written means no "close enough" -- but the number itself is
+    // still the number. It used to sit there waiting for the host to agree.
+    return Math.abs(got - want) <= (margin == null ? 0 : margin);
   }
   var g = normalizeAnswer(guess);
   if (!g) return false;
@@ -4199,6 +4201,15 @@ function buzzerSyncPayload() {
       p.clue.list = cf === "sequence"
         ? (state.seqOrder || []).map(function (n) { return clueList(item)[n]; })   // the order on the big screen
         : (cf === "typed" || cf === "number" ? [] : clueList(item));
+      // On "name them all" the entries ARE the answers, so only the ones the
+      // host has already turned over travel. A phone got the whole list and
+      // merely hid it, which is not the same as not having it.
+      if (cf === "list" && !state.revealed) {
+        var turned = state.listFound || [];
+        p.clue.list = p.clue.list.map(function (text, i) {
+          return turned.indexOf(i) === -1 ? "" : text;
+        });
+      }
       p.clue.picked = cf === "choice" && state.chosenAlignment != null ? state.chosenAlignment : null;
       if (cf === "multi") { p.clue.multi = true; p.clue.pickedSet = (state.chosenMulti || []).slice();
                             p.clue.need = clueCorrectSet(item).length; }
@@ -4968,6 +4979,15 @@ function builderRemoveListItem(row, i) {
     if (q.correct === i) q.correct = 0;
     else if (q.correct > i) q.correct--;
   }
+  // "Pick them all" remembers its right answers by position, so every tick
+  // above the one you deleted has to slide down with it. Without this,
+  // removing the first option silently moved every tick onto its neighbour --
+  // the board looked fine and marked the wrong answers correct.
+  if (t.multi && Array.isArray(q.correct)) {
+    q.correct = q.correct
+      .filter(function (n) { return +n !== i; })
+      .map(function (n) { return +n > i ? +n - 1 : +n; });
+  }
   if (t.id === "sequence") q.correctOrder = q[t.listKey].map(function (_, n) { return n; });
   render();
 }
@@ -5208,10 +5228,22 @@ function goHome(msg) {
   state.questionDemo = null;
   state.exampleOpen = false;
   state.importPrompt = null;
-  // The paste panel is one of the ways you get here, so it has to close on the
-  // way out. It was staying up over the start screen with everything behind it
-  // unreachable -- the board imported fine and you could not get to it.
+  // Every panel that floats over the page comes down on the way out. The paste
+  // one was staying up over the start screen with everything behind it
+  // unreachable -- the board imported fine and you could not get to it. The
+  // rest are the same trap waiting for the next exit that goes through here.
   state.pasteImport = null;
+  state.sendIt = null;
+  state.helpOpen = false;
+  state.modePickerOpen = false;
+  state.menuOpen = false;
+  // A test run parked here would leave its board sitting in My Boards and the
+  // TEST RUN banner across a screen with nothing left to test.
+  if (state.testingBoard) {
+    state.testingBoard = null;
+    BOARDS = BOARDS.filter(function (b) { return b.id !== "__testing__"; });
+    state.boardId = null;
+  }
   state.homeMsg = msg || "";
   state.phase = "players";
   render();
@@ -6671,6 +6703,11 @@ function openQuestion(catKey, qIndex) {
       var sj = Math.floor(Math.random() * (si + 1));
       var stmp = seqOrder[si]; seqOrder[si] = seqOrder[sj]; seqOrder[sj] = stmp;
     }
+    // A shuffle is allowed to land on the answer -- with two items it does half
+    // the time -- and "put these in order" opening already in order reads as
+    // broken. Nudge it off the answer rather than reshuffling forever.
+    var solved = seqOrder.every(function (n, at) { return n === at; });
+    if (solved && seqOrder.length > 1) seqOrder.push(seqOrder.shift());
     state.seqOrder = seqOrder;
   }
   state.clueOpenedAt = Date.now();
