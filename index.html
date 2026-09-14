@@ -1268,6 +1268,7 @@
     font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
   }
   .sendit-btn-go { background: #ffd166; border-color: #ffd166; color: #2a2205; }
+  .sendit-btn-quiet { background: none; color: #8b92c0; font-weight: 700; font-size: 13px; }
   .sendit-text {
     width: 100%; box-sizing: border-box; margin-top: 10px; padding: 9px 10px;
     border-radius: 9px; background: #0d1230; border: 1px solid #23284b;
@@ -1739,6 +1740,8 @@
   }
   .test-banner-tag { font-weight: 900; font-size: 11px; letter-spacing: 1.5px; }
   .test-banner-text { flex: 1; min-width: 0; font-size: 12px; font-weight: 700; }
+  /* the other half of the test, one tap away rather than a trip back */
+  .test-banner-alt { background: rgba(4, 33, 15, 0.28); color: #04210f; }
   .test-banner-btn {
     background: #04210f; color: #7ee2b0; border: none; border-radius: 8px;
     font-family: inherit; font-weight: 800; font-size: 12px;
@@ -3318,6 +3321,7 @@ var state = {
   boardMsg: "",           // one-line notice on the board picker (e.g. after a report)
   homeMsg: "",            // one-line notice on the start screen (e.g. after saving a board)
   sendIt: null,           // {title,note,url,subject,body} -- the send-a-board-in panel
+  pasteImport: null,      // text of a board somebody sent you, before it is brought in
   setupMoreOpen: false,   // the fold-away half of the start screen
   playStyle: "screen",    // "screen" = one device, "buzzers" = phones buzz in
   wheelOfChaosEnabled: false,
@@ -5366,16 +5370,19 @@ function submitBoardForReview() {
   var hasLink = !!url && url.length <= ISSUE_URL_MAX;
   if (!hasLink) url = repoIssueUrl(title, head + attachNote, "fan-board");
 
-  downloadBoardJson(d);
   state.builder.error = "";
   state.builder.submitMsg = "";
   openSendIt({
     title: "Send \u201C" + d.name + "\u201D in",
-    note: boardFileName(d) + " has been downloaded to this device. Attach it to whichever " +
-          "of these you use, and the board gets reviewed before it becomes a Fan Board.",
+    note: "Copy the board text below and paste it into the issue or the email. " +
+          "Nothing is downloaded and nothing is attached \u2014 it is plain text, " +
+          "readable before it is opened, and it pastes straight back into the app.",
     url: url,
     subject: title,
-    body: (hasLink ? withLink : head + attachNote),
+    body: head,
+    payload: JSON.stringify(d),
+    payloadLabel: "The board",
+    fileName: boardFileName(d),
   });
 }
 function reportBoard(id) {
@@ -5410,6 +5417,12 @@ function openSendIt(opts) {
     url: opts.url || "",
     subject: opts.subject || opts.title,
     body: opts.body || "",
+    // The board itself, as text. A board is 3-14KB packed, which overflows a
+    // mailto body and often a GitHub issue URL too, so it cannot ride in the
+    // link -- it gets copied and pasted instead of attached as a file.
+    payload: opts.payload || "",
+    payloadLabel: opts.payloadLabel || "",
+    fileName: opts.fileName || "",
   };
   render();
 }
@@ -5421,10 +5434,27 @@ function mailtoUrl(subject, body) {
     "?subject=" + encodeURIComponent(subject) +
     "&body=" + encodeURIComponent(body.slice(0, 1800));
 }
+function sendItText() {
+  var s = state.sendIt;
+  if (!s) return "";
+  return s.payload
+    ? s.subject + "\n\n" + s.body + "\n" + s.payloadLabel + ":\n" + s.payload
+    : s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
+}
+function downloadSendIt() {
+  var s = state.sendIt;
+  if (!s || !s.payload) return;
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([s.payload], { type: "application/json" }));
+  a.download = s.fileName || "board.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+}
 function copySendIt() {
   var s = state.sendIt;
   if (!s) return;
-  var text = s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
+  var text = sendItText();
   var mark = function () {
     if (!state.sendIt) return;
     state.sendIt.copied = true;
@@ -5446,21 +5476,25 @@ function copySendIt() {
 function renderSendIt() {
   var s = state.sendIt;
   if (!s) return "";
-  var text = s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
   return '<div class="confirm-overlay">' +
     '<div class="confirm-card" style="max-width:400px">' +
       '<p class="bpop-title" style="margin:0 0 4px">' + esc(s.title) + '</p>' +
       (s.note ? '<p class="sendit-note">' + esc(s.note) + '</p>' : '') +
+      // Copy first: it is the thing that actually has to travel.
+      '<button class="sendit-btn sendit-btn-go" data-action="copySendIt">' +
+        (s.copied ? 'Copied \u2713' : s.payload ? 'Copy the board' : 'Copy the details') + '</button>' +
+      '<textarea id="sendItText" class="sendit-text" readonly rows="' + (s.payload ? 5 : 4) + '" ' +
+        'onclick="this.select()">' + esc(sendItText()) + '</textarea>' +
       (s.url
-        ? '<a class="sendit-btn sendit-btn-go" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
-            'Open it on GitHub</a>'
+        ? '<a class="sendit-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+            'Open an issue on GitHub</a>'
         : '') +
       (OWNER_EMAIL
-        ? '<a class="sendit-btn" href="' + esc(mailtoUrl(s.subject, s.body)) + '">Email it instead</a>'
+        ? '<a class="sendit-btn" href="' + esc(mailtoUrl(s.subject, s.body)) + '">Start an email</a>'
         : '') +
-      '<button class="sendit-btn" data-action="copySendIt">' +
-        (s.copied ? 'Copied' : 'Copy the details') + '</button>' +
-      '<textarea id="sendItText" class="sendit-text" readonly rows="4">' + esc(text) + '</textarea>' +
+      (s.payload
+        ? '<button class="sendit-btn sendit-btn-quiet" data-action="downloadSendIt">Save it as a file instead</button>'
+        : '') +
       '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="closeSendIt">Done</button>' +
     '</div>' +
   '</div>';
@@ -5504,18 +5538,24 @@ function enterTestBoard(previewOnly) {
     state.testingBoard.tempPlayers = true;
   }
   state.builder = null;
-  // Start where a player starts -- at the board picker, so the card, the
-  // preview and the colour all get looked at before a tile is ever tapped.
-  state.boardId = null;
   state.used = {};
   state.active = null;
-  // "See my whole board" opens straight onto the preview card -- every
-  // category and the Final, which is the whole-board view players get.
-  state.previewBoardId = previewOnly ? "__testing__" : null;
   state.questionDemo = null;
   state.searchQuery = "";
   state.boardsTab = "My Boards";
-  state.phase = "boards";
+  if (previewOnly) {
+    // The card players meet before they pick: every category and the Final.
+    state.boardId = null;
+    state.previewBoardId = "__testing__";
+    state.phase = "boards";
+  } else {
+    // Straight onto the board, playable. It used to drop you on the board
+    // PICKER -- you pressed "Play test" and got "Choose a board to start the
+    // game", with your own board hidden behind a tab you then had to find.
+    state.previewBoardId = null;
+    selectBoard("__testing__");
+    return;
+  }
   render();
 }
 function stopTestingBoard() {
@@ -5761,12 +5801,38 @@ function exportBuilderJson() {
   downloadBoardJson(cleanDraft(state.builder.draft));
 }
 var importMsgTimer = null;
-function importBoardFile(file) {
-  var reader = new FileReader();
-  reader.onload = function () {
+// Somebody sent you a board as text rather than a file -- which is what the
+// send panel now asks them to do -- so it has to come back in that way too.
+function importBoardText(text) {
+  if (!String(text || "").trim()) {
+    state.importFileMsg = "Paste the board text first.";
+    render();
+    return;
+  }
+  acceptImportedBoard(String(text));
+}
+function openPasteImport() { state.pasteImport = ""; state.importFileMsg = ""; render(); }
+function closePasteImport() { state.pasteImport = null; render(); }
+function renderPasteImport() {
+  if (state.pasteImport == null) return "";
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card" style="max-width:400px">' +
+      '<p class="bpop-title" style="margin:0 0 4px">Paste a board</p>' +
+      '<p class="sendit-note">Somebody sent you the board as text? Drop the whole thing in here.</p>' +
+      '<textarea id="pasteBoardText" class="sendit-text" rows="6" placeholder=\'{ "name": ... }\'>' +
+        esc(state.pasteImport) + '</textarea>' +
+      (state.importFileMsg ? '<p class="sendit-note" style="color:#ff8aa0">' + esc(state.importFileMsg) + '</p>' : '') +
+      '<button class="sendit-btn sendit-btn-go" data-action="importPastedBoard">Bring it in</button>' +
+      '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="closePasteImport">Cancel</button>' +
+    '</div>' +
+  '</div>';
+}
+// One place decides what an imported board does, whether it arrived as a
+// file or as text somebody pasted in.
+function acceptImportedBoard(raw) {
     var msg, ok = false;
     try {
-      var b = normalizeBoard(JSON.parse(reader.result));
+      var b = normalizeBoard(JSON.parse(raw));
       // Assign id/icon before validating so a board file without an id (the
       // usual case for a hand-made or shared board) still imports fine.
       if (!b || typeof b !== "object") throw new Error("not a board");
@@ -5786,7 +5852,7 @@ function importBoardFile(file) {
       } else {
         msg = "Could not import that board: " + err;
       }
-    } catch (e) { msg = "Could not read that file as board JSON. Make sure it is valid JSON."; }
+    } catch (e) { msg = "That is not board JSON \u2014 check the whole thing was copied, opening brace to closing brace."; }
     state.boardsTab = "My Boards";
     // A board that imported is finished with, so it ends where a saved board
     // ends -- back on the start screen, told where the board went.
@@ -5811,6 +5877,13 @@ function importBoardFile(file) {
       state.importFileMsg = "";
       render();
     }, 4000);
+}
+function importBoardFile(file) {
+  var reader = new FileReader();
+  reader.onload = function () { acceptImportedBoard(reader.result); };
+  reader.onerror = function () {
+    state.importFileMsg = "That file could not be read.";
+    render();
   };
   reader.readAsText(file);
 }
@@ -5913,7 +5986,14 @@ function previewBoard(id) {
   state.questionDemo = null;
   render();
 }
-function cancelPreview() { state.previewBoardId = null; state.questionDemo = null; render(); }
+function cancelPreview() {
+  // Backing out of your own draft's card belongs in the maker. It used to drop
+  // you on the board picker, mid-test, which is nowhere you asked to be.
+  if (state.testingBoard && state.previewBoardId === "__testing__") { stopTestingBoard(); return; }
+  state.previewBoardId = null;
+  state.questionDemo = null;
+  render();
+}
 
 // ---- manage players mid-game (board screen) ----
 function openManagePlayers() {
@@ -8160,9 +8240,16 @@ function confirmNewPlayers() { askConfirm("Clear all players? This removes every
 // editor -- otherwise the only exit is starting a whole new game.
 function testingBannerHtml() {
   if (!state.testingBoard) return "";
+  // On the card, offer the game; in the game, offer the card. Whichever you
+  // picked from the maker, the other one is a tap away instead of a trip back.
+  var onCard = state.phase === "boards" && state.previewBoardId === "__testing__";
+  var other = onCard
+    ? '<button class="test-banner-btn test-banner-alt" data-action="selectBoard" data-id="__testing__">Play it</button>'
+    : '<button class="test-banner-btn test-banner-alt" data-action="showDraftBoard">Preview card</button>';
   return '<div class="test-banner">' +
       '<span class="test-banner-tag">TEST RUN</span>' +
       '<span class="test-banner-text">Nothing here is saved or scored.</span>' +
+      other +
       '<button class="test-banner-btn" data-action="stopTestingBoard">Back to editing</button>' +
     '</div>' +
     '<div class="test-banner-space" aria-hidden="true"></div>';
@@ -8185,6 +8272,17 @@ function withUndo(items) {
 // Shared hamburger-menu entries. Pass includeManage:false on screens where the
 // player-management overlay isn't available (e.g. inside an open clue).
 function gameMenuItems(includeManage) {
+  // Testing your own draft is not a game night. Switching board, new players
+  // and hosting a room all either do nothing useful or walk you out of the
+  // test sideways -- Switch Board left you on the picker still in test mode.
+  if (state.testingBoard) {
+    return [
+      { label: "Back to editing", action: "stopTestingBoard" },
+      { label: "See the preview card", action: "showDraftBoard" },
+      { label: "Start the test over", action: "confirmNewRound" },
+      { label: "How It Works", action: "openHelp" },
+    ];
+  }
   var items = includeManage ? [{ label: "Manage Players", action: "openManagePlayers" }] : [];
   items.push({ label: state.buzzer.on ? "Buzzer Room (" + (state.buzzer.code || "") + ")" : "Open a Buzzer Room", action: "openHostRoom" });
   items.push({ label: "How It Works", action: "openHelp" });
@@ -8411,10 +8509,15 @@ function viewBoardPreview() {
         '</div>'
       :
         '<div style="display:flex;gap:10px;margin-top:22px">' +
-          '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">Back</button>' +
-          '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectBoard" data-id="' + esc(b.id) + '">Play This Board</button>' +
+          '<button class="confirm-btn-cancel" style="flex:1" data-action="cancelPreview">' +
+            (state.testingBoard ? 'Back to editing' : 'Back') + '</button>' +
+          '<button class="big-gold" style="flex:1;margin-top:0" data-action="selectBoard" data-id="' + esc(b.id) + '">' +
+            (state.testingBoard ? 'Play it' : 'Play This Board') + '</button>' +
         '</div>' +
-        '<button class="big-gold" style="background:#3da9fc;color:#04203a;font-size:15px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Full Match: Round 1 here, then pick Round 2</button>'
+        // A two-round match out of a draft you are testing would send you off
+        // to pick a second board, which is not what testing is for.
+        (state.testingBoard ? '' :
+          '<button class="big-gold" style="background:#3da9fc;color:#04203a;font-size:15px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Full Match: Round 1 here, then pick Round 2</button>')
       ) +
       // Fan boards are submitted by strangers, so anyone can flag one. The
       // built-in boards and your own are not reportable -- there is nobody to
@@ -9087,6 +9190,7 @@ function viewBuilderName() {
       '<label class="bname-import">Import a board from a file' +
         '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
       '</label>' +
+      '<button class="my-import-link" data-action="openPasteImport">or paste one somebody sent you</button>' +
       (state.importFileMsg ? '<p class="muted" style="margin-top:8px;text-align:center">' + esc(state.importFileMsg) + '</p>' : '') +
       '<div class="bname-foot">' +
         '<button class="my-import-link" data-action="viewExampleBoard">See a finished board first</button>' +
@@ -9179,8 +9283,11 @@ function viewBuilderBoard() {
     // missing when the maker was rebuilt, leaving showDraftBoard with nothing
     // to call it.
     '<div class="bboard-bar">' +
-      '<button class="bbar-test" data-action="showDraftBoard">See it whole</button>' +
-      '<button class="bbar-test" data-action="testBoard">Play test</button>' +
+      // "Play test" used to land on the board picker, so the name promised a
+      // game and delivered a list. These two now say which of the two things
+      // players see you are looking at.
+      '<button class="bbar-test" data-action="showDraftBoard">Preview card</button>' +
+      '<button class="bbar-test" data-action="testBoard">Play it &rarr;</button>' +
       '<button class="bbar-save" data-action="saveBuilder">Save board</button>' +
     '</div>' +
     (bd.editing ? builderPopupHtml(d, bd.editing) : '') +
@@ -9249,11 +9356,12 @@ function builderToolsHtml(d, bd) {
       : '') +
     '<div class="btools-row">' +
       '<button class="pbar-btn" data-action="shareBuilder">Share link</button>' +
-      '<button class="pbar-btn" data-action="exportBuilderJson">Download</button>' +
-      '<label class="pbar-btn" style="text-align:center">Import' +
+      '<button class="pbar-btn" data-action="exportBuilderJson">Export a file</button>' +
+      '<label class="pbar-btn" style="text-align:center">Import a file' +
         '<input type="file" id="importBoardFile" accept=".json,application/json" style="display:none" />' +
       '</label>' +
     '</div>' +
+    '<button class="pbar-btn" style="width:100%;margin-top:8px" data-action="openPasteImport">Paste a board somebody sent</button>' +
     '<button class="pbar-btn" style="width:100%;margin-top:8px" data-action="submitBoardForReview">Submit to the Fan Boards</button>' +
     '<p class="muted" style="margin-top:6px;font-size:11.5px">Opens a GitHub issue with the board attached. Every submission is reviewed before it becomes a Fan Board.</p>' +
     (bd.submitMsg ? '<p class="muted" style="margin-top:8px;color:#7ee2b0">' + esc(bd.submitMsg) + '</p>' : '') +
@@ -12105,7 +12213,7 @@ function render() {
   // Double wager, all of Final Jeopardy, the win screen and the interlude --
   // so test-playing your own board and clearing it, which is the whole point
   // of a test play, stranded you in it with no way back to the maker.
-  root.innerHTML = testingBannerHtml() + html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt();
+  root.innerHTML = testingBannerHtml() + html + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt() + renderPasteImport();
   if (keepScroll) {
     var scroller = document.querySelector(".bboard-scroll");
     if (scroller) scroller.scrollTop = keepScroll;
@@ -12218,6 +12326,7 @@ document.getElementById("root").addEventListener("input", function (e) {
   }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
   if (t && t.id === "guessInput") setGuessInput(t.value);
+  if (t && t.id === "pasteBoardText") state.pasteImport = t.value;
   if (t && t.id === "clueGuessInput" && state.buzzClient) state.buzzClient.guessInput = t.value;
   if (t && t.getAttribute && t.getAttribute("data-listitem")) {
     var li = t.getAttribute("data-listitem").split(":");   // <row>:<index>
@@ -12435,6 +12544,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderClearArt") builderClearArt();
   else if (action === "closeSendIt") closeSendIt();
   else if (action === "copySendIt") copySendIt();
+  else if (action === "downloadSendIt") downloadSendIt();
+  else if (action === "openPasteImport") openPasteImport();
+  else if (action === "closePasteImport") closePasteImport();
+  else if (action === "importPastedBoard") importBoardText(state.pasteImport);
   else if (action === "sendOwnGuess") sendOwnGuess();
   else if (action === "toggleMulti") toggleMulti(t.getAttribute("data-i"));
   else if (action === "turnListSlot") turnListSlot(t.getAttribute("data-i"));
