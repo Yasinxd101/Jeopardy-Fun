@@ -744,6 +744,24 @@
   .bgrid-tile:hover { filter: brightness(1.2); }
   .bgrid-tile:active { transform: scale(0.97); }
   .bgrid-val { font-size: 18px; font-weight: 900; color: #ffd166; }
+  .bgrid-mark-wheel { color: #ff8fd0; }
+  /* The mark a wheel tile wears on the live board. */
+  .tile-has-wheel { position: relative; box-shadow: inset 0 0 0 2px #ff8fd055; }
+  .tile-wheel { position: absolute; top: 4px; right: 6px; font-size: 12px; color: #ff8fd0;
+    line-height: 1; pointer-events: none; }
+  /* The maker's toggle for it, built like the other option rows. */
+  .builder-wheel-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    margin-top: 10px; padding: 11px 12px; border-radius: 10px; cursor: pointer;
+    background: #171d44; border: 1px solid #2a3068; color: #aab0d8; }
+  .builder-wheel-on { background: #2a1836; border-color: #ff8fd066; color: #ffd9f0; }
+  .builder-wheel-mark { font-size: 17px; color: #6a72a8; }
+  .builder-wheel-on .builder-wheel-mark { color: #ff8fd0; }
+  .builder-wheel-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .builder-wheel-name { font-size: 13px; font-weight: 800; color: #e8ebff; }
+  .builder-wheel-note { font-size: 11px; line-height: 1.35; color: #6a72a8; }
+  .builder-wheel-on .builder-wheel-note { color: #c09ab8; }
+  .builder-wheel-state { font-size: 11px; font-weight: 900; letter-spacing: 0.08em; color: #6a72a8; }
+  .builder-wheel-on .builder-wheel-state { color: #ff8fd0; }
   .bgrid-tile-done { background: #23306b; }
   .bgrid-tile-done .bgrid-val { color: #ffe2a0; }
   .bgrid-tick, .bgrid-plus {
@@ -5793,7 +5811,8 @@ function cleanDraft(d) {
   var out = JSON.parse(JSON.stringify(d));
   out.textBoard.forEach(function (col) {
     col.questions.forEach(function (it) {
-      ["note", "id", "img", "aimg", "hint"].forEach(function (f) { if (!it[f]) delete it[f]; });
+      ["note", "id", "img", "aimg", "hint", "wheel"].forEach(function (f) { if (!it[f]) delete it[f]; });
+      if (it.wheel) it.wheel = true;
       // A typed question keeps only the list its type actually uses, so
       // switching type twice does not leave a stray options[] in the file.
       var ct = clueType(it.format);
@@ -6458,7 +6477,74 @@ function openWheel() {
   };
   render();
 }
-function closeWheel() { state.wheel = null; render(); }
+// ---- wheel tiles ----
+// A board can mark a question as a wheel tile. When the host has the Wheel of
+// Chaos on, finishing that question spins something: the Success wheel if the
+// room got it, the Failure wheel if they got it wrong, and if nobody even
+// tried, everyone takes a turn on the Failure wheel.
+function tileWantsWheel(item) { return !!(item && item.wheel); }
+function wheelTileEnabled() { return !!state.wheelOfChaosEnabled; }
+var WHEEL_REASONS = {
+  right:  { wheel: "success", note: "Got it — spin for a reward." },
+  wrong:  { wheel: "failure", note: "Missed it — spin for the damage." },
+  nobody: { wheel: "failure", note: "Nobody answered. Everybody spins." },
+};
+// Open the wheel already pointed at someone, skipping the "who gets it?" step.
+// `queue` is everyone still waiting their turn on the same wheel.
+function openWheelFor(index, which, reason, queue) {
+  if (!state.players[index]) return false;
+  state.menuOpen = false;
+  state.wheel = {
+    activeWheel: which, stage: "spinning", targetIndex: index, segmentId: null, rotation: 0,
+    triviaQ: null, showTriviaAnswer: false, judged: false, summary: "", summaryGood: null,
+    opponentIndex: null, chainNote: (WHEEL_REASONS[reason] || {}).note || "",
+    fromTile: true, reason: reason, queue: (queue || []).slice(),
+  };
+  render();
+  broadcastSync();
+  spinActiveWheel();
+  return true;
+}
+// Everyone left in the queue goes next; when it empties the wheel closes and
+// the board comes back.
+function wheelQueueNext() {
+  var w = state.wheel;
+  if (!w || !w.queue || !w.queue.length) { closeWheel(); return; }
+  var next = w.queue.shift();
+  openWheelFor(next, w.activeWheel, w.reason, w.queue);
+}
+// Did this question earn a spin, and for whom? Worked out while the question
+// is still open, because it needs to know which tile this was; the spin itself
+// starts afterwards, over the board.
+function wheelTilePlan() {
+  if (!wheelTileEnabled() || state.wheel || !state.active) return null;
+  if (!tileWantsWheel(questionItem())) return null;
+  var outcome = state.clueOutcome;
+  if (outcome === "right" || outcome === "wrong") {
+    var who = state.clueOutcomeIndex != null ? state.clueOutcomeIndex : state.turn;
+    return { index: who, wheel: WHEEL_REASONS[outcome].wheel, reason: outcome, queue: [] };
+  }
+  // Nobody answered. Everyone spins the bad wheel, starting with whoever's
+  // turn it was, so the order is the one the room is already used to.
+  var order = [];
+  for (var n = 0; n < state.players.length; n++) {
+    order.push((state.turn + n) % state.players.length);
+  }
+  var first = order.shift();
+  return { index: first, wheel: "failure", reason: "nobody", queue: order };
+}
+function runWheelPlan(plan) {
+  if (!plan) return false;
+  return openWheelFor(plan.index, plan.wheel, plan.reason, plan.queue);
+}
+function closeWheel() {
+  var w = state.wheel;
+  // Mid-queue, Done means "next player", not "put the wheel away".
+  if (w && w.fromTile && w.queue && w.queue.length) { wheelQueueNext(); return; }
+  state.wheel = null;
+  render();
+  broadcastSync();
+}
 function chooseWheelTarget(mode) {
   if (!state.wheel || state.wheel.stage !== "choose") return;
   var idx = mode === "current" ? state.turn : Math.floor(Math.random() * state.players.length);
@@ -6759,6 +6845,8 @@ function openQuestion(catKey, qIndex) {
   state.guessInput = "";
   state.chosenMulti = [];
   state.listFound = [];
+  state.clueOutcome = null;        // nothing has happened on this one yet
+  state.clueOutcomeIndex = null;
   var openedItem = questionItem();
   if (clueFormat(openedItem) === "sequence") {
     var seqOrder = clueList(openedItem).map(function (_, i) { return i; });
@@ -6935,6 +7023,11 @@ function scoreQuestion(i, correct) {
   // Everyone on the team carries the same number, so they move together.
   teamMates(i).forEach(function (n) { if (n !== i && state.players[n]) state.players[n].score = next; });
   if (correct) state.lastCorrectIndex = i;
+  // What happened on this question, for the wheel tiles to read when it
+  // closes. "right" outranks "wrong": one player missing it before another
+  // gets it still counts as the room having got there.
+  if (correct) { state.clueOutcome = "right"; state.clueOutcomeIndex = i; }
+  else if (state.clueOutcome !== "right") { state.clueOutcome = "wrong"; state.clueOutcomeIndex = i; }
   recordScore(i, delta);
   if (correct) { sndCorrect(); sndScore(true, val); hap("correct"); }
   else { sndIncorrect(); sndScore(false, val); hap("wrong"); shakeScreen(8); }
@@ -8223,6 +8316,9 @@ function closeQuestion() {
   clearClipStopTimer();
   disarmBuzzers(false);
   if (!state.active) { state.phase = "board"; render(); return; }
+  // Worked out while the question is still the open one, because it needs to
+  // know which tile this was. The spin starts at the end, over the board.
+  var spinPlan = wheelTilePlan();
   state.used[state.active.catKey + "-" + state.active.qIndex] = true;
   state.active = null;
   state.revealed = false;
@@ -8265,6 +8361,9 @@ function closeQuestion() {
   } else {
     state.phase = "board";
   }
+  // The board (or the Final, or the interlude) is now settled underneath, so
+  // the wheel opens over a screen that makes sense when it closes again.
+  if (spinPlan && runWheelPlan(spinPlan)) return;
   render();
 }
 function newRound() {
@@ -9205,7 +9304,34 @@ function builderExtrasHtml(q, r) {
       '<label class="builder-media-lbl">Note shown after the reveal</label>' +
       '<input class="input builder-input" data-bind="clue:' + r + ':note" placeholder="Trivia everyone sees with the answer" value="' + esc(q.note || "") + '" />' +
     '</div>' +
+    // Only does anything in a room with the Wheel of Chaos switched on, and
+    // the person building the board is not always the person hosting it, so
+    // it says so rather than hiding itself.
+    '<button class="builder-wheel-row' + (q.wheel ? ' builder-wheel-on' : '') + '" ' +
+        'data-action="builderToggleWheel" data-row="' + r + '" aria-pressed="' + (q.wheel ? 'true' : 'false') + '">' +
+      '<span class="builder-wheel-mark">✴</span>' +
+      '<span class="builder-wheel-text">' +
+        '<span class="builder-wheel-name">Spin the wheel after this one</span>' +
+        '<span class="builder-wheel-note">' +
+          (q.wheel
+            ? 'Right spins for a reward, wrong spins for the damage, and if nobody answers everyone spins the bad one.'
+            : 'Only happens in a game with the Wheel of Chaos turned on.') +
+        '</span>' +
+      '</span>' +
+      '<span class="builder-wheel-state">' + (q.wheel ? 'ON' : 'OFF') + '</span>' +
+    '</button>' +
   '</div>';
+}
+function builderToggleWheel(row) {
+  var bd = state.builder;
+  if (!bd || !bd.editing) return;
+  var r = parseInt(row, 10);
+  var col = bd.draft.textBoard[bd.editing.ci];
+  var q = col && col.questions[r];
+  if (!q) return;
+  if (q.wheel) delete q.wheel; else q.wheel = true;
+  hap("tap");
+  render();
 }
 
 
@@ -9352,6 +9478,7 @@ function viewBuilderBoard() {
       var q = d.textBoard[c].questions[r];
       var done = (q.q || q.id) && q.a;
       var media = q.id ? '<span class="bgrid-mark">&#9834;</span>' : q.img ? '<span class="bgrid-mark">&#9635;</span>' : '';
+      if (q.wheel) media += '<span class="bgrid-mark bgrid-mark-wheel">&#10036;</span>';
       rows += '<button class="bgrid-tile' + (done ? ' bgrid-tile-done' : '') + '" ' +
         'data-action="builderEdit" data-kind="tile" data-ci="' + c + '" data-row="' + r + '" ' +
         'aria-label="' + (done ? 'Edit' : 'Write') + ' the ' + q.value + ' question in ' +
@@ -11957,9 +12084,14 @@ function viewBoard() {
       var fgc = isUsed ? "#2a2f55" : gold;
       // diagonal cascade: delay grows with row + column so tiles sweep in
       var casc = cascade ? ' tile-cascade" style="--d:' + (0.028 * (row + ci)).toFixed(3) + 's;' : '" style="';
-      tiles += '<button class="tile' + casc + 'background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
-        (isUsed ? "disabled" : 'data-action="open" data-cat="' + ci + '" data-row="' + row + '"') + '>' +
-        (isUsed ? "" : val) + '</button>';
+      // A wheel tile wears a mark, so picking one is a decision rather than an
+      // ambush. It only shows when the Wheel of Chaos is actually on.
+      var wheelMark = (!isUsed && wheelTileEnabled() && tileWantsWheel(col.questions[row]))
+        ? '<span class="tile-wheel" aria-hidden="true">&#10036;</span>' : '';
+      tiles += '<button class="tile' + (wheelMark ? ' tile-has-wheel' : '') + casc + 'background:' + bgc + ';color:' + fgc + ';cursor:' + (isUsed ? "default" : "pointer") + '" ' +
+        (isUsed ? "disabled" : 'data-action="open" data-cat="' + ci + '" data-row="' + row + '"' +
+          (wheelMark ? ' aria-label="' + val + ', wheel tile"' : '')) + '>' +
+        (isUsed ? "" : val) + wheelMark + '</button>';
     }
   }
 
@@ -12156,12 +12288,17 @@ function wheelActionsRow() {
   (gone ? '<p class="wheel-removed-note">It will not come up again this game.</p>' : '');
 }
 function wheelOutcomeControls(w, outcome) {
+  // Mid-queue the button hands over to the next player rather than putting the
+  // wheel away, and says whose turn it is so nobody has to guess.
+  var queued = w.fromTile && w.queue && w.queue.length;
+  var nextName = queued ? (state.players[w.queue[0]] || {}).name || "" : "";
+  var doneLabel = queued ? esc(nextName) + " spins next" : "Done";
   if (!outcome) {
-    return '<button class="big-gold" style="width:100%;padding:18px;font-size:18px" data-action="closeWheel">Done</button>';
+    return '<button class="big-gold" style="width:100%;padding:18px;font-size:18px" data-action="closeWheel">' + doneLabel + '</button>';
   }
   return (w.summary ? wheelSummaryHtml(w) : "") +
     wheelActionsRow() +
-    '<button class="big-gold" style="width:100%;padding:18px;font-size:18px;margin-top:12px" data-action="closeWheel">Done</button>';
+    '<button class="big-gold" style="width:100%;padding:18px;font-size:18px;margin-top:12px" data-action="closeWheel">' + doneLabel + '</button>';
 }
 function viewWheelChallengeClue(w, outcome) {
   var target = state.players[w.targetIndex];
@@ -12189,6 +12326,12 @@ function viewWheel() {
   if (!w) return "";
   var titleLine = '<p class="muted" style="margin-bottom:2px;font-size:15px">' + WHEEL_TITLES[w.activeWheel] + '</p>';
   var chainLine = w.chainNote ? '<p class="muted" style="margin-bottom:2px;color:#aab0d8">' + esc(w.chainNote) + '</p>' : "";
+  // On the everybody-spins round, say how far through the room we are.
+  if (w.fromTile && w.reason === "nobody" && state.players.length > 1) {
+    var doneN = state.players.length - (w.queue ? w.queue.length : 0);
+    chainLine += '<p class="muted" style="margin-bottom:2px;font-size:13px">Spin ' + doneN +
+      ' of ' + state.players.length + '</p>';
+  }
 
   var body;
   if (w.stage === "choose") {
@@ -12683,6 +12826,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "confirmEraseCategory") confirmEraseCategory(t.getAttribute("data-i"));
   else if (action === "builderClearQuestion") builderClearQuestion(t.getAttribute("data-row"));
   else if (action === "builderMatchRowValue") builderMatchRowValue(t.getAttribute("data-row"));
+  else if (action === "builderToggleWheel") builderToggleWheel(t.getAttribute("data-row"));
   else if (action === "testBoard") testBoard();
   else if (action === "showDraftBoard") showDraftBoard();
   else if (action === "dismissHomeMsg") dismissHomeMsg();
