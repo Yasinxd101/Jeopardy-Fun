@@ -5208,6 +5208,10 @@ function goHome(msg) {
   state.questionDemo = null;
   state.exampleOpen = false;
   state.importPrompt = null;
+  // The paste panel is one of the ways you get here, so it has to close on the
+  // way out. It was staying up over the start screen with everything behind it
+  // unreachable -- the board imported fine and you could not get to it.
+  state.pasteImport = null;
   state.homeMsg = msg || "";
   state.phase = "players";
   render();
@@ -5880,6 +5884,9 @@ function acceptImportedBoard(raw) {
       goHome(msg + " Start a game and you will find it under My Boards.");
       return;
     }
+    // A success closes the paste panel wherever it lands; a failure keeps it
+    // open with the text still in it, so the paste can be fixed.
+    if (ok) state.pasteImport = null;
     state.importFileMsg = ok
       ? msg + " It is in My Boards — this one is still open."
       : msg;
