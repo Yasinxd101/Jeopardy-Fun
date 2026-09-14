@@ -5509,7 +5509,21 @@ function openExternal(url) {
 function testBoard() { enterTestBoard(false); }
 // The whole board as players first meet it -- the preview card with every
 // category on it -- without committing to a play-through.
-function showDraftBoard() { enterTestBoard(true); }
+function showDraftBoard() {
+  // Mid-test there is no builder to enter from -- the draft is parked in
+  // state.testingBoard -- so entering again returns early and the banner's
+  // "Preview card" button does nothing. From inside a test, just show the card.
+  if (state.testingBoard) {
+    state.previewBoardId = "__testing__";
+    state.questionDemo = null;
+    state.menuOpen = false;
+    state.boardsTab = "My Boards";
+    state.phase = "boards";
+    render();
+    return;
+  }
+  enterTestBoard(true);
+}
 function enterTestBoard(previewOnly) {
   if (!state.builder) return;
   var draft = JSON.parse(JSON.stringify(cleanDraft(state.builder.draft)));
