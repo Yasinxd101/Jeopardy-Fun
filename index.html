@@ -1324,6 +1324,26 @@
   .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar linear forwards; animation-duration: var(--timer-duration, 20s); }
   /* A paused room stops the clock too, or the break costs you the question. */
   .is-paused .timer-bar { animation-play-state: paused; }
+  /* Everybody answers: the roster, and a verdict against each name. */
+  .grp-block { margin-top: 16px; }
+  .grp-offer { margin-top: 16px; }
+  .grp-head { margin: 0 0 8px; text-align: center; font-size: 12px; font-weight: 900;
+    letter-spacing: 0.1em; color: #ffd166; }
+  .grp-rows { display: flex; flex-direction: column; gap: 8px; }
+  .grp-row { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px;
+    background: #171d44; border: 1px solid #2a3068; flex-wrap: wrap; }
+  .grp-row-correct { border-color: #7ee2b0; }
+  .grp-row-incorrect { border-color: #ff8aa0; }
+  .grp-name { font-weight: 800; font-size: 14px; color: #e8ebff; }
+  .grp-said { flex: 1; min-width: 90px; font-size: 14px; color: #aab0d8; word-break: break-word; }
+  .grp-wait { color: #6a72a8; font-style: italic; font-size: 13px; }
+  .grp-btns { display: flex; gap: 6px; }
+  .grp-mini { padding: 6px 12px; font-size: 12px; min-width: 0; }
+  .grp-mark { font-size: 18px; font-weight: 900; color: #7ee2b0; }
+  .grp-row-incorrect .grp-mark { color: #ff8aa0; }
+  .mini-mark { font-size: 12px; font-weight: 900; letter-spacing: 0.06em; }
+  .mini-mark-correct { color: #7ee2b0; }
+  .mini-mark-incorrect { color: #ff8aa0; }
   /* Letters, given away one at a time. */
   .letter-block { margin-top: 14px; text-align: center; }
   .letter-mask { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 3px; }
@@ -3376,8 +3396,10 @@ var state = {
   editingScoreIndex: null,
   nextShape: null,        // avatar shape chosen for the next player added
   roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false,
-               letterReveal: false, letterAuto: 0 },
+               letterReveal: false, letterAuto: 0, groupClues: false },
   lettersOut: [],         // which positions of the answer have been uncovered
+  groupClue: false,       // the host threw this question open to the whole room
+  groupMarks: {},         // playerIndex -> "correct" | "incorrect", judged one by one
   questionShown: false,   // read-aloud mode: has the host put the text on screen yet
   clueHintOpen: false,    // the host has asked to see this question's hint
   dailyDoubles: [],       // all hidden daily double tiles this round
@@ -3997,6 +4019,12 @@ function applyHostCommand(d) {
     // "Back to Board (Keep This Question)", refuses to act once something has
     // been revealed. Closing is already held back here for the same reason.
     if (!state.revealed && !state.wagering) reveal();
+  } else if (cmd === "groupStart") {
+    startGroupClue();
+  } else if (cmd === "groupGo") {
+    groupGoAnyway();
+  } else if (cmd === "groupMark") {
+    markGroup(+d.i, !!d.correct);
   } else if (cmd === "letter") {
     revealOneLetter();
   } else if (cmd === "pause") {
@@ -4461,6 +4489,17 @@ function buzzerSyncPayload() {
       lettersOut: letterRevealOn() ? (state.lettersOut || []).length : 0,
       lettersAll: letterRevealOn() ? letterSlots(questionItem()).length : 0,
       wasWorth: letterRevealOn() ? fullActiveValue() : 0,
+      // A group question: who has written something, who has not, and how
+      // each of them was marked. The answer itself still waits for the reveal.
+      group: state.groupClue ? {
+        on: true,
+        allIn: groupAllIn(),
+        board: state.players.map(function (pl, i) {
+          return { name: pl.name, color: pl.color, in: state.guesses[i] != null,
+                   mark: state.groupMarks[i] || "" };
+        }),
+      } : null,
+      groupOffer: (groupAllowed() && !state.groupClue && !state.wagering && !state.revealed) || false,
       // Clue art rides along to phones so players who cannot see the host
       // screen still get the picture. Answers only follow after the reveal.
       mirror: !!state.phoneMirror,
@@ -4471,7 +4510,7 @@ function buzzerSyncPayload() {
     // to every phone. What must NOT go before the reveal is which entry is
     // right, or the order they belong in -- that is the answer.
     var cf = clueFormat(item);
-    if (cf && !state.wagering) {
+    if ((cf || state.groupClue) && !state.wagering) {
       p.clue.format = cf;
       p.clue.list = cf === "sequence"
         ? (state.seqOrder || []).map(function (n) { return clueList(item)[n]; })   // the order on the big screen
@@ -4492,17 +4531,20 @@ function buzzerSyncPayload() {
       if (state.revealed) p.clue.correct = clueCorrectIndex(item);
       if (state.revealed && cf === "sequence") p.clue.rightList = clueList(item);
       if (state.revealed && cf === "multi") p.clue.rightSet = clueCorrectSet(item);
-      if (clueType(cf).typedIn) {
+      if (clueType(cf).typedIn || state.groupClue) {
         // Whose question it is, so only that phone shows a box, and what has
         // been sent in so far. Never the answer -- that waits for the reveal.
+        // On a group question there is no one owner: every phone gets a box.
         var owner = state.players[clueOwnerIndex()];
         p.clue.typeIn = {
-          owner: owner ? owner.name : "",
+          owner: state.groupClue ? "" : (owner ? owner.name : ""),
+          everyone: !!state.groupClue,
           unit: item.unit || "",
           numeric: cf === "number",
           judged: !!state.judgedThisClue,
           guesses: Object.keys(state.guesses).map(function (k) {
-            return { name: (state.players[k] || {}).name || "", text: state.guesses[k] };
+            return { name: (state.players[k] || {}).name || "", text: state.guesses[k],
+                     mark: state.groupClue ? (state.groupMarks[k] || "") : "" };
           }),
         };
         if (state.revealed && cf === "number") p.clue.typeIn.target = clueNumber(item);
@@ -4616,7 +4658,7 @@ function extendHostPayload(p) {
     // right option marked and the right order, revealed or not -- they cannot
     // judge what they cannot see.
     var hf = clueFormat(hitem);
-    if (hf && !state.wagering) {
+    if ((hf || state.groupClue) && !state.wagering) {
       p.clue.format = hf;
       p.clue.list = hf === "sequence"
         ? (state.seqOrder || []).map(function (n) { return clueList(hitem)[n]; })
@@ -4631,11 +4673,12 @@ function extendHostPayload(p) {
       if (hf === "list") { p.clue.listy = true; p.clue.found = (state.listFound || []).slice(); }
       // On a typed question the host judges what was written, so they get each
       // guess with the player's index to mark, and the number being looked for.
-      if (clueType(hf).typedIn && p.clue.typeIn) {
+      if ((clueType(hf).typedIn || state.groupClue) && p.clue.typeIn) {
         p.clue.typeIn.target = clueNumber(hitem);
         p.clue.typeIn.margin = clueMargin(hitem);
         p.clue.typeIn.guesses = Object.keys(state.guesses).map(function (k) {
           return { name: (state.players[k] || {}).name || "", text: state.guesses[k], i: +k,
+                   mark: state.groupClue ? (state.groupMarks[k] || "") : "",
                    spotOn: answerIsSpotOn(hitem, state.guesses[k]) };
         });
       }
@@ -6696,6 +6739,7 @@ function loadSettings() {
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
     state.roomRules.readAloud = !!s0.roomRules.readAloud;
     state.roomRules.letterReveal = !!s0.roomRules.letterReveal;
+    state.roomRules.groupClues = !!s0.roomRules.groupClues;
     if (typeof s0.roomRules.letterAuto === "number") {
       state.roomRules.letterAuto = [0, 3, 5, 10, 15, 20, 30].indexOf(s0.roomRules.letterAuto) === -1
         ? 0 : s0.roomRules.letterAuto;
@@ -7139,6 +7183,7 @@ function openQuestion(catKey, qIndex) {
   state.clueOpenedAt = Date.now();
   clearPause();                 // a new question always starts running
   clearLetters();
+  clearGroupClue();
   state.buzzedThisClue = {};
   if (state.wagering) {
     sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
@@ -8611,6 +8656,7 @@ function closeQuestion() {
   clearClipStopTimer();
   clearPause();
   clearLetters();
+  clearGroupClue();
   disarmBuzzers(false);
   if (!state.active) { state.phase = "board"; render(); return; }
   // Worked out while the question is still the open one, because it needs to
@@ -11067,6 +11113,12 @@ function buzzMirrorHtml(bc) {
           '<p class="buzz-timer-note">' + c.lettersOut + ' of ' + c.lettersAll + ' letters' +
             (c.value !== c.wasWorth ? ' &middot; down to ' + c.value + ' from ' + c.wasWorth : '') + '</p>'
         : '') +
+      (c.group
+        ? '<p class="buzz-timer-note">' +
+            (c.group.allIn ? 'Everybody is in.'
+              : c.group.board.filter(function (x) { return x.in; }).length + ' of ' +
+                c.group.board.length + ' answers in') + '</p>'
+        : '') +
       typeInHtml(c, bc, false) +
       imgHtml +
       clipHtml +
@@ -11131,14 +11183,27 @@ function spectateTimerHtml(bc) {
 function typeInHtml(c, bc, forHost) {
   var t = c && c.typeIn;
   if (!t) return "";
-  var mine = !forHost && bc && t.owner && t.owner.toLowerCase() === String(bc.name || "").toLowerCase();
+  // On a group question every phone is the owner -- that is the point of it.
+  var mine = !forHost && bc &&
+    (t.everyone || (t.owner && t.owner.toLowerCase() === String(bc.name || "").toLowerCase()));
   var rows = (t.guesses || []).map(function (g) {
-    var judge = forHost && g.i != null && !t.judged
-      ? '<span class="hc-final-btns">' +
+    // On a group question each answer gets its own verdict, and once given it
+    // is spent -- the mark shows instead of the buttons.
+    var judge = "";
+    if (forHost && g.i != null && t.everyone) {
+      judge = g.mark
+        ? '<span class="mini-mark mini-mark-' + esc(g.mark) + '">' +
+            (g.mark === "correct" ? "Right" : "Wrong") + '</span>'
+        : '<span class="hc-final-btns">' +
+            '<button class="hc-btn hc-right hc-mini2" data-action="hostGroupMark" data-i="' + g.i + '" data-correct="1">Right</button>' +
+            '<button class="hc-btn hc-wrong hc-mini2" data-action="hostGroupMark" data-i="' + g.i + '" data-correct="0">Wrong</button>' +
+          '</span>';
+    } else if (forHost && g.i != null && !t.judged) {
+      judge = '<span class="hc-final-btns">' +
           '<button class="hc-btn hc-right hc-mini2" data-action="hostScore" data-i="' + g.i + '" data-correct="1">Right</button>' +
           '<button class="hc-btn hc-wrong hc-mini2" data-action="hostScore" data-i="' + g.i + '" data-correct="0">Wrong</button>' +
-        '</span>'
-      : '';
+        '</span>';
+    }
     return '<div class="mini-guess' + (g.spotOn ? ' mini-guess-spot' : '') + '">' +
         '<div class="mini-guess-top">' +
           '<span class="mini-guess-name">' + esc(g.name) + '</span>' +
@@ -11160,6 +11225,8 @@ function typeInHtml(c, bc, forHost) {
         '<p class="buzz-timer-note">It goes to the host, not the big screen.</p>';
   } else if (!forHost && !mine) {
     box = '<p class="buzz-timer-note">' + esc(t.owner || "Someone") + ' is answering this one.</p>';
+  } else if (!forHost && mine && t.everyone && t.judged) {
+    box = '<p class="buzz-timer-note">Marked. Everyone else is still going.</p>';
   }
   return (rows ? '<div class="mini-guesses">' + rows + '</div>' : "") + box +
     (forHost && t.target != null
@@ -11491,6 +11558,18 @@ function viewHostControl(bc) {
         ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
           '<p class="hc-hidden">Only you can see the text right now &mdash; read it out.</p>'
         : '') +
+      // Throwing the question open, and running it once it is open.
+      (c.groupOffer
+        ? '<button class="hc-btn hc-dim" style="width:100%" data-action="hostGroupStart">Throw this one open to everybody</button>'
+        : '') +
+      (c.group
+        ? '<p class="hc-wheel-note">' +
+            (c.group.allIn ? 'Everybody is in &mdash; mark them below.'
+              : 'Waiting on ' + c.group.board.filter(function (x) { return !x.in; })
+                  .map(function (x) { return x.name; }).join(", ")) + '</p>' +
+          (c.group.allIn ? ''
+            : '<button class="hc-btn hc-dim" style="width:100%" data-action="hostGroupGo">Go without them</button>')
+        : '') +
       // Buying a letter from the host's phone, with the cost of it in plain view.
       (c.letters && !c.hostRevealed
         ? '<div class="hc-letters">' + esc(c.letters) + '</div>' +
@@ -11731,6 +11810,7 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) +
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
+    setToggleRow("toggleGroupClues", "Everybody Answers", "The host can throw a question open to the whole room &mdash; everyone writes an answer and everyone is marked", r.groupClues) +
     setToggleRow("toggleLetterReveal", "Give Away Letters", "The host can open the answer a letter at a time, and the question gets cheaper with every one", r.letterReveal) +
     (r.letterReveal
       ? '<div class="set-row set-row-static"><span class="set-main"><span class="set-name">A letter every</span>' +
@@ -11997,11 +12077,21 @@ function clueOwnerIndex() {
 // anything by itself except the one case nobody would argue with.
 function recordGuess(i, text) {
   if (state.phase !== "question" || !state.active) return;
-  if (!clueType(clueFormat(questionItem())).typedIn) return;
+  // A group question is open to the room whatever kind of question it is --
+  // that is what makes it a group question.
+  if (!state.groupClue && !clueType(clueFormat(questionItem())).typedIn) return;
   if (!state.players[i]) return;
   state.guesses[i] = String(text == null ? "" : text).slice(0, 140);
   // Word for word right marks itself, so the host is not rubber-stamping the
   // obvious ones. Anything else waits for them -- "close enough" is their call.
+  if (state.groupClue) {
+    // On a group question one right answer settles that player, not the room:
+    // everyone else is still writing, and nothing is revealed until they are
+    // all in, or the answer would be sitting there while they typed.
+    if (!state.groupMarks[i] && answerIsSpotOn(questionItem(), state.guesses[i])) markGroup(i, true);
+    else { render(); broadcastSync(); }
+    return;
+  }
   if (!state.judgedThisClue && answerIsSpotOn(questionItem(), state.guesses[i])) {
     if (!state.revealed) reveal();
     scoreQuestion(i, true);
@@ -12012,6 +12102,51 @@ function recordGuess(i, text) {
     return;
   }
   render();
+  broadcastSync();
+}
+// ---- group questions ----
+// The host throws one question open: everybody answers, everybody is marked,
+// everybody who got it scores. Nothing is revealed until the room is in.
+function groupAllowed() { return !!state.roomRules.groupClues; }
+function startGroupClue() {
+  if (!groupAllowed() || !state.active || state.wagering || state.revealed) return;
+  state.groupClue = true;
+  state.groupMarks = {};
+  state.guesses = {};
+  state.guessInput = "";
+  disarmBuzzers(false);       // nobody is racing; everybody answers
+  sndSelect();
+  hap("big");
+  render();
+  broadcastSync();
+}
+function clearGroupClue() {
+  state.groupClue = false;
+  state.groupMarks = {};
+}
+function groupWaiting() {
+  if (!state.groupClue) return [];
+  var out = [];
+  for (var i = 0; i < state.players.length; i++) {
+    if (state.guesses[i] == null) out.push(i);
+  }
+  return out;
+}
+function groupAllIn() { return state.groupClue && !groupWaiting().length; }
+function markGroup(i, correct) {
+  if (!state.groupClue || !state.players[i]) return;
+  if (state.groupMarks[i]) return;             // one verdict each
+  state.groupMarks[i] = correct ? "correct" : "incorrect";
+  scoreQuestion(i, correct);
+  render();
+  broadcastSync();
+}
+// Somebody has wandered off, or is not going to answer. The host can call it.
+function groupGoAnyway() {
+  if (!state.groupClue) return;
+  groupWaiting().forEach(function (i) { if (state.guesses[i] == null) state.guesses[i] = ""; });
+  render();
+  broadcastSync();
 }
 function setGuessInput(text) { state.guessInput = String(text == null ? "" : text); }
 function sendOwnGuess() {
@@ -12405,7 +12540,51 @@ function viewClueFooter() {
     '</div>';
   }
 
-  return buzzBlock + clipVolRow + hint + timerBar + letters + hostHint + revealBlock + scoreBlock + closeBlock;
+  // A group question: who is in, who is not, and a verdict against each of
+  // them once they are. It replaces the ordinary score row, because scoring
+  // one player at a time is exactly what it is doing.
+  var group = "";
+  if (state.groupClue) {
+    var waiting = groupWaiting();
+    var roster = state.players.map(function (pl, i) {
+      var wrote = state.guesses[i];
+      var mark = state.groupMarks[i];
+      return '<div class="grp-row' + (mark ? ' grp-row-' + mark : '') + '">' +
+          '<span class="dot" style="background:' + esc(pl.color || '#8b92c0') + '"></span>' +
+          '<span class="grp-name">' + esc(pl.name) + '</span>' +
+          '<span class="grp-said">' +
+            (wrote == null ? '<em class="grp-wait">still writing</em>'
+              : wrote === "" ? '<em class="grp-wait">nothing</em>' : esc(wrote)) + '</span>' +
+          (wrote != null && !mark
+            ? '<span class="grp-btns">' +
+                '<button class="plus-btn grp-mini" data-action="markGroup" data-i="' + i + '" data-correct="1">Right</button>' +
+                '<button class="minus-btn grp-mini" data-action="markGroup" data-i="' + i + '" data-correct="0">Wrong</button>' +
+              '</span>'
+            : mark ? '<span class="grp-mark">' + (mark === "correct" ? "&#10003;" : "&times;") + '</span>' : '') +
+        '</div>';
+    }).join("");
+    group = '<div class="grp-block">' +
+        '<p class="grp-head">EVERYBODY ANSWERS' +
+          (waiting.length ? ' &middot; waiting on ' + waiting.length : ' &middot; all in') + '</p>' +
+        // Nothing is revealed while people are still writing, or the answer
+        // would be sitting on the screen they are all looking at.
+        (waiting.length
+          ? '<p class="letter-note">The answer stays covered until everyone is in.</p>'
+          : '') +
+        '<div class="grp-rows">' + roster + '</div>' +
+        (waiting.length
+          ? '<button class="letter-btn" data-action="groupGoAnyway">Somebody is not playing &mdash; go without them</button>'
+          : '') +
+      '</div>';
+  } else if (groupAllowed() && !state.revealed) {
+    group = '<button class="letter-btn grp-offer" data-action="startGroupClue">' +
+      'Throw this one open to everybody</button>';
+  }
+  // While the room is still writing, the reveal and the ordinary score row
+  // would both be wrong: one spoils it, the other scores the wrong person.
+  var holdBack = state.groupClue && !groupAllIn();
+  return buzzBlock + clipVolRow + hint + timerBar + letters + hostHint +
+    (holdBack ? "" : revealBlock) + group + (state.groupClue ? "" : scoreBlock) + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -13204,6 +13383,13 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleKeepTurn") toggleKeepTurn();
   else if (action === "toggleReadAloud") toggleReadAloud();
   else if (action === "toggleLetterReveal") toggleLetterReveal();
+  else if (action === "toggleGroupClues") { state.roomRules.groupClues = !state.roomRules.groupClues; settingsChanged(); }
+  else if (action === "startGroupClue") startGroupClue();
+  else if (action === "groupGoAnyway") groupGoAnyway();
+  else if (action === "markGroup") markGroup(+t.getAttribute("data-i"), t.getAttribute("data-correct") === "1");
+  else if (action === "hostGroupStart") sendHostCmd("groupStart");
+  else if (action === "hostGroupGo") sendHostCmd("groupGo");
+  else if (action === "hostGroupMark") sendHostCmd("groupMark", { i: +t.getAttribute("data-i"), correct: t.getAttribute("data-correct") === "1" });
   else if (action === "letterAutoAdj") letterAutoAdj(t.getAttribute("data-d"));
   else if (action === "revealOneLetter") revealOneLetter();
   else if (action === "hostLetter") sendHostCmd("letter");
