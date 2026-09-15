@@ -1213,6 +1213,18 @@
   .buzz-mirror-mine { box-shadow: inset 0 0 0 2px #ffd16655; }
   .buzz-wheel-mine { margin: 6px 0 2px; text-align: center; font-size: 15px; font-weight: 900;
     letter-spacing: 0.08em; color: #ffd166; }
+  /* The final standings on a player's own phone. */
+  .buzz-win-line { margin: 4px 0 10px; text-align: center; font-size: 20px; font-weight: 900; color: #ffd166; }
+  .buzz-stands { display: flex; flex-direction: column; gap: 6px; }
+  .buzz-stand { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px;
+    background: #171d44; border: 1px solid #2a3068; }
+  .buzz-stand-top { border-color: #ffd166; }
+  .buzz-stand-me { background: #1d2455; }
+  .buzz-stand-rank { min-width: 16px; font-size: 12px; font-weight: 900; color: #6a72a8; }
+  .buzz-stand-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 800; color: #e8ebff;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .buzz-stand-name em { font-style: normal; font-size: 11px; color: #8b92c0; }
+  .buzz-stand-score { font-size: 15px; font-weight: 900; color: #ffd166; font-variant-numeric: tabular-nums; }
   .buzz-wheel-summary { margin: 10px 0 0; text-align: center; font-size: 15px; font-weight: 800; color: #7ee2b0; }
   .buzz-wheel-summary-bad { color: #ff8aa0; }
   /* ...and on the host's, where it is actually driven from. */
@@ -4656,6 +4668,8 @@ var lastSyncBase = "";
 function buzzerSyncPayload() {
   var p = { type: "sync", screen: state.phase };
   if (state.paused) p.paused = true;   // every screen in the room stops together
+  var standings = winStandings();
+  if (standings) p.win = standings;   // every device that played gets the result
   p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
   var curB = state.boardId ? currentBoard() : null;
   if (curB && curB.art) p.art = curB.art;
@@ -4860,14 +4874,22 @@ function extendScreenPayload(p) {
   if (state.phase === "final" && state.finalStage === "answer" && p.final) {
     p.final.a = currentBoard().final.a;
   }
-  if ((state.phase === "board" && state.boardId && isAllUsed()) || state.phase === "interlude") {
-    p.win = {
-      title: state.phase === "interlude" ? "ROUND 1 COMPLETE" : "ROUND OVER",
-      rows: state.players.slice().sort(function (a, b) { return b.score - a.score; })
-        .map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; }),
-    };
-  }
   return p;
+}
+// Who finished where. This was built only for TVs, so at the end of a game the
+// people who actually played were left looking at an empty board picker on
+// their own phones while the standings went to a screen they might not have.
+function winStandings() {
+  if (!((state.phase === "board" && state.boardId && isAllUsed()) || state.phase === "interlude")) return null;
+  var over = state.phase !== "interlude";
+  return {
+    title: over ? "ROUND OVER" : "ROUND 1 COMPLETE",
+    // Halfway through a full match nobody has won anything yet, so the screens
+    // can say "ahead" rather than calling it.
+    over: over,
+    rows: state.players.slice().sort(function (a, b) { return b.score - a.score; })
+      .map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; }),
+  };
 }
 // The host's own device is trusted with the answer before the reveal — that is
 // the entire point of it. It also carries what the host needs to judge.
@@ -11328,6 +11350,35 @@ function buzzMirrorHtml(bc) {
           ? '<p class="buzz-timer-note">Waiting on the host to call it.</p>' : '') +
       (w.trivia ? '<p class="buzz-mirror-q">' + esc(w.trivia) + '</p>' : '') +
       queueLine +
+    '</div>';
+  }
+  // The result comes before the board: at the end of a game the payload still
+  // carries a pick grid, and without this the phone drew that instead -- an
+  // empty board where the standings should be.
+  if (g && g.win) {
+    var meName = String(bc.name || "").toLowerCase();
+    var wrows = g.win.rows.map(function (r, i) {
+      var isMe = String(r.name || "").toLowerCase() === meName;
+      return '<div class="buzz-stand' + (i === 0 ? ' buzz-stand-top' : '') + (isMe ? ' buzz-stand-me' : '') + '">' +
+          '<span class="buzz-stand-rank">' + (i + 1) + '</span>' +
+          avatarHtml(r, 13) +
+          '<span class="buzz-stand-name">' + esc(r.name) + (isMe ? ' <em>you</em>' : '') + '</span>' +
+          '<span class="buzz-stand-score">' + r.score + '</span>' +
+        '</div>';
+    }).join("");
+    var top = g.win.rows[0];
+    var iWon = top && String(top.name || "").toLowerCase() === meName;
+    return '<div class="buzz-mirror">' +
+      '<p class="buzz-mirror-cat">' + esc(g.win.title) + '</p>' +
+      (top
+        ? '<p class="buzz-win-line">' +
+            (g.win.over ? (iWon ? 'You win!' : esc(top.name) + ' wins')
+                        : (iWon ? 'You are ahead' : esc(top.name) + ' is ahead')) +
+          '</p>'
+        : '') +
+      '<div class="buzz-stands">' + wrows + '</div>' +
+      '<p class="buzz-timer-note">' +
+        (g.win.over ? 'The host has the rest on their screen.' : 'Round two is next.') + '</p>' +
     '</div>';
   }
   if (g && g.final) {
