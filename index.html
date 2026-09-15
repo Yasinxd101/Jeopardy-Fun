@@ -13678,7 +13678,10 @@ function viewBoard() {
 
 function viewFinalWager(fin) {
   var i = state.finalPlayerIndex;
-  var player = state.players[i];
+  // The pointer can outlive the player it pointed at -- someone removed from
+  // the roster mid-round used to take the whole screen down with them.
+  if (!state.players[i]) { i = 0; state.finalPlayerIndex = 0; }
+  var player = state.players[i] || { name: "Player", score: 0 };
   var cap = Math.max(player.score, 0);
   return '<div class="wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
     '<h1 class="title" style="font-size:32px">FINAL JEOPARDY</h1>' +
@@ -13690,7 +13693,14 @@ function viewFinalWager(fin) {
         '<input class="input" id="finalWagerInput" type="number" min="0" max="' + cap + '" placeholder="0" value="' + esc(state.finalWagerInput) + '" />' +
         '<button class="btn-gold" data-action="submitFinalWager">Lock In</button>' +
       '</div>' +
-      '<p class="muted">Pass the device to the host, then on to the next player.</p>' +
+      // Who is meant to type this depends on where they are. The host in their
+      // own seat is already holding this device; anyone on a phone has the same
+      // box in front of them; only a player with neither has to be handed it.
+      '<p class="muted">' + (hostSeatIndex() === i
+        ? 'Your own seat &mdash; type it here, nobody else can see it.'
+        : (state.buzzer.on && state.buzzer.clients.indexOf(player.name) !== -1)
+          ? esc(player.name) + '&rsquo;s phone has the same box &mdash; either one locks it in.'
+          : 'Pass the device to ' + esc(player.name) + ', then back to the host.') + '</p>' +
     '</div>' +
     // The clue and answer stages both offer this; the wager stage did not, so
     // a room that did not want to play Final had to wager their way into it
