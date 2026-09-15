@@ -1988,6 +1988,16 @@
     letter-spacing: 0.6px; cursor: pointer; padding: 10px 8px;
   }
   .setup-join:hover { background: #272e5c; }
+  /* Starting a room is the one people came here to do; joining one is what you
+     do when somebody else already has. Give the host's side the accent. */
+  .setup-host { border-color: #ffd16655; color: #ffd166; }
+  .setup-host:hover { background: #2a2a4a; }
+  /* Three across is tight on a narrow phone; the row wraps rather than
+     squeezing the labels to nothing. */
+  @media (max-width: 400px) {
+    .setup-foot { flex-wrap: wrap; }
+    .setup-foot > * { flex: 1 1 45%; }
+  }
 
   /* How you'll play, on the board screen -- one step from the game itself */
   .pbar {
@@ -4598,6 +4608,13 @@ function clearBuzz() {
 function openHostRoom() {
   state.menuOpen = false;
   if (state.phase !== "hostRoom") state.hostRoomReturn = state.phase;
+  // Opening a room IS the decision to play on phones. Without this you could
+  // open one from the start screen and still find the board picker set to
+  // "one screen", with the room running and nothing listening to it.
+  if (state.gameMode === "jeopardy" && state.playStyle !== "buzzers") {
+    state.playStyle = "buzzers";
+    jfSaveSettings();
+  }
   if (!state.buzzer.on) startBuzzerRoom();
   state.phase = "hostRoom";
   render();
@@ -9563,6 +9580,13 @@ function viewPlayers() {
       // both are secondary to "who is playing" and "go", and stacking them as
       // full-width buttons pushed the start button off a phone screen.
       '<div class="setup-foot">' +
+        // Joining a room was on this screen and starting one was not, which
+        // read as though hosting happened somewhere else. Both live here now.
+        (m.id === "jeopardy"
+          ? '<button class="setup-join setup-host" data-action="openHostRoom">' +
+              (state.buzzer.on ? 'YOUR ROOM &middot; ' + esc(state.buzzer.code || '') : 'START A ROOM') +
+            '</button>'
+          : '') +
         '<button class="setup-join" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
         '<button class="more-toggle" data-action="toggleSetupMore">' +
           '<span>More options</span>' +
