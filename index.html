@@ -6067,6 +6067,10 @@ function mailtoUrl(subject, body) {
 function sendItText() {
   var s = state.sendIt;
   if (!s) return "";
+  // Just after Copy-the-link, the box shows the link itself, so it can be
+  // taken by hand if the clipboard refused. Setting the value directly does
+  // not survive the re-render that follows the tap.
+  if (s.linkCopied && s.link) return s.link;
   return s.payload
     ? s.subject + "\n\n" + s.body + "\n" + s.payloadLabel + ":\n" + s.payload
     : s.subject + "\n\n" + s.body + (s.url ? "\n\n" + s.url : "");
@@ -6084,18 +6088,21 @@ function downloadSendIt() {
 function copySendItLink() {
   var s = state.sendIt;
   if (!s || !s.link) return;
-  var mark = function () { s.linkCopied = true; render(); };
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(s.link).then(mark, mark);
-      return;
-    }
-  } catch (e) {}
-  // No clipboard on a file:// page or an old browser: put it in the box so it
-  // can be selected by hand rather than leaving the button doing nothing.
+  // The link goes into the box whatever the clipboard says, so the tap always
+  // does something you can see and there is always a way to take it by hand.
+  // A clipboard write can be refused -- an unfocused tab, a file:// page, an
+  // old browser -- and a button that depends on it silently does nothing.
+  s.linkCopied = true;
+  render();
   var box = document.getElementById("sendItText");
-  if (box) { box.value = s.link; box.select(); }
-  mark();
+  if (box) { try { box.select(); } catch (e) {} }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s.link);
+    else if (box) document.execCommand("copy");
+  } catch (e) {}
+  setTimeout(function () {
+    if (state.sendIt && state.sendIt.linkCopied) { state.sendIt.linkCopied = false; render(); }
+  }, 2200);
 }
 function copySendIt() {
   var s = state.sendIt;
