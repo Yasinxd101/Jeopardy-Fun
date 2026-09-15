@@ -1324,6 +1324,22 @@
   .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar linear forwards; animation-duration: var(--timer-duration, 20s); }
   /* A paused room stops the clock too, or the break costs you the question. */
   .is-paused .timer-bar { animation-play-state: paused; }
+  /* Letters, given away one at a time. */
+  .letter-block { margin-top: 14px; text-align: center; }
+  .letter-mask { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 3px; }
+  .lm-cell { width: 20px; height: 26px; border-bottom: 3px solid #3a4280; font-size: 19px;
+    font-weight: 900; color: #ffd166; line-height: 26px; }
+  .lm-open { border-bottom-color: #ffd166; }
+  .lm-fixed { font-size: 19px; font-weight: 900; color: #6a72a8; line-height: 26px; }
+  .lm-gap { width: 12px; }
+  .letter-worth { margin: 10px 0 0; font-size: 14px; color: #aab0d8; }
+  .letter-worth strong { color: #ffd166; }
+  .letter-note { margin: 8px 0 0; font-size: 12px; color: #6a72a8; }
+  .letter-btn { margin-top: 10px; padding: 11px 18px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 800; background: #232a5c; color: #ffd166; border: 1px solid #3a4280; }
+  .letter-btn:active { transform: scale(0.97); }
+  .buzz-letters, .hc-letters { margin-top: 10px; text-align: center; font-size: 21px; font-weight: 900;
+    letter-spacing: 0.18em; color: #ffd166; word-break: break-word; }
   .pause-overlay { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 6px; padding: 24px;
     background: rgba(4, 6, 16, 0.93); backdrop-filter: blur(3px); }
@@ -3359,7 +3375,9 @@ var state = {
   editingPlayerIndex: null,
   editingScoreIndex: null,
   nextShape: null,        // avatar shape chosen for the next player added
-  roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false },
+  roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false,
+               letterReveal: false, letterAuto: 0 },
+  lettersOut: [],         // which positions of the answer have been uncovered
   questionShown: false,   // read-aloud mode: has the host put the text on screen yet
   clueHintOpen: false,    // the host has asked to see this question's hint
   dailyDoubles: [],       // all hidden daily double tiles this round
@@ -3979,6 +3997,8 @@ function applyHostCommand(d) {
     // "Back to Board (Keep This Question)", refuses to act once something has
     // been revealed. Closing is already held back here for the same reason.
     if (!state.revealed && !state.wagering) reveal();
+  } else if (cmd === "letter") {
+    revealOneLetter();
   } else if (cmd === "pause") {
     togglePause();
   } else if (cmd === "wheelJudge") {
@@ -4149,6 +4169,114 @@ function dropBuzzerConn(conn) {
     if (j !== -1) state.buzzer.clients.splice(j, 1);
   }
   renderOrUpdateClue();
+}
+// ---- letters ----
+// A stuck room gets the answer a letter at a time, and the question gets
+// cheaper with every one. Off unless the host turns it on.
+// The answer is often written as a question ("What is Mercury?"), and giving
+// away "What is" would be giving away nothing, so only the meat is masked.
+function letterAnswerText(item) {
+  var a = String((item && item.a) || "");
+  return a.replace(/^\s*(what|who|where|when|why|how)\s+(is|are|was|were)\s+/i, "")
+          .replace(/\?+\s*$/, "").trim();
+}
+function letterSlots(item) {
+  var text = letterAnswerText(item), slots = [];
+  for (var i = 0; i < text.length; i++) {
+    if (/[a-z0-9]/i.test(text.charAt(i))) slots.push(i);
+  }
+  return slots;
+}
+function letterRevealOn() {
+  return !!(state.roomRules.letterReveal && state.active && !state.wagering);
+}
+// Each letter costs the same slice of the tile, and it never falls past a
+// quarter -- a question you fought through should still be worth having.
+function letterPenalty(item) {
+  var slots = letterSlots(item);
+  var out = (state.lettersOut || []).length;
+  if (!slots.length || !out) return 0;
+  var share = Math.min(out / slots.length, 0.75);
+  return share;
+}
+function revealOneLetter() {
+  if (!letterRevealOn() || state.revealed) return false;
+  var item = questionItem();
+  var slots = letterSlots(item);
+  var left = slots.filter(function (i) { return (state.lettersOut || []).indexOf(i) === -1; });
+  // The last letter is never given away -- that would just be the answer.
+  if (left.length <= 1) return false;
+  var pick = left[Math.floor(Math.random() * left.length)];
+  state.lettersOut = (state.lettersOut || []).concat([pick]);
+  sndReveal();
+  hap("tap");
+  render();
+  broadcastSync();
+  return true;
+}
+// What the room sees: real characters where they have been uncovered, and
+// everything that was never a letter (spaces, hyphens) showing all along.
+function letterMaskHtml(item) {
+  var text = letterAnswerText(item);
+  var out = state.lettersOut || [];
+  var cells = "";
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    if (!/[a-z0-9]/i.test(ch)) {
+      cells += ch === " "
+        ? '<span class="lm-gap"></span>'
+        : '<span class="lm-fixed">' + esc(ch) + '</span>';
+    } else if (out.indexOf(i) !== -1) {
+      cells += '<span class="lm-cell lm-open">' + esc(ch) + '</span>';
+    } else {
+      cells += '<span class="lm-cell"></span>';
+    }
+  }
+  return '<div class="letter-mask">' + cells + '</div>';
+}
+// The same mask as a plain string, for the wire: uncovered letters as
+// themselves, everything still hidden as a dot.
+function letterMaskText(item) {
+  var text = letterAnswerText(item), out = state.lettersOut || [], res = "";
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    res += (!/[a-z0-9]/i.test(ch) || out.indexOf(i) !== -1) ? ch : "\u2022";
+  }
+  return res;
+}
+function clearLetters() {
+  state.lettersOut = [];
+  if (letterTimer) { clearInterval(letterTimer); letterTimer = null; }
+}
+// Automatic mode: the host sets a number of seconds and then just runs the
+// game while the answer opens up on its own.
+var letterTimer = null;
+function syncLetterTimer() {
+  if (letterTimer) { clearInterval(letterTimer); letterTimer = null; }
+  var every = +state.roomRules.letterAuto;
+  if (!every || !letterRevealOn() || state.revealed) return;
+  letterTimer = setInterval(function () {
+    // A paused room is paused for this too.
+    if (state.paused) return;
+    if (!letterRevealOn() || state.revealed) { clearLetters(); return; }
+    if (!revealOneLetter()) { clearInterval(letterTimer); letterTimer = null; }
+  }, every * 1000);
+}
+function toggleLetterReveal() {
+  state.roomRules.letterReveal = !state.roomRules.letterReveal;
+  if (!state.roomRules.letterReveal) clearLetters();
+  settingsChanged();
+  syncLetterTimer();
+}
+function letterAutoAdj(d) {
+  // 0 means the host taps for each one; otherwise 3 to 30 seconds.
+  var steps = [0, 3, 5, 10, 15, 20, 30];
+  var at = steps.indexOf(+state.roomRules.letterAuto);
+  if (at === -1) at = 0;
+  at = Math.max(0, Math.min(steps.length - 1, at + (+d)));
+  state.roomRules.letterAuto = steps[at];
+  settingsChanged();
+  syncLetterTimer();
 }
 // ---- pausing the room ----
 // Everything that measures time on a question has to ask this rather than
@@ -4327,6 +4455,12 @@ function buzzerSyncPayload() {
       clipElapsed: state.playing && state.clipStartedAt
         ? Math.max(0, Math.round((Date.now() - state.clipStartedAt) / 1000)) : 0,
       revealed: !!state.revealed,
+      // The blanks go to every phone. What travels is the SHAPE of the answer
+      // and the letters already given away -- never the rest of it.
+      letters: letterRevealOn() ? letterMaskText(questionItem()) : null,
+      lettersOut: letterRevealOn() ? (state.lettersOut || []).length : 0,
+      lettersAll: letterRevealOn() ? letterSlots(questionItem()).length : 0,
+      wasWorth: letterRevealOn() ? fullActiveValue() : 0,
       // Clue art rides along to phones so players who cannot see the host
       // screen still get the picture. Answers only follow after the reveal.
       mirror: !!state.phoneMirror,
@@ -6561,6 +6695,11 @@ function loadSettings() {
     state.roomRules.oneBuzz = !!s0.roomRules.oneBuzz;
     state.roomRules.streakBonus = !!s0.roomRules.streakBonus;
     state.roomRules.readAloud = !!s0.roomRules.readAloud;
+    state.roomRules.letterReveal = !!s0.roomRules.letterReveal;
+    if (typeof s0.roomRules.letterAuto === "number") {
+      state.roomRules.letterAuto = [0, 3, 5, 10, 15, 20, 30].indexOf(s0.roomRules.letterAuto) === -1
+        ? 0 : s0.roomRules.letterAuto;
+    }
     if (typeof s0.roomRules.ddCount === "number") state.roomRules.ddCount = Math.max(0, Math.min(3, s0.roomRules.ddCount));
   }
 }
@@ -6999,6 +7138,7 @@ function openQuestion(catKey, qIndex) {
   }
   state.clueOpenedAt = Date.now();
   clearPause();                 // a new question always starts running
+  clearLetters();
   state.buzzedThisClue = {};
   if (state.wagering) {
     sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
@@ -7036,8 +7176,22 @@ function activeValue() {
   if (!state.active) return 0;
   // Daily double: the tile's base value AND the wager are both at stake —
   // correct earns value + wager, wrong loses value + wager.
-  if (state.wager != null) return questionItem().value * roundMultiplier() + state.wager;
-  return questionItem().value * roundMultiplier();
+  var base = state.wager != null
+    ? questionItem().value * roundMultiplier() + state.wager
+    : questionItem().value * roundMultiplier();
+  // Every letter the room asked for makes it cheaper. Rounded to 10 so the
+  // number on screen stays a number people can hold in their heads.
+  var off = letterPenalty(questionItem());
+  if (off > 0) base = Math.max(10, Math.round(base * (1 - off) / 10) * 10);
+  return base;
+}
+// What the tile was worth before anyone asked for a letter, so the screen can
+// show the drop rather than just quietly paying out less.
+function fullActiveValue() {
+  if (!state.active) return 0;
+  return state.wager != null
+    ? questionItem().value * roundMultiplier() + state.wager
+    : questionItem().value * roundMultiplier();
 }
 function renderOrUpdateClue() {
   if (state.phase === "question" && isActiveVideoPlaying()) updateClueFooter();
@@ -7221,7 +7375,9 @@ function advanceTurn() {
 }
 function reveal() {
   sndReveal(); hap("press"); shakeScreen(4);
-  state.revealed = true; disarmBuzzers(true); renderOrUpdateClue();
+  state.revealed = true; disarmBuzzers(true);
+  if (letterTimer) { clearInterval(letterTimer); letterTimer = null; }
+  renderOrUpdateClue();
 }
 function toggleAnswer() { state.answerHidden = !state.answerHidden; renderOrUpdateClue(); }
 var activeYtPlayer = null;
@@ -8454,6 +8610,7 @@ function backUnrevealed() {
 function closeQuestion() {
   clearClipStopTimer();
   clearPause();
+  clearLetters();
   disarmBuzzers(false);
   if (!state.active) { state.phase = "board"; render(); return; }
   // Worked out while the question is still the open one, because it needs to
@@ -10904,6 +11061,12 @@ function buzzMirrorHtml(bc) {
           '</div>'
         : (c.q ? '<p class="buzz-mirror-q">' + esc(c.q) + '</p>' : '')) +
       (c.hiddenQ ? '' : clueListHtml(c, false)) +
+      // The blanks, if the host is opening the answer up a letter at a time.
+      (!c.revealed && c.letters
+        ? '<div class="buzz-letters">' + esc(c.letters) + '</div>' +
+          '<p class="buzz-timer-note">' + c.lettersOut + ' of ' + c.lettersAll + ' letters' +
+            (c.value !== c.wasWorth ? ' &middot; down to ' + c.value + ' from ' + c.wasWorth : '') + '</p>'
+        : '') +
       typeInHtml(c, bc, false) +
       imgHtml +
       clipHtml +
@@ -11328,6 +11491,15 @@ function viewHostControl(bc) {
         ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
           '<p class="hc-hidden">Only you can see the text right now &mdash; read it out.</p>'
         : '') +
+      // Buying a letter from the host's phone, with the cost of it in plain view.
+      (c.letters && !c.hostRevealed
+        ? '<div class="hc-letters">' + esc(c.letters) + '</div>' +
+          '<p class="hc-wheel-note">' + c.lettersOut + ' of ' + c.lettersAll + ' out' +
+            (c.value !== c.wasWorth ? ' &middot; worth ' + c.value + ', was ' + c.wasWorth : '') + '</p>' +
+          (c.lettersOut + 1 >= c.lettersAll
+            ? '<p class="hc-hidden">No more &mdash; the last letter is the answer.</p>'
+            : '<button class="hc-btn hc-dim" style="width:100%" data-action="hostLetter">Give them a letter</button>')
+        : '') +
       hintBlock +
       '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' +
       peekBlock +
@@ -11559,6 +11731,16 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) +
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
+    setToggleRow("toggleLetterReveal", "Give Away Letters", "The host can open the answer a letter at a time, and the question gets cheaper with every one", r.letterReveal) +
+    (r.letterReveal
+      ? '<div class="set-row set-row-static"><span class="set-main"><span class="set-name">A letter every</span>' +
+          '<span class="set-note">' + (r.letterAuto ? 'on its own, hands off' : 'only when the host taps') + '</span></span>' +
+        '<span class="set-side">' +
+          '<button data-action="letterAutoAdj" data-d="-1" class="stepper-btn">&minus;</button>' +
+          '<span class="set-val">' + (r.letterAuto ? r.letterAuto + 's' : 'Tap') + '</span>' +
+          '<button data-action="letterAutoAdj" data-d="1" class="stepper-btn">+</button>' +
+        '</span></div>'
+      : '') +
     setToggleRow("togglePhoneMirror", "Mirror Questions to Phones", "Players see the question and art on their phone", state.phoneMirror));
 }
 function settingsPanelHtml(which) {
@@ -12199,7 +12381,31 @@ function viewClueFooter() {
   }
   var timerBar = (state.timerEnabled && !state.revealed) ? '<div class="timer-track"><div class="timer-bar" style="--timer-duration:' + state.timerDuration + 's"></div></div>' : "";
 
-  return buzzBlock + clipVolRow + hint + timerBar + hostHint + revealBlock + scoreBlock + closeBlock;
+  // Letters: the blanks, what the question is down to, and the button that
+  // buys the next one. All of it goes when the answer is out.
+  var letters = "";
+  if (letterRevealOn() && !state.revealed) {
+    var slotsN = letterSlots(item).length;
+    var outN = (state.lettersOut || []).length;
+    var now = activeValue(), was = fullActiveValue();
+    var auto = +state.roomRules.letterAuto;
+    letters = '<div class="letter-block">' +
+      letterMaskHtml(item) +
+      '<p class="letter-worth">' +
+        (outN
+          ? 'Down to <strong>' + now + '</strong> from ' + was
+          : 'Worth <strong>' + was + '</strong>') +
+        (slotsN ? ' &middot; ' + outN + ' of ' + slotsN + ' letters out' : '') +
+      '</p>' +
+      (outN + 1 >= slotsN
+        ? '<p class="letter-note">That is as far as it goes &mdash; the last one is the answer.</p>'
+        : auto
+          ? '<p class="letter-note">Another one every ' + auto + 's.</p>'
+          : '<button class="letter-btn" data-action="revealOneLetter">Give them a letter</button>') +
+    '</div>';
+  }
+
+  return buzzBlock + clipVolRow + hint + timerBar + letters + hostHint + revealBlock + scoreBlock + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -12997,6 +13203,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleFloorZero") toggleFloorZero();
   else if (action === "toggleKeepTurn") toggleKeepTurn();
   else if (action === "toggleReadAloud") toggleReadAloud();
+  else if (action === "toggleLetterReveal") toggleLetterReveal();
+  else if (action === "letterAutoAdj") letterAutoAdj(t.getAttribute("data-d"));
+  else if (action === "revealOneLetter") revealOneLetter();
+  else if (action === "hostLetter") sendHostCmd("letter");
   else if (action === "showQuestionText") showQuestionText();
   else if (action === "toggleClueHint") { state.clueHintOpen = !state.clueHintOpen; renderOrUpdateClue(); }
   else if (action === "watchAsTv") watchAsTv();
