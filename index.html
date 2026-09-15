@@ -602,6 +602,15 @@
     width: 172px; height: 172px; border-radius: 12px; background: #fff; padding: 8px;
     display: inline-block;
   }
+  /* Setting a TV up is offered while the room is being made, not left to be
+     stumbled on later. */
+  .host-tv-tip {
+    margin-top: 14px; text-align: left; background: rgba(61, 169, 252, 0.08);
+    border: 1px solid rgba(61, 169, 252, 0.28); border-radius: 12px; padding: 12px 14px;
+  }
+  .host-tv-lbl { margin: 0 0 6px; color: #3da9fc; font-weight: 900; font-size: 13px; letter-spacing: 1px; }
+  .host-tv-hint { margin: 0; color: #aab0d8; font-size: 12.5px; line-height: 1.5; }
+  .host-tv-hint strong { color: #fff; }
   .buzz-reconnect-bar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 40;
     background: #3d1420; border-bottom: 2px solid #ff5470; color: #ffb3c2;
@@ -1136,6 +1145,31 @@
   .spectate-standrow { display: flex; align-items: center; gap: 12px; background: rgba(22, 27, 61, 0.9); border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: clamp(16px, 2.4vw, 22px); color: #fff; }
   .spectate-champ { border: 1px solid #ffd166; color: #ffd166; }
   .spectate-rank { color: #8b92c0; min-width: 20px; }
+  /* A TV with no game on it yet is the best sign-up sheet in the room: the
+     code is the size of a headline and the QR is next to it, so joining is
+     "look up, point your phone" instead of "ask the host what the code was". */
+  .tv-join { display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2vh, 22px); }
+  .tv-join-kicker { color: #8b92c0; font-weight: 900; letter-spacing: 4px; font-size: clamp(13px, 1.8vw, 20px); margin: 0; }
+  .tv-join-code {
+    color: #ffd166; font-weight: 900; line-height: 1;
+    font-size: clamp(76px, 18vw, 240px); letter-spacing: clamp(6px, 2vw, 26px);
+    text-indent: clamp(6px, 2vw, 26px);   /* letter-spacing pads the right only */
+    text-shadow: 0 0 40px rgba(255, 209, 102, 0.35);
+  }
+  .tv-join-split { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 4vw, 48px); flex-wrap: wrap; }
+  .tv-join-qr { background: #fff; padding: 10px; border-radius: 14px; line-height: 0; }
+  .tv-join-qr img { width: clamp(140px, 18vw, 240px); height: clamp(140px, 18vw, 240px); display: block; }
+  .tv-join-how { text-align: left; max-width: 420px; }
+  .tv-join-how p { color: #aab0d8; font-size: clamp(15px, 1.7vw, 22px); margin: 0 0 8px; font-weight: 600; }
+  .tv-join-how strong { color: #fff; }
+  .tv-join-waiting { color: #8b92c0; font-size: clamp(14px, 1.6vw, 20px); margin: 0; }
+  .tv-join-names { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .tv-join-name {
+    display: inline-flex; align-items: center; gap: 8px; background: rgba(22, 27, 61, 0.9);
+    border: 1px solid #2a2f55; border-radius: 999px; padding: 8px 16px;
+    font-weight: 800; font-size: clamp(14px, 1.6vw, 20px); color: #fff;
+    animation: chip-pop 0.3s ease both;
+  }
   .buzz-judge {
     border: none; border-radius: 8px; padding: 8px 16px; font-weight: 900;
     font-size: 14px; cursor: pointer;
@@ -8962,11 +8996,13 @@ function renderHelp() {
         helpSection("Phones as buzzers", [
           "On the board screen, under <strong>How you&rsquo;ll play</strong>, choose <strong>Phone buzzers</strong>.",
           "Then tap <strong>Open the room</strong>. Nobody can join until the room exists.",
-          "The room screen shows a QR code; the code and PIN stay covered until you tap <strong>Show code</strong>.",
+          "The room screen shows a QR code; the code and PIN stay blurred until you tap <strong>Show the code</strong>.",
           "Everyone else opens the same link and taps <strong>JOIN A ROOM</strong>.",
           "They type the code and their name, and appear on your list as they arrive.",
           "First phone to press wins the buzz. The host taps Right or Wrong.",
           "<strong>Watch on TV</strong> joins a screen that follows the game with no buzzer.",
+          "Before the game starts that TV shows the room code and QR at headline size, so people join by looking at it.",
+          "Under <strong>Playing too?</strong> you can take a seat yourself and get a buzzer on this device.",
         ]) +
         helpSection("Running it from your phone", [
           "The room screen has a 4-digit <strong>host PIN</strong>. Keep it to yourself &mdash; it shows the answers.",
@@ -11548,7 +11584,7 @@ function buzzMirrorHtml(bc) {
         '<div class="final-phone-answer">' + esc(f.a) + '</div>' +
         (rows ? '<div class="final-phone-board"><p class="phone-scores-head">WHAT EVERYONE WROTE</p>' + rows + '</div>' : '');
     } else {
-      body = '<p class="buzz-mirror-revealed">Answer is up on the host screen</p>';
+      body = '<p class="buzz-mirror-revealed">Revealed &mdash; the host reads this one out.</p>';
     }
     return '<div class="buzz-mirror">' +
       '<p class="buzz-mirror-cat">FINAL JEOPARDY' + (f.category ? ' &middot; ' + esc(f.category.toUpperCase()) : '') + '</p>' +
@@ -11625,7 +11661,7 @@ function buzzMirrorHtml(bc) {
         ? '<div class="buzz-answer-box">' + esc(c.a) + '</div>' +
           (c.aimg ? '<img class="buzz-mirror-img" src="' + esc(c.aimg) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
           (c.note ? '<p class="buzz-mirror-note">' + esc(c.note) + '</p>' : '')
-        : '<p class="buzz-mirror-revealed">Answer is up on the host screen</p>';
+        : '<p class="buzz-mirror-revealed">Revealed &mdash; the host reads this one out.</p>';
     }
     return '<div class="buzz-mirror">' +
       '<p class="buzz-mirror-cat">' + esc(c.cat.toUpperCase()) + '</p>' +
@@ -11658,7 +11694,7 @@ function buzzMirrorHtml(bc) {
               '<canvas id="drawCanvas" class="draw-canvas draw-canvas-phone"' +
                 (mineToDraw ? ' data-live="1"' : '') + '></canvas>' +
               '<p class="buzz-timer-note">' +
-                (mineToDraw ? 'Use your finger. It shows up on the big screen.'
+                (mineToDraw ? 'Use your finger. Everyone watches it appear.'
                             : 'Shout out what you think it is.') + '</p>';
           })()
         : '') +
@@ -11702,7 +11738,7 @@ function buzzMirrorHtml(bc) {
     : '';
   return '<div class="buzz-mirror buzz-mirror-idle">' +
     bInfo +
-    '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Watch the big screen &mdash; the next question shows up here too.</p>' +
+    '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Sit tight &mdash; the next question lands right here.</p>' +
   '</div>';
 }
 function spectateTimerHtml(bc) {
@@ -11768,7 +11804,7 @@ function typeInHtml(c, bc, forHost) {
           '<button class="btn-gold" id="clueGuessSend" data-action="sendClueGuess"' +
             (String(bc.guessInput || "").trim() ? '' : ' disabled') + '>Send</button>' +
         '</div>' +
-        '<p class="buzz-timer-note">It goes to the host, not the big screen.</p>';
+        '<p class="buzz-timer-note">It goes to the host only.</p>';
   } else if (!forHost && !mine) {
     box = '<p class="buzz-timer-note">' + esc(t.owner || "Someone") + ' is answering this one.</p>';
   } else if (!forHost && mine && t.everyone && t.judged) {
@@ -12163,11 +12199,52 @@ function viewHostControl(bc) {
     '</div>';
 }
 
+// The link a phone needs to land in this room with the code already typed.
+// Shared by the host screen and the TV so the two can never drift apart.
+function roomJoinLink(code) {
+  return location.origin + location.pathname + "#join=" + (code || "");
+}
+function roomQrSrc(code, size) {
+  return "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "x" + size +
+    "&data=" + encodeURIComponent(roomJoinLink(code));
+}
+// A TV before the game starts. It used to say "Waiting for the game..." and put
+// the room code in a chip the size of a stamp, which is useless from a sofa.
+// Now the TV IS the way in: code at headline size, QR beside it, and the people
+// already in underneath, so the host can point at it instead of reading a code
+// out four times. This is also the screen a host with nobody joined yet shows
+// the room to get them joined.
+function tvJoinBoardHtml(bc, g) {
+  var code = bc.code || "";
+  var here = (g.players || []).length;
+  var siteLine = (location.host || "the game link") + location.pathname.replace(/index\.html$/, "");
+  return '<div class="tv-join">' +
+    '<p class="tv-join-kicker">JOIN THE GAME</p>' +
+    '<div class="tv-join-code">' + esc(code) + '</div>' +
+    '<div class="tv-join-split">' +
+      (code ? '<div class="tv-join-qr">' +
+        '<img src="' + esc(roomQrSrc(code, 260)) + '" alt="QR code to join room ' + esc(code) + '" ' +
+          'referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
+      '</div>' : '') +
+      '<div class="tv-join-how">' +
+        '<p><strong>1.</strong> Point your camera at the code &mdash; or open <strong>' + esc(siteLine) + '</strong></p>' +
+        '<p><strong>2.</strong> Tap <strong>JOIN A ROOM</strong></p>' +
+        '<p><strong>3.</strong> Enter <strong>' + esc(code) + '</strong> and your name</p>' +
+      '</div>' +
+    '</div>' +
+    (here
+      ? '<div class="tv-join-names">' + (g.players || []).map(function (pl) {
+          return '<span class="tv-join-name">' + avatarHtml(pl, 14) + esc(pl.name) + '</span>';
+        }).join("") + '</div>'
+      : '<p class="tv-join-waiting">Nobody has joined yet.</p>') +
+    '<p class="tv-join-waiting">The board appears here the moment the host starts.</p>' +
+  '</div>';
+}
 function viewSpectate(bc) {
   var g = bc.game || {};
   var backdrop = g.art ?
     '<div class="spectate-backdrop"><img src="' + esc(g.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;"></div>' : '';
-  var body;
+  var body, joinBoard = false;
   if (g.paused) {
     body = '<p class="spectate-kicker">PAUSED</p>' +
       '<h1 class="spectate-big">Back in a moment</h1>' +
@@ -12236,13 +12313,17 @@ function viewSpectate(bc) {
     body = '<div class="buzz-pick-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr));max-width:820px;margin:0 auto;gap:6px">' + grid + '</div>' +
       '<p class="spectate-note" style="margin-top:16px">' + esc(g.pick.turn || "Someone") + ' is picking</p>';
   } else {
-    body = '<p class="spectate-note">Waiting for the game&hellip;</p>';
+    body = tvJoinBoardHtml(bc, g);
+    joinBoard = true;
   }
-  var scoreStrip = (g.players || []).map(function (pl) {
+  // The join board already lists who is in; a strip of 0-point chips under it
+  // would say the same thing twice, and the room code chip would be a third
+  // copy of a code that is already the biggest thing on the screen.
+  var scoreStrip = joinBoard ? "" : (g.players || []).map(function (pl) {
     return '<span class="spectate-score-chip">' + avatarHtml(pl, 11) + esc(pl.name) + ' ' + pl.score + '</span>';
   }).join("");
   return '<div class="spectate">' + backdrop +
-    '<span class="spectate-chip">Room <span class="buzz-room-code">' + esc(bc.code) + '</span>' +
+    '<span class="spectate-chip">' + (joinBoard ? '' : 'Room <span class="buzz-room-code">' + esc(bc.code) + '</span>') +
       '<button data-action="leaveBuzzer" aria-label="Leave">&times;</button></span>' +
     '<div class="spectate-body">' + body + '</div>' +
     (scoreStrip ? '<div class="spectate-scores">' + scoreStrip + '</div>' : '') +
@@ -12553,11 +12634,26 @@ function viewHostRoom() {
   }
   var qrBlock = "";
   if (b.status === "open" && b.code) {
-    var joinLink = location.origin + location.pathname + "#join=" + b.code;
-    var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(joinLink);
     qrBlock = '<div class="host-qr-wrap">' +
-      '<img class="host-qr" src="' + esc(qrSrc) + '" alt="QR code to join room ' + esc(b.code) + '" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
+      '<img class="host-qr" src="' + esc(roomQrSrc(b.code, 220)) + '" alt="QR code to join room ' + esc(b.code) + '" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
       '<p class="buzz-timer-note">Scanning opens the app with the code filled in</p>' +
+    '</div>';
+  }
+  // Setting the TV up belongs here, while the room is being made -- not
+  // discovered later on the join screen by a host who is already playing.
+  var tvBlock = "";
+  if (b.status === "open" && b.code) {
+    var tvCount = hostConns.filter(function (c) { return c.role === "screen"; }).length;
+    tvBlock = '<div class="host-tv-tip">' +
+      '<p class="host-tv-lbl">' + (tvCount
+        ? '◉ ' + tvCount + (tvCount === 1 ? ' TV is showing the room' : ' TVs are showing the room')
+        : 'Playing on a TV?') + '</p>' +
+      '<p class="host-tv-hint">' + (tvCount
+        ? 'It shows the code and QR big enough to join from across the room, then the board once you start.'
+        : 'Open <strong>' + esc(joinUrl) + '</strong> on the TV or laptop, tap <strong>JOIN A ROOM</strong>, ' +
+          'then <strong>Watch on TV</strong>. It puts the code and QR up at headline size so everyone can join by looking at it &mdash; ' +
+          'no need to read the code out.') +
+      '</p>' +
     '</div>';
   }
   var chips = (b.clients || []).map(function (name, i) {
@@ -12585,6 +12681,7 @@ function viewHostRoom() {
             '<span class="code-toggle-eye" aria-hidden="true">\u25C9</span> Show the code</button>') +
       statusLine +
       qrBlock +
+      tvBlock +
       '<div class="host-join-list">' +
         (chips || '<p class="muted" style="margin:6px 0">Nobody has joined yet &mdash; codes work as soon as the room is open.</p>') +
       '</div>' +
