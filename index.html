@@ -1324,6 +1324,16 @@
   .timer-bar { height: 100%; width: 100%; background: #ffd166; animation: countdown-bar linear forwards; animation-duration: var(--timer-duration, 20s); }
   /* A paused room stops the clock too, or the break costs you the question. */
   .is-paused .timer-bar { animation-play-state: paused; }
+  /* Someone draws it. touch-action:none so a finger draws instead of
+     scrolling the page out from under the picture. */
+  .draw-block { margin-top: 16px; }
+  .draw-canvas { display: block; width: 100%; aspect-ratio: 4 / 3; margin: 8px 0 0;
+    border-radius: 12px; background: #10142e; border: 1px solid #2a3068;
+    touch-action: none; cursor: crosshair; }
+  .draw-canvas[data-live="1"] { border-color: #ffd166; }
+  .draw-canvas-phone { aspect-ratio: 1 / 1; }
+  .draw-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .draw-btns .letter-btn { flex: 1; margin-top: 0; }
   /* Everybody answers: the roster, and a verdict against each name. */
   .grp-block { margin-top: 16px; }
   .grp-offer { margin-top: 16px; }
@@ -3396,10 +3406,11 @@ var state = {
   editingScoreIndex: null,
   nextShape: null,        // avatar shape chosen for the next player added
   roomRules: { oneBuzz: false, streakBonus: false, ddCount: 1, readAloud: false,
-               letterReveal: false, letterAuto: 0, groupClues: false },
+               letterReveal: false, letterAuto: 0, groupClues: false, drawing: false },
   lettersOut: [],         // which positions of the answer have been uncovered
   groupClue: false,       // the host threw this question open to the whole room
   groupMarks: {},         // playerIndex -> "correct" | "incorrect", judged one by one
+  draw: null,             // {by, strokes:[[x,y,x,y,...]]} while someone is drawing
   questionShown: false,   // read-aloud mode: has the host put the text on screen yet
   clueHintOpen: false,    // the host has asked to see this question's hint
   dailyDoubles: [],       // all hidden daily double tiles this round
@@ -4019,6 +4030,12 @@ function applyHostCommand(d) {
     // "Back to Board (Keep This Question)", refuses to act once something has
     // been revealed. Closing is already held back here for the same reason.
     if (!state.revealed && !state.wagering) reveal();
+  } else if (cmd === "drawStart") {
+    startDrawing(d.i);
+  } else if (cmd === "drawStop") {
+    stopDrawing();
+  } else if (cmd === "drawClear") {
+    clearDrawing();
   } else if (cmd === "groupStart") {
     startGroupClue();
   } else if (cmd === "groupGo") {
@@ -4164,6 +4181,11 @@ function handleBuzzerData(conn, d) {
       var pkCats = getCategories();
       if (pkCats[pc] && pkCats[pc].questions[pr] && !state.used[pc + "-" + pr]) openQuestion(pc, pr);
     }
+  } else if (d.type === "draw") {
+    // Only the player who was handed the pen can draw on it.
+    var dwI = conn.playerIndex != null && conn.playerIndex !== -1
+      ? conn.playerIndex : playerIndexByName(conn.buzzName || "");
+    if (state.draw && dwI !== -1 && dwI === state.draw.by) addDrawPoints(d.pts, d.start);
   } else if (d.type === "clueGuess") {
     var gi = conn.playerIndex != null && conn.playerIndex !== -1
       ? conn.playerIndex : playerIndexByName(conn.buzzName || "");
@@ -4500,6 +4522,13 @@ function buzzerSyncPayload() {
         }),
       } : null,
       groupOffer: (groupAllowed() && !state.groupClue && !state.wagering && !state.revealed) || false,
+      // Who has the pen, and the picture so far for anyone who just joined or
+      // refreshed. Live strokes come separately; this is the catch-up copy.
+      draw: state.draw ? {
+        by: (state.players[state.draw.by] || {}).name || "",
+        strokes: state.draw.strokes,
+      } : null,
+      drawOffer: (drawingAllowed() && !state.draw && !state.wagering && !state.revealed) || false,
       // Clue art rides along to phones so players who cannot see the host
       // screen still get the picture. Answers only follow after the reveal.
       mirror: !!state.phoneMirror,
@@ -4880,6 +4909,16 @@ function handleClientData(d) {
     bc.msg = String(d.reason || "Host control was refused.");
     try { if (clientConn) clientConn.close(); } catch (e) {}
   }
+  // A live stroke, appended without a full sync -- the picture arrives a flick
+  // at a time rather than being resent whole every time a finger moves.
+  else if (d.type === "drawAdd") {
+    bc.draw = bc.draw || [];
+    if (d.start || !bc.draw.length) bc.draw.push((d.pts || []).slice());
+    else bc.draw[bc.draw.length - 1] = bc.draw[bc.draw.length - 1].concat(d.pts || []);
+    paintDrawing();
+    return;                       // no re-render: it would rebuild the canvas
+  }
+  else if (d.type === "drawClear") { bc.draw = []; paintDrawing(); return; }
   else if (d.type === "arm") { if (bc.buzzState !== "spent") { bc.buzzState = "armed"; bc.lockWinner = ""; bc.guessSent = ""; } }
   else if (d.type === "disarm") { bc.buzzState = "idle"; bc.lockWinner = ""; }
   else if (d.type === "lockout") { if (bc.buzzState !== "won") { bc.buzzState = "locked"; bc.lockWinner = String(d.winner || ""); } }
@@ -4908,6 +4947,12 @@ function handleClientData(d) {
     if (!(d.final && d.final.stage === "clue")) { bc.answerSent = false; bc.answerInput = ""; }
     // anchor the mirrored timer to local clock time
     bc.timerAnchor = d.timerDuration ? Date.now() - (d.timerElapsed || 0) * 1000 : null;
+    // The catch-up copy of the picture. Only taken when we have nothing, or
+    // when the drawing has been put away -- otherwise a sync arriving between
+    // two live strokes would rewind what is already on screen.
+    var dSync = d.clue && d.clue.draw;
+    if (!dSync) bc.draw = null;
+    else if (!bc.draw || !bc.draw.length) bc.draw = (dSync.strokes || []).map(function (x) { return x.slice(); });
     bc.game = d;
   }
   render();
@@ -6740,6 +6785,7 @@ function loadSettings() {
     state.roomRules.readAloud = !!s0.roomRules.readAloud;
     state.roomRules.letterReveal = !!s0.roomRules.letterReveal;
     state.roomRules.groupClues = !!s0.roomRules.groupClues;
+    state.roomRules.drawing = !!s0.roomRules.drawing;
     if (typeof s0.roomRules.letterAuto === "number") {
       state.roomRules.letterAuto = [0, 3, 5, 10, 15, 20, 30].indexOf(s0.roomRules.letterAuto) === -1
         ? 0 : s0.roomRules.letterAuto;
@@ -7184,6 +7230,7 @@ function openQuestion(catKey, qIndex) {
   clearPause();                 // a new question always starts running
   clearLetters();
   clearGroupClue();
+  state.draw = null;
   state.buzzedThisClue = {};
   if (state.wagering) {
     sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
@@ -8657,6 +8704,7 @@ function closeQuestion() {
   clearPause();
   clearLetters();
   clearGroupClue();
+  state.draw = null;
   disarmBuzzers(false);
   if (!state.active) { state.phase = "board"; render(); return; }
   // Worked out while the question is still the open one, because it needs to
@@ -9451,7 +9499,7 @@ function activeRuleCount() {
   if (state.timerEnabled) n++;
   if (r.ddCount) n++;
   ["streakBonus", "noMinus", "floorZero", "keepTurn", "readAloud",
-   "groupClues", "letterReveal"].forEach(function (k) { if (r[k]) n++; });
+   "groupClues", "letterReveal", "drawing"].forEach(function (k) { if (r[k]) n++; });
   if (buzzModeOn() && r.oneBuzz) n++;
   if (state.wheelOfChaosEnabled) n++;
   if (state.phoneMirror) n++;
@@ -11120,6 +11168,19 @@ function buzzMirrorHtml(bc) {
               : c.group.board.filter(function (x) { return x.in; }).length + ' of ' +
                 c.group.board.length + ' answers in') + '</p>'
         : '') +
+      // The pen, for whoever was handed it; a window onto it for everyone else.
+      (c.draw
+        ? (function () {
+            var mineToDraw = c.draw.by && c.draw.by.toLowerCase() === String(bc.name || "").toLowerCase();
+            return '<p class="buzz-mirror-cat" style="margin-top:12px">' +
+                (mineToDraw ? 'DRAW IT' : esc(c.draw.by || "Someone") + ' IS DRAWING') + '</p>' +
+              '<canvas id="drawCanvas" class="draw-canvas draw-canvas-phone"' +
+                (mineToDraw ? ' data-live="1"' : '') + '></canvas>' +
+              '<p class="buzz-timer-note">' +
+                (mineToDraw ? 'Use your finger. It shows up on the big screen.'
+                            : 'Shout out what you think it is.') + '</p>';
+          })()
+        : '') +
       typeInHtml(c, bc, false) +
       imgHtml +
       clipHtml +
@@ -11562,6 +11623,18 @@ function viewHostControl(bc) {
         ? '<button class="hc-btn hc-reveal" style="width:100%" data-action="hostShowQuestion">Put the question on the big screen</button>' +
           '<p class="hc-hidden">Only you can see the text right now &mdash; read it out.</p>'
         : '') +
+      // Handing someone the pen, and taking it back.
+      (c.drawOffer
+        ? '<button class="hc-btn hc-dim" style="width:100%" data-action="hostStartDrawing" data-i="-1">Get someone to draw it</button>'
+        : '') +
+      (c.draw
+        ? '<p class="hc-wheel-note">' + esc(c.draw.by || "Someone") + ' has the pen.</p>' +
+          '<canvas id="drawCanvas" class="draw-canvas draw-canvas-phone"></canvas>' +
+          '<div class="hc-actions">' +
+            '<button class="hc-btn hc-dim" data-action="hostClearDrawing">Start again</button>' +
+            '<button class="hc-btn hc-dim" data-action="hostStopDrawing">Pen down</button>' +
+          '</div>'
+        : '') +
       // Throwing the question open, and running it once it is open.
       (c.groupOffer
         ? '<button class="hc-btn hc-dim" style="width:100%" data-action="hostGroupStart">Throw this one open to everybody</button>'
@@ -11614,6 +11687,10 @@ function viewSpectate(bc) {
     body = '<p class="spectate-kicker">PAUSED</p>' +
       '<h1 class="spectate-big">Back in a moment</h1>' +
       '<p class="spectate-note">The host has stopped the game.</p>';
+  } else if (g.clue && g.clue.draw) {
+    body = '<p class="spectate-kicker">' + esc((g.clue.draw.by || "Someone").toUpperCase()) + ' IS DRAWING</p>' +
+      '<canvas id="drawCanvas" class="draw-canvas"></canvas>' +
+      '<p class="spectate-note">Shout out what you think it is.</p>';
   } else if (g.wheel) {
     var w = g.wheel;
     body = '<p class="spectate-kicker">' + esc(w.title.toUpperCase()) + (w.target ? ' &middot; ' + esc(w.target) : '') + '</p>' +
@@ -11814,6 +11891,7 @@ function roomRulesGroupHtml() {
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) +
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
+    setToggleRow("toggleDrawing", "Someone Draws It", "The host can hand a player the pen &mdash; they draw on their phone and it shows up on the big screen", r.drawing) +
     setToggleRow("toggleGroupClues", "Everybody Answers", "The host can throw a question open to the whole room &mdash; everyone writes an answer and everyone is marked", r.groupClues) +
     setToggleRow("toggleLetterReveal", "Give Away Letters", "The host can open the answer a letter at a time, and the question gets cheaper with every one", r.letterReveal) +
     (r.letterReveal
@@ -11871,6 +11949,7 @@ function settingsPanelHtml(which) {
     // These two live here as well as in the room screen, or a host playing on
     // one screen would never find them -- the room screen only exists once you
     // are running phone buzzers.
+    setToggleRow("toggleDrawing", "Someone Draws It", "The host can hand a player the pen &mdash; they draw on their phone and it shows up on the big screen", r.drawing) +
     setToggleRow("toggleGroupClues", "Everybody Answers", "The host can throw a question open to the whole room &mdash; everyone writes an answer and everyone is marked", r.groupClues) +
     setToggleRow("toggleLetterReveal", "Give Away Letters", "The host can open the answer a letter at a time, and the question gets cheaper with every one", r.letterReveal) +
     (r.letterReveal
@@ -12121,6 +12200,153 @@ function recordGuess(i, text) {
   }
   render();
   broadcastSync();
+}
+// ---- drawing ----
+// One player draws on their phone and it comes up on the big screen for
+// everyone else to guess. Coordinates are integers on a 0-1000 square, so a
+// stroke is a short flat array and the aspect ratio is somebody else's
+// problem. Strokes are capped: a long scribble must not grow the sync payload
+// without limit, so the oldest one goes when the board gets too busy.
+var DRAW_MAX_POINTS = 4000;
+function drawingAllowed() { return !!state.roomRules.drawing; }
+function drawTotalPoints(d) {
+  var n = 0;
+  (d.strokes || []).forEach(function (st) { n += st.length / 2; });
+  return n;
+}
+function startDrawing(index) {
+  if (!drawingAllowed() || !state.active || state.wagering || state.revealed) return;
+  var i = index == null ? clueOwnerIndex() : +index;
+  if (!state.players[i]) return;
+  state.draw = { by: i, strokes: [] };
+  disarmBuzzers(false);   // the drawer is not racing anyone
+  sndSelect();
+  hap("big");
+  render();
+  broadcastSync();
+}
+function stopDrawing() {
+  if (!state.draw) return;
+  state.draw = null;
+  render();
+  broadcastSync();
+}
+function clearDrawing() {
+  if (!state.draw) return;
+  state.draw.strokes = [];
+  render();
+  broadcastSync();
+  broadcastBuzzer({ type: "drawClear" });
+}
+// A batch of points from whoever is drawing. `start` opens a new stroke; the
+// rest extend the one already going.
+function addDrawPoints(pts, start) {
+  if (!state.draw || !Array.isArray(pts) || !pts.length) return;
+  var clean = [];
+  for (var i = 0; i + 1 < pts.length; i += 2) {
+    var x = Math.max(0, Math.min(1000, Math.round(+pts[i])));
+    var y = Math.max(0, Math.min(1000, Math.round(+pts[i + 1])));
+    if (isFinite(x) && isFinite(y)) clean.push(x, y);
+  }
+  if (!clean.length) return;
+  if (start || !state.draw.strokes.length) state.draw.strokes.push(clean);
+  else state.draw.strokes[state.draw.strokes.length - 1] =
+         state.draw.strokes[state.draw.strokes.length - 1].concat(clean);
+  while (drawTotalPoints(state.draw) > DRAW_MAX_POINTS && state.draw.strokes.length > 1) {
+    state.draw.strokes.shift();
+  }
+  // The whole picture rides in the sync for anyone joining late, but a live
+  // stroke goes out as its own small message -- a full sync per flick of a
+  // finger would be the thing that actually breaks this.
+  broadcastBuzzer({ type: "drawAdd", pts: clean, start: !!start });
+  paintDrawing();
+}
+// Paint whatever strokes we have onto whichever canvas is on this screen.
+function paintDrawing() {
+  var cv = document.getElementById("drawCanvas");
+  if (!cv) return;
+  var strokes = (state.draw && state.draw.strokes) ||
+                (state.buzzClient && state.buzzClient.draw) || [];
+  var box = cv.getBoundingClientRect();
+  var w = Math.max(1, Math.round(box.width)), h = Math.max(1, Math.round(box.height));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  var ctx = cv.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = "#ffd166";
+  ctx.lineWidth = Math.max(2, Math.round(w / 110));
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  strokes.forEach(function (st) {
+    if (st.length < 2) return;
+    ctx.beginPath();
+    for (var i = 0; i + 1 < st.length; i += 2) {
+      var x = st[i] / 1000 * w, y = st[i + 1] / 1000 * h;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    // A single tap is a dot, not a line, and would otherwise draw nothing.
+    if (st.length === 2) ctx.lineTo(st[0] / 1000 * w + 0.1, st[1] / 1000 * h);
+    ctx.stroke();
+  });
+}
+// Whoever is holding the pen. On the host screen that is the drawer playing
+// on one device; on a phone it is the player whose turn it is to draw.
+// Points are collected as they come and flushed on a timer, so a fast scribble
+// is a handful of messages a second rather than one per pixel.
+var drawPen = { down: false, pending: [], startNext: true, timer: null, el: null };
+function drawPointFrom(ev, el) {
+  var box = el.getBoundingClientRect();
+  if (!box.width || !box.height) return null;
+  var p = (ev.touches && ev.touches[0]) || ev;
+  return [
+    Math.max(0, Math.min(1000, Math.round((p.clientX - box.left) / box.width * 1000))),
+    Math.max(0, Math.min(1000, Math.round((p.clientY - box.top) / box.height * 1000))),
+  ];
+}
+function drawFlush() {
+  if (!drawPen.pending.length) return;
+  var pts = drawPen.pending;
+  drawPen.pending = [];
+  var start = drawPen.startNext;
+  drawPen.startNext = false;
+  // On the host device it goes straight in; on a phone it goes up the wire.
+  if (state.draw) addDrawPoints(pts, start);
+  else if (clientConn) { try { clientConn.send({ type: "draw", pts: pts, start: start }); } catch (e) {} }
+}
+function drawPenDown(ev) {
+  var el = ev.currentTarget;
+  if (!el) return;
+  ev.preventDefault();
+  drawPen.down = true;
+  drawPen.startNext = true;
+  drawPen.el = el;
+  var pt = drawPointFrom(ev, el);
+  if (pt) drawPen.pending.push(pt[0], pt[1]);
+  if (!drawPen.timer) drawPen.timer = setInterval(drawFlush, 120);
+}
+function drawPenMove(ev) {
+  if (!drawPen.down || !drawPen.el) return;
+  ev.preventDefault();
+  var pt = drawPointFrom(ev, drawPen.el);
+  if (pt) drawPen.pending.push(pt[0], pt[1]);
+}
+function drawPenUp() {
+  if (!drawPen.down) return;
+  drawPen.down = false;
+  drawFlush();
+  if (drawPen.timer) { clearInterval(drawPen.timer); drawPen.timer = null; }
+}
+// Hook the canvas up after each render, since the element is rebuilt with it.
+function wireDrawCanvas() {
+  var cv = document.getElementById("drawCanvas");
+  if (!cv) { drawPenUp(); return; }
+  if (cv.getAttribute("data-live") === "1" && !cv.__wired) {
+    cv.__wired = true;
+    ["mousedown", "touchstart"].forEach(function (e) { cv.addEventListener(e, drawPenDown, { passive: false }); });
+    ["mousemove", "touchmove"].forEach(function (e) { cv.addEventListener(e, drawPenMove, { passive: false }); });
+    ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach(function (e) { cv.addEventListener(e, drawPenUp); });
+  }
+  paintDrawing();
 }
 // ---- group questions ----
 // The host throws one question open: everybody answers, everybody is marked,
@@ -12599,11 +12825,38 @@ function viewClueFooter() {
     group = '<button class="letter-btn grp-offer" data-action="startGroupClue">' +
       'Throw this one open to everybody</button>';
   }
+
+  // Drawing. On one screen the drawer uses this device; in a room the canvas
+  // here is a window onto their phone and nobody touches it.
+  var drawBlock = "";
+  if (state.draw) {
+    var artist = state.players[state.draw.by] || {};
+    var onPhone = state.buzzer.on && !!hostConns.filter(function (c) {
+      return c.playerIndex === state.draw.by; }).length;
+    drawBlock = '<div class="draw-block">' +
+        '<p class="grp-head">' + esc((artist.name || "SOMEONE").toUpperCase()) + ' IS DRAWING</p>' +
+        '<canvas id="drawCanvas" class="draw-canvas"' + (onPhone ? '' : ' data-live="1"') + '></canvas>' +
+        '<p class="letter-note">' +
+          (onPhone ? 'Drawing on their phone. Everyone else: shout it out.'
+                   : 'Draw here with a finger or the mouse. Everyone else: no peeking at the answer.') + '</p>' +
+        '<div class="draw-btns">' +
+          '<button class="letter-btn" data-action="clearDrawing">Start the picture again</button>' +
+          '<button class="letter-btn" data-action="stopDrawing">Put the pen down</button>' +
+        '</div>' +
+      '</div>';
+  } else if (drawingAllowed() && !state.revealed && !state.groupClue) {
+    drawBlock = '<button class="letter-btn grp-offer" data-action="startDrawing">' +
+      'Get ' + esc((state.players[clueOwnerIndex()] || {}).name || "someone") + ' to draw it</button>';
+  }
   // While the room is still writing, the reveal and the ordinary score row
   // would both be wrong: one spoils it, the other scores the wrong person.
   var holdBack = state.groupClue && !groupAllIn();
+  // While a picture is being drawn, revealing would end the game everyone is
+  // playing -- the answer IS what they are drawing.
+  var holdDraw = !!state.draw;
   return buzzBlock + clipVolRow + hint + timerBar + letters + hostHint +
-    (holdBack ? "" : revealBlock) + group + (state.groupClue ? "" : scoreBlock) + closeBlock;
+    ((holdBack || holdDraw) ? "" : revealBlock) + drawBlock + group +
+    (state.groupClue ? "" : scoreBlock) + closeBlock;
 }
 function viewQuestionMenu() {
   return renderMenu(withUndo(gameMenuItems(false)));
@@ -13130,6 +13383,9 @@ function render() {
   applyModeTheme();
   if (document.body) document.body.classList.toggle("is-testing", !!state.testingBoard);
   if (document.body) document.body.classList.toggle("is-paused", !!state.paused);
+  // The canvas element is rebuilt with the rest of the screen, so the pen has
+  // to be hooked back up and the picture repainted after every render.
+  setTimeout(wireDrawCanvas, 0);
   ensureConsistentState();
   if (modalOpen()) stopShake();  // never leave a shake running under a sheet
   flipCapture(); // measure the outgoing DOM before it is replaced
@@ -13412,6 +13668,13 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleLetterReveal") toggleLetterReveal();
   else if (action === "toggleGroupClues") { state.roomRules.groupClues = !state.roomRules.groupClues; settingsChanged(); }
   else if (action === "startGroupClue") startGroupClue();
+  else if (action === "startDrawing") startDrawing(t.getAttribute("data-i"));
+  else if (action === "stopDrawing") stopDrawing();
+  else if (action === "clearDrawing") clearDrawing();
+  else if (action === "hostStartDrawing") sendHostCmd("drawStart", { i: +t.getAttribute("data-i") });
+  else if (action === "hostStopDrawing") sendHostCmd("drawStop");
+  else if (action === "hostClearDrawing") sendHostCmd("drawClear");
+  else if (action === "toggleDrawing") { state.roomRules.drawing = !state.roomRules.drawing; settingsChanged(); }
   else if (action === "groupGoAnyway") groupGoAnyway();
   else if (action === "markGroup") markGroup(+t.getAttribute("data-i"), t.getAttribute("data-correct") === "1");
   else if (action === "hostGroupStart") sendHostCmd("groupStart");
