@@ -2419,20 +2419,43 @@
   .help-list strong { color: #ffd166; }
   @media (prefers-reduced-motion: reduce) { .help-overlay, .help-sheet { animation: none; } }
 
-  /* room code and host PIN are covered until the host asks for them */
-  .host-code-hidden { letter-spacing: 10px; color: #3a4170; }
+  /* Room code and host PIN are covered until the host asks for them. The real
+     characters are still there, blurred: the code keeps its shape and weight,
+     so a covered code reads as covered rather than as one that has not
+     arrived. The blur is heavy enough that a phone camera across the room
+     gets nothing from it. */
+  .host-code-blur {
+    filter: blur(14px);
+    color: #ffd166; user-select: none; -webkit-user-select: none;
+    transition: filter 0.25s ease;
+  }
+  .host-pin-blur { filter: blur(6px); user-select: none; -webkit-user-select: none; }
+  @media (prefers-reduced-motion: reduce) { .host-code-blur { transition: none; } }
   .code-toggle {
     display: block; margin: 6px auto 0; background: none; border: 1px solid #2a2f55;
     border-radius: 999px; padding: 7px 14px; color: #aab0d8; font-weight: 800;
     font-size: 12px; cursor: pointer; font-family: inherit;
   }
+  /* Showing the code is the one thing the host came to this screen to do, so
+     it is a filled button rather than a hairline outline like "Hide". */
+  .code-toggle-show {
+    background: #ffd166; border-color: #ffd166; color: #04203a;
+    font-size: 14px; letter-spacing: 0.4px; padding: 11px 22px;
+    box-shadow: 0 0 22px rgba(255, 209, 102, 0.28);
+  }
+  .code-toggle-eye { font-size: 13px; margin-right: 2px; }
+  .code-toggle-on { border-color: #3a4170; }
   /* Small, but still a tap target: it was 23px tall, under the 24px floor
      everything else on the page clears. */
   .code-toggle-inline {
     display: inline-block; margin: 0 0 0 4px; padding: 6px 10px;
     font-size: 11px; min-height: 28px; line-height: 1.4;
   }
-  @media (hover: hover) { .code-toggle:hover { border-color: #ffd166; color: #ffd166; } }
+  .code-toggle-inline.code-toggle-show { padding: 6px 13px; font-size: 12px; box-shadow: none; }
+  @media (hover: hover) {
+    .code-toggle:hover { border-color: #ffd166; color: #ffd166; }
+    .code-toggle-show:hover { background: #ffdd8c; border-color: #ffdd8c; color: #04203a; }
+  }
 
   /* board card + read-only board map on Host Control */
   .hc-board {
@@ -12344,10 +12367,10 @@ function viewHostRoom() {
     statusLine = '<p class="host-join-line">Scan the code, or open <strong>' + esc(joinUrl) + '</strong> and tap <strong>JOIN A ROOM</strong>.</p>' +
       (b.hostPin ?
         '<p class="host-join-line" style="margin-top:6px">Hosting from your own phone? Join, then enter host PIN ' +
-          (state.showHostPin
-            ? '<span class="host-pin-chip">' + esc(b.hostPin) + '</span>'
-            : '<span class="host-pin-chip">&bull;&bull;&bull;&bull;</span>') +
-          ' <button class="code-toggle code-toggle-inline" data-action="toggleHostPin">' + (state.showHostPin ? 'Hide' : 'Show') + '</button>' +
+          '<span class="host-pin-chip' + (state.showHostPin ? '' : ' host-pin-blur') + '">' +
+            esc(b.hostPin) + '</span>' +
+          ' <button class="code-toggle code-toggle-inline' + (state.showHostPin ? '' : ' code-toggle-show') + '" ' +
+            'data-action="toggleHostPin">' + (state.showHostPin ? 'Hide' : 'Show') + '</button>' +
           (b.hostClaimed ? ' &middot; <span style="color:#7ee2b0;font-weight:800">host phone connected</span>' : '') +
         '</p>' +
         '<p class="buzz-timer-note" style="text-align:center">Keep this PIN to yourself &mdash; it shows the answers.</p>'
@@ -12376,11 +12399,15 @@ function viewHostRoom() {
     '<p class="sub">Everyone who joins becomes a player with a buzzer in their pocket.</p>' +
     '<div class="card">' +
       '<p class="lbl" style="display:block">ROOM CODE</p>' +
+      // The real code, blurred, rather than four dots standing in for it: the
+      // shape of the thing is still there, so it reads as "covered" instead of
+      // "not arrived yet", and it sharpens when you ask for it.
+      '<div class="host-code' + (state.showRoomCode ? '' : ' host-code-blur') + '" aria-hidden="' +
+        (state.showRoomCode ? 'false' : 'true') + '">' + esc(b.code || "----") + '</div>' +
       (state.showRoomCode
-        ? '<div class="host-code">' + esc(b.code || "----") + '</div>' +
-          '<button class="code-toggle" data-action="toggleRoomCode">Hide code</button>'
-        : '<div class="host-code host-code-hidden">' + (b.code ? '&bull;&bull;&bull;&bull;' : '----') + '</div>' +
-          '<button class="code-toggle" data-action="toggleRoomCode">Show code</button>') +
+        ? '<button class="code-toggle code-toggle-on" data-action="toggleRoomCode">Hide the code</button>'
+        : '<button class="code-toggle code-toggle-show" data-action="toggleRoomCode">' +
+            '<span class="code-toggle-eye" aria-hidden="true">\u25C9</span> Show the code</button>') +
       statusLine +
       qrBlock +
       '<div class="host-join-list">' +
