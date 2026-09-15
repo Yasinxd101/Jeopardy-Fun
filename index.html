@@ -569,6 +569,29 @@
     100% { transform: scale(1); opacity: 1; }
   }
   .host-join-count { margin: 8px 0 0; color: #7ee2b0; font-weight: 800; font-size: 13px; letter-spacing: 1px; }
+  /* The host's own seat: claiming one on the room screen, and the buzzer it
+     gets on the question screen. */
+  .host-seat { margin-top: 14px; padding: 12px; border-radius: 12px;
+    background: #10142e; border: 1px solid #2a2f55; text-align: center; }
+  .host-seat-on { border-color: #ffd16655; }
+  .host-seat-lbl { display: block; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #6a72a8; }
+  .host-seat-name { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px;
+    font-size: 17px; font-weight: 900; color: #ffd166; }
+  .host-seat-note { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: #8b92c0; }
+  .host-seat-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+  .host-seat-chip { display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    background: #171d44; border: 1px solid #2a3068; border-radius: 999px; padding: 7px 14px;
+    font-family: inherit; font-weight: 800; font-size: 13px; color: #e8ebff; }
+  .host-seat-chip:hover { border-color: #ffd166; }
+  .host-seat-add { display: flex; gap: 8px; margin-top: 10px; }
+  .host-seat-add .input { flex: 1; min-width: 0; }
+  .host-buzz {
+    display: block; width: 100%; margin-top: 10px; padding: 18px; border: none; border-radius: 14px;
+    font-family: inherit; font-size: 19px; font-weight: 900; letter-spacing: 1px; cursor: pointer;
+    background: #ff5470; color: #fff; box-shadow: 0 0 26px rgba(255, 84, 112, 0.35);
+  }
+  .host-buzz:not(:disabled):active { transform: scale(0.97); }
+  .host-buzz-off { background: #1d2455; color: #6a72a8; box-shadow: none; cursor: default; }
   .host-chip-x {
     background: none; border: none; color: #8b92c0; font-size: 17px; font-weight: 900;
     cursor: pointer; padding: 0 0 0 2px; line-height: 1;
@@ -3585,6 +3608,9 @@ var state = {
   clipStartedAt: 0,       // when the host hit play, so phones can join in sync
   gameMode: "jeopardy",   // which game is selected on the main menu
   helpOpen: false,        // the pull-up help guide
+  hostSeat: null,         // the player this device is playing as, if it took a seat
+  hostSeatInput: "",
+  hostSeatError: "",
   showRoomCode: false,    // room code and host PIN stay covered until asked for
   showHostPin: false,
   juice: true,            // motion effects: shakes, slides, takeovers
@@ -4202,7 +4228,9 @@ function startBuzzerRoom() {
     if (hostPeer && state.buzzer.on) { try { hostPeer.reconnect(); } catch (e) {} }
   });
 }
+// A seat only means anything while there is a room to sit in.
 function stopBuzzerRoom(reason) {
+  state.hostSeat = null;      // no room, no seat to sit in
   broadcastBuzzer({ type: "disarm" });
   broadcastBuzzer({ type: "roomClosed", reason: reason || "The host closed the buzzer room." });
   var closing = hostConns.slice();
@@ -4362,16 +4390,7 @@ function handleBuzzerData(conn, d) {
     try { conn.send(withTimerElapsed(buzzerSyncPayload())); } catch (e) {}
     renderOrUpdateClue();
   } else if (d.type === "buzz") {
-    if (!state.buzzer.armed || state.buzzer.winnerName != null) return;
-    if (state.roomRules.oneBuzz && conn.playerIndex != null && state.buzzedThisClue[conn.playerIndex]) return;
-    state.buzzer.winnerName = conn.buzzName || "Player";
-    hap("buzz"); shakeScreen(5);
-    state.buzzer.winnerIndex = conn.playerIndex != null && conn.playerIndex !== -1 ? conn.playerIndex : playerIndexByName(state.buzzer.winnerName);
-    sndBuzz();
-    flashScreen();
-    broadcastBuzzer({ type: "lockout", winner: state.buzzer.winnerName });
-    try { conn.send({ type: "youwon" }); } catch (e) {}
-    renderOrUpdateClue();
+    registerBuzz(conn.buzzName || "Player", conn.playerIndex, conn);
   } else if (d.type === "wager") {
     // the daily double player locked their wager in from their phone
     var wi = playerIndexByName(conn.buzzName || "");
@@ -4613,6 +4632,73 @@ function judgeBuzz(correct) {
   } else {
     clearBuzz();                              // wrong reopens buzzing for everyone else
   }
+}
+// A buzz, from wherever it came. The host's own device can hold a seat now, and
+// a seat with no phone behind it has to reach the same place a phone does --
+// same first-past-the-post, same one-buzz rule, same lockout to everyone else.
+function registerBuzz(name, index, conn) {
+  if (!state.buzzer.armed || state.buzzer.winnerName != null) return false;
+  var i = (index != null && index !== -1) ? index : playerIndexByName(name);
+  if (state.roomRules.oneBuzz && i != null && i !== -1 && state.buzzedThisClue[i]) return false;
+  state.buzzer.winnerName = name;
+  state.buzzer.winnerIndex = i;
+  hap("buzz"); shakeScreen(5);
+  sndBuzz();
+  flashScreen();
+  broadcastBuzzer({ type: "lockout", winner: state.buzzer.winnerName });
+  if (conn) { try { conn.send({ type: "youwon" }); } catch (e) {} }
+  renderOrUpdateClue();
+  return true;
+}
+// The seat the host device is playing in, if they took one.
+function hostSeatIndex() {
+  var i = state.hostSeat;
+  return (i != null && state.players[i]) ? i : null;
+}
+function hostSeatName() {
+  var i = hostSeatIndex();
+  return i == null ? "" : state.players[i].name;
+}
+function hostBuzz() {
+  var i = hostSeatIndex();
+  if (i == null) return;
+  registerBuzz(state.players[i].name, i, null);
+}
+// Claim a seat for this device, or give it up again.
+function takeHostSeat(index) {
+  var i = parseInt(index, 10);
+  if (!state.players[i]) return;
+  state.hostSeat = i;
+  hap("tap");
+  render();
+  broadcastSync();
+}
+function dropHostSeat() {
+  state.hostSeat = null;
+  hap("tap");
+  render();
+  broadcastSync();
+}
+// Add a player for whoever is running the room and sit them in it in one go.
+function addHostPlayer() {
+  var name = String(state.hostSeatInput || "").trim();
+  if (!name) return;
+  if (state.players.length >= MAX_PLAYERS) return;
+  if (state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); })) {
+    state.hostSeatError = "Somebody is already called that.";
+    render();
+    return;
+  }
+  state.players.push({ name: name.slice(0, 16), score: 0, color: PLAYER_COLORS[state.players.length % PLAYER_COLORS.length],
+                       shape: AVATAR_SHAPES[state.players.length % AVATAR_SHAPES.length],
+                       streak: 0, immune: false, skipNextTurn: false });
+  state.hostSeat = state.players.length - 1;
+  state.hostSeatInput = "";
+  state.hostSeatError = "";
+  if (state.teamMode) reconcileTeams();
+  hap("good");
+  render();
+  broadcastSync();
 }
 function clearBuzz() {
   // A buzz left over from a closed room still needs dismissing; with the room
@@ -6967,6 +7053,7 @@ function switchBoard() {
 function newPlayers() {
   state.menuOpen = false;
   clearPause();
+  state.hostSeat = null;
   if (state.buzzer.on) stopBuzzerRoom("The host started a brand-new game, so this room closed.");
   state.match = null;
   state.matchPending = null;
@@ -9661,6 +9748,43 @@ function viewPlayers() {
 // Feud are hot-seat and pass-the-device games, so they stay local.
 function buzzModeOn() {
   return state.playStyle === "buzzers" && state.gameMode === "jeopardy";
+}
+// Whoever opened the room usually wants to play in it. This device can hold a
+// seat like any phone does -- it gets its own buzzer on the question screen --
+// and the room screen is where you claim one.
+function hostSeatHtml() {
+  var seat = hostSeatIndex();
+  if (seat != null) {
+    return '<div class="host-seat host-seat-on">' +
+        '<span class="host-seat-lbl">YOU ARE PLAYING</span>' +
+        '<span class="host-seat-name">' + avatarHtml(state.players[seat], 14) + ' ' +
+          esc(state.players[seat].name) + '</span>' +
+        '<p class="host-seat-note">This device buzzes for you as well as running the game.</p>' +
+        '<button class="code-toggle" data-action="dropHostSeat">Actually, I am just hosting</button>' +
+      '</div>';
+  }
+  // Anyone already on the roster who has not got a phone behind them is a seat
+  // this device could take.
+  var free = state.players.map(function (p, i) { return { p: p, i: i }; })
+    .filter(function (x) { return (state.buzzer.clients || []).indexOf(x.p.name) === -1; });
+  var chips = free.map(function (x) {
+    return '<button class="host-seat-chip" data-action="takeHostSeat" data-i="' + x.i + '">' +
+      avatarHtml(x.p, 12) + esc(x.p.name) + '</button>';
+  }).join("");
+  return '<div class="host-seat">' +
+      '<span class="host-seat-lbl">PLAYING TOO?</span>' +
+      '<p class="host-seat-note">Take a seat on this device and you get a buzzer of your own, ' +
+        'without needing a second phone.</p>' +
+      (chips ? '<div class="host-seat-chips">' + chips + '</div>' : '') +
+      (state.players.length < MAX_PLAYERS
+        ? '<div class="host-seat-add">' +
+            '<input class="input" id="hostSeatInput" maxlength="16" placeholder="Your name" value="' +
+              esc(state.hostSeatInput || "") + '" />' +
+            '<button class="btn-gold" data-action="addHostPlayer">I am playing</button>' +
+          '</div>'
+        : '') +
+      (state.hostSeatError ? '<p class="err">' + esc(state.hostSeatError) + '</p>' : '') +
+    '</div>';
 }
 function buzzRosterHtml() {
   var b = state.buzzer;
@@ -12471,6 +12595,7 @@ function viewHostRoom() {
         if (screens) bits.push(screens + (screens === 1 ? ' TV' : ' TVs'));
         return bits.length ? '<p class="host-join-count">' + bits.join(' + ') + ' connected</p>' : '';
       })() +
+      hostSeatHtml() +
       '<div style="text-align:left;margin-top:16px">' + roomRulesGroupHtml() + '</div>' +
       '<div style="display:flex;gap:10px;margin-top:18px">' +
         '<button class="confirm-btn-cancel" style="flex:1" data-action="stopHostRoom">Close Room</button>' +
@@ -13099,6 +13224,22 @@ function viewClueFooter() {
     } else if (state.buzzer.on && state.buzzer.armed && !state.revealed) {
       buzzBlock = '<div class="buzz-banner buzz-waiting">Buzzers armed &mdash; waiting for a buzz&hellip;</div>';
     }
+  }
+  // The host is playing too, so this device needs a buzzer of its own. It sits
+  // under the banner rather than in it, because the banner is about the room
+  // and this button is about the person holding the device.
+  var hostSeatI = hostSeatIndex();
+  if (hostSeatI != null && state.buzzer.on && !state.revealed && !state.wagering) {
+    var spent = state.roomRules.oneBuzz && state.buzzedThisClue[hostSeatI];
+    var mineWon = state.buzzer.winnerIndex === hostSeatI;
+    buzzBlock += '<button class="host-buzz' + (state.buzzer.armed && !state.buzzer.winnerName && !spent ? '' : ' host-buzz-off') + '" ' +
+      'data-action="hostBuzz"' + (!state.buzzer.armed || state.buzzer.winnerName || spent ? ' disabled' : '') + '>' +
+      (mineWon ? 'YOU BUZZED IN'
+        : spent ? 'You have had your go'
+        : state.buzzer.winnerName ? esc(state.buzzer.winnerName) + ' got there first'
+        : state.buzzer.armed ? 'BUZZ &mdash; ' + esc(state.players[hostSeatI].name)
+        : 'Wait for the question') +
+    '</button>';
   }
 
   var scoreBlock = "";
@@ -13851,6 +13992,11 @@ function render() {
     nameField.addEventListener("input", function (e) { state.nameInput = e.target.value; });
     nameField.addEventListener("keydown", function (e) { if (e.key === "Enter") addPlayer(); });
   }
+  var hostSeatField = document.getElementById("hostSeatInput");
+  if (hostSeatField) {
+    hostSeatField.addEventListener("input", function (e) { state.hostSeatInput = e.target.value; });
+    hostSeatField.addEventListener("keydown", function (e) { if (e.key === "Enter") addHostPlayer(); });
+  }
   var phoneAnswerField = document.getElementById("phoneAnswerInput");
   if (phoneAnswerField) {
     phoneAnswerField.addEventListener("input", function (e) { if (state.buzzClient) state.buzzClient.answerInput = e.target.value; });
@@ -14282,6 +14428,10 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "openHelp") openHelp();
   else if (action === "closeHelp") closeHelp();
   else if (action === "toggleJuice") toggleJuice();
+  else if (action === "hostBuzz") hostBuzz();
+  else if (action === "takeHostSeat") takeHostSeat(t.getAttribute("data-i"));
+  else if (action === "dropHostSeat") dropHostSeat();
+  else if (action === "addHostPlayer") addHostPlayer();
   else if (action === "toggleRoomCode") { state.showRoomCode = !state.showRoomCode; render(); }
   else if (action === "toggleHostPin") { state.showHostPin = !state.showHostPin; render(); }
   else if (action === "toggleHaptics") toggleHaptics();
