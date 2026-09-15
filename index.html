@@ -2371,9 +2371,6 @@
     vertical-align: middle;
   }
   .mode-chip-on .mode-soon { background: rgba(11, 15, 36, 0.25); color: #0b0f24; }
-  .wip-card { text-align: center; border: 1px dashed #2a2f55; }
-  .wip-tag { margin: 0 0 8px; font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #ffd166; }
-  .wip-msg { margin: 0 0 6px; color: #aab0d8; font-size: 13.5px; line-height: 1.5; }
   .pack-btn { font-size: 15px; }
 
   /* the help guide: a sheet you pull up, never forced on anyone */
@@ -3088,6 +3085,16 @@ function repoIssueUrl(title, body, label) {
 // an attached file; this only decides whether a one-click "play it" link can
 // ride along too.
 var ISSUE_URL_MAX = 7000;
+// A share link carries the whole board in its own address, so a real 5x5 board
+// runs 7,000-14,000 characters. Plenty of places quietly cut a link that long
+// -- mail clients wrap it, some chat apps shorten it, older browsers refuse it
+// outright -- and a cut link does not open, it just fails. Under this it is
+// worth handing someone; over it, the board text is the honest route and the
+// link is offered with a warning rather than as the obvious choice.
+var SHARE_LINK_SAFE = 2000;
+function shareLinkIsLong(link) { return !!link && link.length > SHARE_LINK_SAFE; }
+// "13,800" reads better than 13800 on a line someone is skim-reading.
+function groupedNumber(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
 var JF_HIDDEN_KEY = "jf.hidden.v1";
 function hiddenBoardIds() {
@@ -6139,11 +6146,16 @@ function renderSendIt() {
       '<textarea id="sendItText" class="sendit-text" readonly rows="' + (s.payload ? 5 : 4) + '" ' +
         'onclick="this.select()">' + esc(sendItText()) + '</textarea>' +
       (s.link
-        ? '<button class="sendit-btn" data-action="copySendItLink">' +
+        ? '<button class="sendit-btn' + (shareLinkIsLong(s.link) ? ' sendit-btn-quiet' : '') + '" ' +
+            'data-action="copySendItLink">' +
             (s.linkCopied ? 'Link copied \u2713' : 'Copy a link to the board') + '</button>' +
-          '<p class="sendit-fine">The link carries the whole board in it, so it is long &mdash; ' +
-            'but it is still just text, and it opens the board in the browser instead of ' +
-            'downloading anything.</p>'
+          '<p class="sendit-fine">' +
+            (shareLinkIsLong(s.link)
+              ? 'This board makes a ' + groupedNumber(s.link.length) + '-character link. Some apps ' +
+                'cut a link that long, and a cut link will not open &mdash; the board text above is ' +
+                'the one that always arrives.'
+              : 'One line of text. It opens the board in the browser instead of downloading anything.') +
+          '</p>'
         : '') +
       (s.url
         ? '<a class="sendit-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
@@ -8723,14 +8735,6 @@ function modePickerHtml() {
       rows +
     '</div>';
 }
-function setGameMode(id) {
-  if (state.gameMode === id) return;
-  // Switching modes used to leave you sat on the old mode's screen -- a
-  // Jeopardy question with Millionaire selected, or the hot seat with Jeopardy
-  // selected. A game in progress has to be abandoned on purpose.
-  if (gameInProgress()) { askConfirm("Leave this game and switch to " + gameMode(id).short + "? The scores will not be recorded.", "switchGameMode", id); return; }
-  applyGameMode(id);
-}
 function applyGameMode(id) {
   clearPause();
   state.gameMode = id;
@@ -9487,10 +9491,7 @@ function viewPlayers() {
     '</button>';
   // The board builder lives on the main menu now, one entry per game mode,
   // rather than being buried inside the board picker.
-  var packButton = m.status !== "ready"
-    ? '<button class="big-gold pack-btn" style="background:#2a2f55;color:#6a72a8" disabled>' +
-        esc(m.short) + ' ' + m.packWord + 's are not ready yet</button>'
-    : m.id === "millionaire"
+  var packButton = m.id === "millionaire"
     ? '<button class="big-gold pack-btn" data-action="openMilBuilder">Make a ' + m.packWord + '</button>'
     : m.id === "feud"
     ? '<button class="big-gold pack-btn" data-action="openFeudBuilder">Make a ' + m.packWord + '</button>'
@@ -9532,15 +9533,8 @@ function viewPlayers() {
           '<button class="home-notice-x" data-action="dismissHomeMsg" aria-label="Hide this">&times;</button>' +
         '</div>'
       : '') +
-    (m.status === "ready" && m.id === "jeopardy" ? resumeCard : "") +
-    (m.status === "ready" ? "" :
-      '<div class="card wip-card">' +
-        '<p class="wip-tag">WORK IN PROGRESS</p>' +
-        '<p class="wip-msg">' + esc(m.short) + ' is not playable yet. The mode is here so its ' + m.packWord + 's can be built up first &mdash; everything you make now will be waiting when the game itself lands.</p>' +
-        packButton +
-        '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="setGameMode" data-mode="jeopardy">Back to Jeopardy</button>' +
-      '</div>') +
-    (m.status === "ready" ? '<div class="card">' : '<div class="card" hidden>') +
+    (m.id === "jeopardy" ? resumeCard : "") +
+    '<div class="card">' +
       // How you'll play -- buzzers, teams -- is decided at the board, next to
       // the game itself. This screen is only ever "who is playing".
       '<div>' +
@@ -10250,7 +10244,17 @@ function builderToolsHtml(d, bd) {
           '<div style="display:flex;gap:8px;align-items:stretch">' +
             '<input class="input" id="shareUrlInput" readonly onclick="this.select()" value="' + esc(bd.shareUrl) + '" style="font-size:12px;flex:1;min-width:0" />' +
             '<button class="confirm-btn-cancel" style="white-space:nowrap;padding:0 14px" data-action="copyShareUrl">' + (bd.copied ? "Copied!" : "Copy") + '</button>' +
-          '</div></div>'
+          '</div>' +
+          // The link held the whole board and said nothing about how long it
+          // had become. A full board makes one far past what a chat app or a
+          // mail client will carry in one piece.
+          '<p class="builder-hint-note">' +
+            (shareLinkIsLong(bd.shareUrl)
+              ? groupedNumber(bd.shareUrl.length) + ' characters &mdash; long enough that some apps will ' +
+                'cut it, and a cut link will not open. For a board this size, send it with ' +
+                '&ldquo;Paste a board somebody sent&rdquo; at the bottom instead.'
+              : groupedNumber(bd.shareUrl.length) + ' characters &mdash; short enough to send anywhere.') +
+          '</p></div>'
       : '') +
     '<div class="btools-row">' +
       '<button class="pbar-btn" data-action="shareBuilder">Share link</button>' +
@@ -14173,7 +14177,6 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "toggleWheelOfChaos") toggleWheelOfChaos();
   else if (action === "toggleAdultMode") toggleAdultMode();
   else if (action === "togglePhoneMirror") togglePhoneMirror();
-  else if (action === "setGameMode") setGameMode(t.getAttribute("data-mode"));
   else if (action === "openHelp") openHelp();
   else if (action === "closeHelp") closeHelp();
   else if (action === "toggleJuice") toggleJuice();
