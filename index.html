@@ -7,6 +7,45 @@
 <script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  /* ---- every letter gets an outline ----
+     Two things make this work rather than wreck the text.
+
+     paint-order:stroke fill draws the stroke BEHIND the glyph. Without it a
+     text-stroke is painted over the letter and eats it from the inside, so
+     small faint text comes out thinner and harder to read -- the opposite of
+     the point. With it, the outline sits outside and nothing is lost.
+
+     And the outline has to be darker than the text, not just dark: nearly
+     everything here is light type on deep navy, so one hairline of the
+     background colour is enough to lift every label off whatever is behind
+     it -- board art, a video frame, a coloured tile. The few light surfaces
+     (gold buttons, the green and red score keys) carry dark type instead, so
+     they flip to a light outline further down rather than smearing. */
+  :root { --ink-outline: rgba(3, 5, 14, 0.62); --ink-outline-w: 0.6px; }
+  *, *::before, *::after {
+    -webkit-text-stroke: var(--ink-outline-w) var(--ink-outline);
+    paint-order: stroke fill;
+  }
+  /* Dark type on a bright surface wants the opposite: a light hairline, or the
+     outline just thickens the letters into a blur. */
+  .btn-gold, .big-gold, .plus-btn, .minus-btn, .hc-right, .hc-wrong,
+  .hc-reveal, .hc-next, .mp-now, .confirm-btn-yes, .pause-resume,
+  .hc-wheel-landed, .hc-wheel-success, .hc-wheel-failure,
+  .spectate-big, .reel-landed, .grp-mini, .hc-mini, .hc-mini2,
+  .list-slot-up, .lm-open {
+    --ink-outline: rgba(255, 255, 255, 0.34);
+  }
+  /* Anything laid over artwork or a video frame gets a heavier one, because
+     the thing behind it is not a colour we chose. */
+  .stage-backdrop ~ * .clue-box, .spectate-kicker, .spectate-note,
+  .buzz-clip-veil-text, .board-card-name, .board-card-tag, .preview-art-wrap ~ *,
+  .test-banner-text, .test-banner-tag, .pause-word, .pause-sub {
+    --ink-outline: rgba(3, 5, 14, 0.8); --ink-outline-w: 0.8px;
+  }
+  /* An input's own text is drawn by the platform; stroking it fights the
+     caret and the placeholder on some browsers, so these opt out. */
+  input, textarea, select, option { -webkit-text-stroke: 0; paint-order: normal; }
   /* The screen shake translates #root sideways. Without this, every wrong
      answer briefly made the whole page scrollable sideways -- up to 13px, and
      enough to jog the scroll position on a phone. */
