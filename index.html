@@ -4727,8 +4727,13 @@ function dropHostSeat() {
 // Add a player for whoever is running the room and sit them in it in one go.
 function addHostPlayer() {
   var name = String(state.hostSeatInput || "").trim();
-  if (!name) return;
-  if (state.players.length >= MAX_PLAYERS) return;
+  // A button that silently does nothing reads as broken. Say what is missing.
+  if (!name) { state.hostSeatError = "Type a name first, then tap this."; render(); return; }
+  if (state.players.length >= MAX_PLAYERS) {
+    state.hostSeatError = "The game is full at " + MAX_PLAYERS + " players.";
+    render();
+    return;
+  }
   if (state.players.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); })) {
     state.hostSeatError = "Somebody is already called that.";
     render();
