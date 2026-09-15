@@ -11628,10 +11628,14 @@ function viewHostControl(bc) {
         ? '<button class="hc-btn hc-dim" style="width:100%" data-action="hostStartDrawing" data-i="-1">Get someone to draw it</button>'
         : '') +
       (c.draw
-        ? '<p class="hc-wheel-note">' + esc(c.draw.by || "Someone") + ' has the pen.</p>' +
+        ? '<p class="hc-wheel-note">' + esc(c.draw.by || "Someone") + ' has the pen &middot; ' +
+            ((c.draw.strokes || []).length
+              ? (c.draw.strokes.length === 1 ? '1 stroke' : c.draw.strokes.length + ' strokes')
+              : 'nothing yet') + '</p>' +
           '<canvas id="drawCanvas" class="draw-canvas draw-canvas-phone"></canvas>' +
           '<div class="hc-actions">' +
-            '<button class="hc-btn hc-dim" data-action="hostClearDrawing">Start again</button>' +
+            '<button class="hc-btn hc-dim" data-action="hostClearDrawing"' +
+              ((c.draw.strokes || []).length ? '' : ' disabled') + '>Start again</button>' +
             '<button class="hc-btn hc-dim" data-action="hostStopDrawing">Pen down</button>' +
           '</div>'
         : '') +
@@ -12836,11 +12840,18 @@ function viewClueFooter() {
     drawBlock = '<div class="draw-block">' +
         '<p class="grp-head">' + esc((artist.name || "SOMEONE").toUpperCase()) + ' IS DRAWING</p>' +
         '<canvas id="drawCanvas" class="draw-canvas"' + (onPhone ? '' : ' data-live="1"') + '></canvas>' +
+        // The picture itself is a bitmap, so the page says in words whether
+        // anything is on it -- which is also the only way to tell at a glance
+        // that a phone's strokes are arriving.
         '<p class="letter-note">' +
-          (onPhone ? 'Drawing on their phone. Everyone else: shout it out.'
-                   : 'Draw here with a finger or the mouse. Everyone else: no peeking at the answer.') + '</p>' +
+          (state.draw.strokes.length
+            ? state.draw.strokes.length + (state.draw.strokes.length === 1 ? ' stroke' : ' strokes') + ' so far'
+            : 'Nothing drawn yet') + ' &middot; ' +
+          (onPhone ? 'drawing on their phone, everyone else shout it out'
+                   : 'draw here with a finger or the mouse') + '</p>' +
         '<div class="draw-btns">' +
-          '<button class="letter-btn" data-action="clearDrawing">Start the picture again</button>' +
+          '<button class="letter-btn" data-action="clearDrawing"' +
+            (state.draw.strokes.length ? '' : ' disabled') + '>Start the picture again</button>' +
           '<button class="letter-btn" data-action="stopDrawing">Put the pen down</button>' +
         '</div>' +
       '</div>';
