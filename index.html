@@ -9450,7 +9450,8 @@ function activeRuleCount() {
   var r = state.roomRules, n = 0;
   if (state.timerEnabled) n++;
   if (r.ddCount) n++;
-  ["streakBonus", "noMinus", "floorZero", "keepTurn", "readAloud"].forEach(function (k) { if (r[k]) n++; });
+  ["streakBonus", "noMinus", "floorZero", "keepTurn", "readAloud",
+   "groupClues", "letterReveal"].forEach(function (k) { if (r[k]) n++; });
   if (buzzModeOn() && r.oneBuzz) n++;
   if (state.wheelOfChaosEnabled) n++;
   if (state.phoneMirror) n++;
@@ -11220,7 +11221,10 @@ function typeInHtml(c, bc, forHost) {
       : '<div style="display:flex;gap:8px;margin-top:10px">' +
           '<input class="input" id="clueGuessInput"' + (t.numeric ? ' inputmode="decimal"' : '') +
             ' placeholder="' + (t.numeric ? 'Your number' : 'Your answer') + '" value="' + esc(bc.guessInput || "") + '" style="flex:1;min-width:0" />' +
-          '<button class="btn-gold" data-action="sendClueGuess">Send</button>' +
+          // Nothing to send yet, so the button says so instead of taking the
+          // tap and doing nothing with it. The input handler wakes it up.
+          '<button class="btn-gold" id="clueGuessSend" data-action="sendClueGuess"' +
+            (String(bc.guessInput || "").trim() ? '' : ' disabled') + '>Send</button>' +
         '</div>' +
         '<p class="buzz-timer-note">It goes to the host, not the big screen.</p>';
   } else if (!forHost && !mine) {
@@ -11864,6 +11868,20 @@ function settingsPanelHtml(which) {
     setToggleRow("toggleKeepTurn", "Correct Answer Picks Next", "Instead of the turn simply rotating", r.keepTurn) +
     (buzzModeOn() ? setToggleRow("toggleOneBuzz", "One Buzz Per Question", "Each player gets one shot", r.oneBuzz) : "") +
     setToggleRow("toggleReadAloud", "Host Reads It Out", "The question stays hidden until the host shows it &mdash; buzz early at your own risk", r.readAloud) +
+    // These two live here as well as in the room screen, or a host playing on
+    // one screen would never find them -- the room screen only exists once you
+    // are running phone buzzers.
+    setToggleRow("toggleGroupClues", "Everybody Answers", "The host can throw a question open to the whole room &mdash; everyone writes an answer and everyone is marked", r.groupClues) +
+    setToggleRow("toggleLetterReveal", "Give Away Letters", "The host can open the answer a letter at a time, and the question gets cheaper with every one", r.letterReveal) +
+    (r.letterReveal
+      ? '<div class="set-row set-row-static"><span class="set-main"><span class="set-name">A letter every</span>' +
+          '<span class="set-note">' + (r.letterAuto ? 'on its own, hands off' : 'only when the host taps') + '</span></span>' +
+        '<span class="set-side">' +
+          '<button data-action="letterAutoAdj" data-d="-1" class="stepper-btn">&minus;</button>' +
+          '<span class="set-val">' + (r.letterAuto ? r.letterAuto + 's' : 'Tap') + '</span>' +
+          '<button data-action="letterAutoAdj" data-d="1" class="stepper-btn">+</button>' +
+        '</span></div>'
+      : '') +
     setToggleRow("toggleWheelOfChaos", "Wheel of Chaos", "Random challenges between questions", state.wheelOfChaosEnabled);
 
   var room = setToggleRow("togglePhoneMirror", "Mirror Questions to Phones",
@@ -12248,7 +12266,8 @@ function viewTypeInClue(item) {
       '<input class="input" id="guessInput"' + (numeric ? ' inputmode="decimal"' : '') +
         ' placeholder="' + (numeric ? 'A number' : 'Type the answer') +
         (owner ? ' for ' + esc(owner.name) : '') + '" value="' + esc(state.guessInput || "") + '" />' +
-      '<button class="btn-gold" data-action="sendOwnGuess">Lock it in</button>' +
+      '<button class="btn-gold" id="guessSend" data-action="sendOwnGuess"' +
+        (String(state.guessInput || "").trim() ? '' : ' disabled') + '>Lock it in</button>' +
     '</div>' +
     '<p class="guess-note">' +
       (state.buzzer.on
@@ -13261,9 +13280,17 @@ document.getElementById("root").addEventListener("input", function (e) {
     return;
   }
   if (t && t.getAttribute && t.getAttribute("data-bind")) builderSetField(t.getAttribute("data-bind"), t.value);
-  if (t && t.id === "guessInput") setGuessInput(t.value);
+  if (t && t.id === "guessInput") {
+    setGuessInput(t.value);
+    var ownSend = document.getElementById("guessSend");
+    if (ownSend) ownSend.disabled = !String(t.value || "").trim();
+  }
   if (t && t.id === "pasteBoardText") state.pasteImport = t.value;
-  if (t && t.id === "clueGuessInput" && state.buzzClient) state.buzzClient.guessInput = t.value;
+  if (t && t.id === "clueGuessInput" && state.buzzClient) {
+    state.buzzClient.guessInput = t.value;
+    var sendBtn = document.getElementById("clueGuessSend");
+    if (sendBtn) sendBtn.disabled = !String(t.value || "").trim();
+  }
   if (t && t.getAttribute && t.getAttribute("data-listitem")) {
     var li = t.getAttribute("data-listitem").split(":");   // <row>:<index>
     builderSetListItem(+li[0], +li[1], t.value);           // no render: it would eat the caret
