@@ -13209,6 +13209,11 @@ function viewFinalWager(fin) {
       '</div>' +
       '<p class="muted">Pass the device to the host, then on to the next player.</p>' +
     '</div>' +
+    // The clue and answer stages both offer this; the wager stage did not, so
+    // a room that did not want to play Final had to wager their way into it
+    // first.
+    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="skipFinal">' +
+      'Skip Final Jeopardy &mdash; straight to the results</button>' +
   '</div></div>';
 }
 
@@ -13285,9 +13290,13 @@ function viewFinalAnswerStage(fin) {
 
 function viewFinal() {
   var fin = currentBoard().final;
-  if (state.finalStage === "clue") return viewFinalClue(fin);
-  if (state.finalStage === "answer") return viewFinalAnswerStage(fin);
-  return viewFinalWager(fin);
+  // Final had no menu at all, which meant no pause, no help and no way to
+  // leave the round -- the pause this mode is supposed to have could not be
+  // reached from the one screen it was most likely to be wanted on.
+  var menu = renderMenu(withUndo(gameMenuItems(false)));
+  if (state.finalStage === "clue") return menu + viewFinalClue(fin);
+  if (state.finalStage === "answer") return menu + viewFinalAnswerStage(fin);
+  return menu + viewFinalWager(fin);
 }
 
 function viewManagePlayers() {
