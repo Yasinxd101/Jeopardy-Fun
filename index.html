@@ -6983,6 +6983,11 @@ function findSegment(wheelKey, id) {
 }
 function openWheel() {
   if (!state.wheelOfChaosEnabled || !state.players.length || state.wheel) return;
+  // The wheel belongs to the Jeopardy board. Its effects reach straight into
+  // player scores, which Millionaire and Feud do not keep there -- a spin over
+  // either of them would move numbers nobody is looking at. The button only
+  // renders on the board, but the door should be shut, not merely unmarked.
+  if (state.gameMode !== "jeopardy" || state.phase !== "board") return;
   state.menuOpen = false;
   state.wheel = {
     activeWheel: "chaos", stage: "choose", targetIndex: null, segmentId: null, rotation: 0,
@@ -7039,10 +7044,19 @@ function wheelTilePlan() {
     return { index: who, wheel: WHEEL_REASONS[outcome].wheel, reason: outcome, queue: [] };
   }
   // Nobody answered. Everyone spins the bad wheel, starting with whoever's
-  // turn it was, so the order is the one the room is already used to.
+  // turn it was, so the order is the one the room is already used to. In team
+  // mode that is one spin per TEAM -- queueing players put a two-person team
+  // on the bad wheel twice for the same unanswered question.
   var order = [];
+  var seen = [];
   for (var n = 0; n < state.players.length; n++) {
-    order.push((state.turn + n) % state.players.length);
+    var at = (state.turn + n) % state.players.length;
+    if (teamModeOn()) {
+      var t = teamOf(at);
+      if (seen.indexOf(t) !== -1) continue;
+      seen.push(t);
+    }
+    order.push(at);
   }
   var first = order.shift();
   return { index: first, wheel: "failure", reason: "nobody", queue: order };
@@ -7117,39 +7131,67 @@ function spinActiveWheel() {
   }
   setTimeout(landActiveWheel, 2600);
 }
+// Every score the wheel touches goes through here, so the wheel plays by the
+// same rules as the rest of the game: the host's floor applies, and a team
+// moves as one. A wheel win used to land on one member and leave the rest of
+// their team on the old number, which left the team with two scores.
+function wheelSet(i, value) {
+  var p = state.players[i];
+  if (!p) return 0;
+  var next = Math.round(value);
+  if (state.roomRules.floorZero && next < 0) next = 0;
+  p.score = next;
+  teamMates(i).forEach(function (n) { if (n !== i && state.players[n]) state.players[n].score = next; });
+  return next;
+}
+// Who the wheel is talking about. In team mode a single name is misleading --
+// the points are the team's.
+function wheelWho(i) {
+  if (teamModeOn()) return teamLabel(teamOf(i)) || (state.players[i] || {}).name || "";
+  return (state.players[i] || {}).name || "";
+}
 function applyWheelEffect(outcome) {
   var w = state.wheel;
   var idx = w.targetIndex;
   var target = state.players[idx];
+  var name = wheelWho(idx);
   if (target.immune && NEGATIVE_WHEEL_EFFECTS.indexOf(outcome.effect) !== -1) {
     target.immune = false;
-    w.summary = target.name + " was protected by immunity — no effect.";
+    w.summary = name + " was protected by immunity \u2014 no effect.";
     w.summaryGood = true;
     return;
   }
   var old = target.score;
   var summary, good = true;
+  // Everyone who is not on the target's side. Without the team check the wheel
+  // happily picked a team-mate as the rival, so a team stole from itself.
+  var mates = teamMates(idx);
   var others = [];
-  for (var i = 0; i < state.players.length; i++) { if (i !== idx) others.push(i); }
+  for (var i = 0; i < state.players.length; i++) {
+    if (i !== idx && mates.indexOf(i) === -1) others.push(i);
+  }
+  var nobody = teamModeOn() ? "No other team to target \u2014 nothing happens."
+                            : "No other players to target \u2014 nothing happens.";
+  var moved = function (i, before) { return wheelWho(i) + ": " + before + " \u2192 " + state.players[i].score; };
 
   if (outcome.effect === "gain") {
-    target.score += outcome.amount;
-    summary = target.name + ": +" + outcome.amount + " (" + old + " → " + target.score + ")";
+    wheelSet(idx, old + outcome.amount);
+    summary = name + ": +" + (target.score - old) + " (" + old + " \u2192 " + target.score + ")";
   } else if (outcome.effect === "lose") {
-    target.score -= outcome.amount;
-    summary = target.name + ": -" + outcome.amount + " (" + old + " → " + target.score + ")";
+    wheelSet(idx, old - outcome.amount);
+    summary = name + ": " + (target.score - old) + " (" + old + " \u2192 " + target.score + ")";
     good = false;
   } else if (outcome.effect === "double") {
-    target.score = target.score * 2;
-    summary = target.name + ": " + old + " → " + target.score + " (doubled)";
+    wheelSet(idx, old * 2);
+    summary = name + ": " + old + " \u2192 " + target.score + " (doubled)";
     good = target.score >= old;
   } else if (outcome.effect === "halve") {
-    target.score = Math.round(target.score / 2);
-    summary = target.name + ": " + old + " → " + target.score + " (halved)";
+    wheelSet(idx, old / 2);
+    summary = name + ": " + old + " \u2192 " + target.score + " (halved)";
     good = false;
   } else if (outcome.effect === "steal" || outcome.effect === "swap" || outcome.effect === "robbed") {
     if (!others.length) {
-      summary = "No other players to target — nothing happens.";
+      summary = nobody;
     } else {
       var oppIdx = others[Math.floor(Math.random() * others.length)];
       w.opponentIndex = oppIdx;
@@ -7157,78 +7199,84 @@ function applyWheelEffect(outcome) {
       var oppOld = opp.score;
       if (outcome.effect === "steal") {
         var amt = Math.min(outcome.amount, Math.max(opp.score, 0));
-        opp.score -= amt;
-        target.score += amt;
-        summary = target.name + " steals " + amt + " from " + opp.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + opp.name + ": " + oppOld + " → " + opp.score + ")";
+        wheelSet(oppIdx, oppOld - amt);
+        wheelSet(idx, old + amt);
+        summary = name + " steals " + amt + " from " + wheelWho(oppIdx) + ". (" +
+          moved(idx, old) + ", " + moved(oppIdx, oppOld) + ")";
       } else if (outcome.effect === "robbed") {
         var amt2 = Math.min(outcome.amount, Math.max(target.score, 0));
-        target.score -= amt2;
-        opp.score += amt2;
-        summary = opp.name + " steals " + amt2 + " from " + target.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + opp.name + ": " + oppOld + " → " + opp.score + ")";
+        wheelSet(idx, old - amt2);
+        wheelSet(oppIdx, oppOld + amt2);
+        summary = wheelWho(oppIdx) + " steals " + amt2 + " from " + name + ". (" +
+          moved(idx, old) + ", " + moved(oppIdx, oppOld) + ")";
         good = false;
       } else {
-        var tmp = target.score; target.score = opp.score; opp.score = tmp;
-        summary = target.name + " and " + opp.name + " swap scores! (" + target.name + ": " + old + " → " + target.score + ", " + opp.name + ": " + oppOld + " → " + opp.score + ")";
+        wheelSet(idx, oppOld);
+        wheelSet(oppIdx, old);
+        summary = name + " and " + wheelWho(oppIdx) + " swap scores! (" +
+          moved(idx, old) + ", " + moved(oppIdx, oppOld) + ")";
         good = target.score >= old;
       }
     }
   } else if (outcome.effect === "stealLeader") {
     if (!others.length) {
-      summary = "No other players to target — nothing happens.";
+      summary = nobody;
     } else {
       var leaderIdx = others[0];
       others.forEach(function (i2) { if (state.players[i2].score > state.players[leaderIdx].score) leaderIdx = i2; });
-      var leader = state.players[leaderIdx];
-      var leaderOld = leader.score;
-      var amt3 = Math.min(outcome.amount, Math.max(leader.score, 0));
-      leader.score -= amt3;
-      target.score += amt3;
+      var leaderOld = state.players[leaderIdx].score;
+      var amt3 = Math.min(outcome.amount, Math.max(leaderOld, 0));
+      wheelSet(leaderIdx, leaderOld - amt3);
+      wheelSet(idx, old + amt3);
       w.opponentIndex = leaderIdx;
-      summary = target.name + " steals " + amt3 + " from leader " + leader.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + leader.name + ": " + leaderOld + " → " + leader.score + ")";
+      summary = name + " steals " + amt3 + " from " + wheelWho(leaderIdx) + " in front. (" +
+        moved(idx, old) + ", " + moved(leaderIdx, leaderOld) + ")";
     }
   } else if (outcome.effect === "giveRival") {
     if (!others.length) {
-      summary = "No other players to target — nothing happens.";
+      summary = nobody;
     } else {
       var rivalIdx = others[Math.floor(Math.random() * others.length)];
-      var rival = state.players[rivalIdx];
-      var rivalOld = rival.score;
+      var rivalOld = state.players[rivalIdx].score;
       var amt4 = Math.min(outcome.amount, Math.max(target.score, 0));
-      target.score -= amt4;
-      rival.score += amt4;
+      wheelSet(idx, old - amt4);
+      wheelSet(rivalIdx, rivalOld + amt4);
       w.opponentIndex = rivalIdx;
-      summary = target.name + " hands " + amt4 + " points to " + rival.name + ". (" + target.name + ": " + old + " → " + target.score + ", " + rival.name + ": " + rivalOld + " → " + rival.score + ")";
+      summary = name + " hands " + amt4 + " points to " + wheelWho(rivalIdx) + ". (" +
+        moved(idx, old) + ", " + moved(rivalIdx, rivalOld) + ")";
       good = false;
     }
   } else if (outcome.effect === "swapFirst" || outcome.effect === "swapLast") {
     if (!others.length) {
-      summary = "No other players to target — nothing happens.";
+      summary = nobody;
     } else {
       var pickIdx = others[0];
       others.forEach(function (i5) {
         if (outcome.effect === "swapFirst" ? state.players[i5].score > state.players[pickIdx].score
                                            : state.players[i5].score < state.players[pickIdx].score) pickIdx = i5;
       });
-      var mark = state.players[pickIdx];
-      var markOld = mark.score;
-      var tmp2 = target.score; target.score = mark.score; mark.score = tmp2;
+      var markOld = state.players[pickIdx].score;
+      wheelSet(idx, markOld);
+      wheelSet(pickIdx, old);
       w.opponentIndex = pickIdx;
-      summary = target.name + " swaps scores with " + (outcome.effect === "swapFirst" ? "the leader " : "last-place ") + mark.name +
-        "! (" + target.name + ": " + old + " → " + target.score + ", " + mark.name + ": " + markOld + " → " + mark.score + ")";
+      summary = name + " swaps scores with " + (outcome.effect === "swapFirst" ? "the leader " : "last-place ") +
+        wheelWho(pickIdx) + "! (" + moved(idx, old) + ", " + moved(pickIdx, markOld) + ")";
       good = target.score >= old;
     }
   } else if (outcome.effect === "immunity") {
-    target.immune = true;
-    summary = target.name + " is now immune to the next negative effect against them.";
+    // Immunity belongs to the whole side in team mode, or it is a coin flip
+    // whether the protected member is the one the wheel comes back to.
+    mates.forEach(function (n) { if (state.players[n]) state.players[n].immune = true; });
+    summary = name + " is now immune to the next negative effect against them.";
   } else if (outcome.effect === "freeTilePick") {
     state.turn = idx;
-    summary = target.name + " gets the next tile pick.";
+    summary = name + " gets the next tile pick.";
   } else if (outcome.effect === "skipTurn") {
-    target.skipNextTurn = true;
-    summary = target.name + " will skip their next turn.";
+    mates.forEach(function (n) { if (state.players[n]) state.players[n].skipNextTurn = true; });
+    summary = name + " will skip their next turn.";
     good = false;
   } else {
-    summary = target.name + ": nothing happens.";
+    summary = name + ": nothing happens.";
   }
   w.summary = summary;
   w.summaryGood = good;
