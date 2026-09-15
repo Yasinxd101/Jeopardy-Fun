@@ -1344,6 +1344,7 @@
 
   /* sending a board in, or reporting one: real links, not a blocked popup */
   .sendit-note { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: #aab0d8; }
+  .sendit-fine { margin: 4px 0 0; font-size: 11px; line-height: 1.4; color: #6a72a8; text-align: center; }
   .sendit-btn {
     display: block; width: 100%; box-sizing: border-box; margin-top: 8px;
     padding: 13px; min-height: 46px; border-radius: 11px; text-align: center;
@@ -5981,8 +5982,12 @@ function submitBoardForReview() {
   // file is the normal way a board travels and the link is a bonus for the
   // small ones -- it lets the reviewer play the board in one click.
   var title = "Fan board: " + d.name;
-  var attachNote = "The board file has been downloaded to this device. " +
-    "Please drag `" + boardFileName(d) + "` into this issue before you submit it.\n";
+  // This used to tell people to drag in a file. Downloading is opt-in now, so
+  // that file usually does not exist -- and a submission that arrives as a
+  // file is a submission someone has to open. Text and links only.
+  var attachNote = "Paste the board text underneath this line \u2014 the app's " +
+    "\"Copy the board\" button puts it on your clipboard. Please do not attach a " +
+    "file; plain text can be read before it is opened.\n";
   var link = "";
   try { link = shareLinkFor(d); } catch (e) {}
   var withLink = link ? head + "**Play it here:** " + link + "\n\n" + attachNote : "";
@@ -5994,15 +5999,15 @@ function submitBoardForReview() {
   state.builder.submitMsg = "";
   openSendIt({
     title: "Send \u201C" + d.name + "\u201D in",
-    note: "Copy the board text below and paste it into the issue or the email. " +
-          "Nothing is downloaded and nothing is attached \u2014 it is plain text, " +
-          "readable before it is opened, and it pastes straight back into the app.",
+    note: "Send it as text or as a link \u2014 never as a file. Both paste straight " +
+          "back into the app, and both can be read before they are opened.",
     url: url,
     subject: title,
     body: head,
     payload: JSON.stringify(d),
     payloadLabel: "The board",
     fileName: boardFileName(d),
+    link: link,
   });
 }
 function reportBoard(id) {
@@ -6043,6 +6048,11 @@ function openSendIt(opts) {
     payload: opts.payload || "",
     payloadLabel: opts.payloadLabel || "",
     fileName: opts.fileName || "",
+    // A link to the board is the safest thing to send: it is one line of
+    // text, it can be read before it is clicked, and it opens in the browser
+    // rather than landing in anyone's downloads.
+    link: opts.link || "",
+    linkCopied: false,
   };
   render();
 }
@@ -6070,6 +6080,22 @@ function downloadSendIt() {
   document.body.appendChild(a);
   a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+}
+function copySendItLink() {
+  var s = state.sendIt;
+  if (!s || !s.link) return;
+  var mark = function () { s.linkCopied = true; render(); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s.link).then(mark, mark);
+      return;
+    }
+  } catch (e) {}
+  // No clipboard on a file:// page or an old browser: put it in the box so it
+  // can be selected by hand rather than leaving the button doing nothing.
+  var box = document.getElementById("sendItText");
+  if (box) { box.value = s.link; box.select(); }
+  mark();
 }
 function copySendIt() {
   var s = state.sendIt;
@@ -6105,6 +6131,13 @@ function renderSendIt() {
         (s.copied ? 'Copied \u2713' : s.payload ? 'Copy the board' : 'Copy the details') + '</button>' +
       '<textarea id="sendItText" class="sendit-text" readonly rows="' + (s.payload ? 5 : 4) + '" ' +
         'onclick="this.select()">' + esc(sendItText()) + '</textarea>' +
+      (s.link
+        ? '<button class="sendit-btn" data-action="copySendItLink">' +
+            (s.linkCopied ? 'Link copied \u2713' : 'Copy a link to the board') + '</button>' +
+          '<p class="sendit-fine">The link carries the whole board in it, so it is long &mdash; ' +
+            'but it is still just text, and it opens the board in the browser instead of ' +
+            'downloading anything.</p>'
+        : '') +
       (s.url
         ? '<a class="sendit-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
             'Open an issue on GitHub</a>'
@@ -6113,7 +6146,8 @@ function renderSendIt() {
         ? '<a class="sendit-btn" href="' + esc(mailtoUrl(s.subject, s.body)) + '">Start an email</a>'
         : '') +
       (s.payload
-        ? '<button class="sendit-btn sendit-btn-quiet" data-action="downloadSendIt">Save it as a file instead</button>'
+        ? '<button class="sendit-btn sendit-btn-quiet" data-action="downloadSendIt">Save it as a file instead</button>' +
+          '<p class="sendit-fine">Only if the other two will not do &mdash; please do not send the file on.</p>'
         : '') +
       '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px" data-action="closeSendIt">Done</button>' +
     '</div>' +
@@ -14057,6 +14091,7 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "builderClearArt") builderClearArt();
   else if (action === "closeSendIt") closeSendIt();
   else if (action === "copySendIt") copySendIt();
+  else if (action === "copySendItLink") copySendItLink();
   else if (action === "downloadSendIt") downloadSendIt();
   else if (action === "openPasteImport") openPasteImport();
   else if (action === "closePasteImport") closePasteImport();
