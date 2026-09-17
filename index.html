@@ -1145,6 +1145,48 @@
   .spectate-standrow { display: flex; align-items: center; gap: 12px; background: rgba(22, 27, 61, 0.9); border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: clamp(16px, 2.4vw, 22px); color: #fff; }
   .spectate-champ { border: 1px solid #ffd166; color: #ffd166; }
   .spectate-rank { color: #8b92c0; min-width: 20px; }
+  .spectate-dd { color: #ffd166; font-weight: 900; letter-spacing: 3px; margin: 6px 0 0;
+    font-size: clamp(16px, 2.2vw, 26px); }
+  /* the rules, on a TV: two columns so a long list stays short vertically */
+  .tv-mods { width: 100%; max-width: 900px; margin: 0 auto; }
+  .tv-mods-lbl { color: #8b92c0; font-weight: 900; letter-spacing: 3px; font-size: clamp(11px, 1.2vw, 15px); margin: 0 0 8px; }
+  .tv-mods-list { display: flex; flex-wrap: wrap; gap: 6px 8px; justify-content: center; }
+  .tv-mod { background: rgba(22, 27, 61, 0.8); border: 1px solid #3a4180; border-radius: 999px;
+    padding: 5px 14px; color: #ffd166; font-weight: 800; font-size: clamp(12px, 1.15vw, 16px); }
+  .tv-mods-foot { color: #8b92c0; font-size: clamp(10px, 1vw, 13px); margin: 8px 0 0; }
+  /* the rules, as chips: on the board screen and on a phone between questions */
+  .mod-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: center;
+    margin: 0 0 12px; padding: 8px 10px; background: rgba(22, 27, 61, 0.55);
+    border: 1px solid #2a2f55; border-radius: 12px; cursor: pointer; }
+  .mod-row[data-action]:hover { border-color: #3da9fc; }
+  .mod-row-lbl { color: #8b92c0; font-weight: 900; letter-spacing: 2px; font-size: 10px; }
+  .mod-chip { background: #1d2455; border: 1px solid #3a4180; border-radius: 999px;
+    padding: 3px 10px; font-size: 11px; font-weight: 800; color: #d8ddf5; }
+  .mod-row-more { color: #3da9fc; font-size: 10.5px; font-weight: 800; text-decoration: underline; }
+  .mods-card { max-width: 440px; text-align: left; }
+  .mods-title { margin: 0 0 12px; color: #ffd166; font-weight: 900; letter-spacing: 3px; font-size: 13px; text-align: center; }
+  .mods-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
+  .mods-item { background: #161b3d; border: 1px solid #2a2f55; border-radius: 10px; padding: 9px 12px;
+    display: flex; flex-direction: column; gap: 2px; }
+  .mods-name { color: #fff; font-weight: 900; font-size: 14px; }
+  .mods-note { color: #aab0d8; font-size: 12px; line-height: 1.45; }
+  .mods-none { color: #aab0d8; font-size: 13px; text-align: center; margin: 0 0 8px; }
+  /* a Daily Double, on a phone: whose it is and what is riding on it */
+  .buzz-dd {
+    display: flex; flex-direction: column; gap: 3px; margin: 0 0 8px;
+    background: rgba(255, 209, 102, 0.12); border: 1px solid rgba(255, 209, 102, 0.45);
+    border-radius: 12px; padding: 9px 12px; text-align: center;
+  }
+  .buzz-dd-mine { background: rgba(255, 209, 102, 0.22); border-color: #ffd166; }
+  .buzz-dd-tag { color: #ffd166; font-weight: 900; letter-spacing: 2px; font-size: 12px; }
+  .buzz-dd-wager { color: #fff; font-weight: 900; font-size: 17px; }
+  .buzz-dd-note { color: #d8ddf5; font-size: 11.5px; line-height: 1.4; }
+  /* the wager screen, when a house rule does not cover the wager */
+  .dd-risk {
+    margin: 0 0 12px; background: rgba(255, 138, 160, 0.12); border: 1px solid rgba(255, 138, 160, 0.4);
+    border-radius: 10px; padding: 9px 12px; color: #ffc2ce; font-size: 12.5px;
+    font-weight: 700; line-height: 1.45; text-align: center;
+  }
   /* A TV with no game on it yet is the best sign-up sheet in the room: the
      code is the size of a headline and the QR is next to it, so joining is
      "look up, point your phone" instead of "ask the host what the code was". */
@@ -1152,7 +1194,10 @@
   .tv-join-kicker { color: #8b92c0; font-weight: 900; letter-spacing: 4px; font-size: clamp(13px, 1.8vw, 20px); margin: 0; }
   .tv-join-code {
     color: #ffd166; font-weight: 900; line-height: 1;
-    font-size: clamp(76px, 18vw, 240px); letter-spacing: clamp(6px, 2vw, 26px);
+    /* Height has a vote, not just width. On a 720p set an 18vw code is 230px
+       tall and the rules list underneath had nowhere to go -- and a TV cannot
+       be scrolled, so it simply fell off the bottom of the room's view. */
+    font-size: clamp(64px, min(18vw, 24vh), 240px); letter-spacing: clamp(6px, 2vw, 26px);
     text-indent: clamp(6px, 2vw, 26px);   /* letter-spacing pads the right only */
     text-shadow: 0 0 40px rgba(255, 209, 102, 0.35);
   }
@@ -1176,10 +1221,12 @@
      see it. The canvas is therefore sized by the height that is left over
      rather than by the width it would like. */
   .spectate .draw-canvas { height: min(56vh, 520px); width: auto; max-width: 100%; margin: 8px auto 0; }
-  @media (max-height: 800px) {
-    .spectate { padding: 20px 20px 62px; }
-    .tv-join { gap: 10px; }
-    .tv-join-qr img { width: clamp(120px, 15vw, 180px); height: clamp(120px, 15vw, 180px); }
+  @media (max-height: 900px) {
+    .spectate { padding: 14px 20px 52px; }
+    .tv-join { gap: 6px; }
+    .tv-join-how p { margin-bottom: 4px; }
+    .tv-join-qr img { width: clamp(110px, 13vw, 170px); height: clamp(110px, 13vw, 170px); }
+    .tv-mods-foot { margin-top: 4px; }
   }
   .buzz-judge {
     border: none; border-radius: 8px; padding: 8px 16px; font-weight: 900;
@@ -3600,6 +3647,7 @@ var state = {
   editNameError: "",
   settingsOpen: false,
   rulesOpen: false,      // the house rules, open on the board-pick screen
+  modsOpen: false,       // the "rules in play" sheet, over any screen
   mil: null,              // Millionaire run in progress
   milPackId: null,
   milVotes: null,         // {connId: optionIndex} while the room is voting
@@ -3935,7 +3983,7 @@ function flipPlay() {
 // Overlays and the shake simply never need to happen at the same time.
 function modalOpen() {
   return !!(state.helpOpen || state.menuOpen || state.confirm || state.adultGate ||
-            state.modePickerOpen || state.paused);
+            state.modePickerOpen || state.paused || state.modsOpen);
 }
 function stopShake() {
   var root = document.getElementById("root");
@@ -4674,6 +4722,13 @@ function judgeBuzz(correct) {
   if (correct) {
     state.judgedThisClue = true;              // clue is settled, ignore further taps
     if (!state.revealed) reveal(); else renderOrUpdateClue();
+  } else if (state.wager != null) {
+    // A Daily Double belongs to whoever picked the tile. Reopening the buzz let
+    // the rest of the room in on a private wager: they were paid the tile value
+    // PLUS the wager somebody else had put up, so one missed Daily Double could
+    // hand a rival a thousand points they never risked anything for.
+    state.judgedThisClue = true;
+    if (!state.revealed) reveal(); else renderOrUpdateClue();
   } else {
     clearBuzz();                              // wrong reopens buzzing for everyone else
   }
@@ -4807,6 +4862,9 @@ function buzzerSyncPayload() {
   var standings = winStandings();
   if (standings) p.win = standings;   // every device that played gets the result
   p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
+  // Which rules are in force. Players used to discover these by running into
+  // them mid-game; now every phone and TV carries the same list the host sees.
+  p.mods = activeModifiers();
   var curB = state.boardId ? currentBoard() : null;
   if (curB && curB.art) p.art = curB.art;
   // Which board is in play, so phones and the host know what was picked
@@ -4946,6 +5004,15 @@ function buzzerSyncPayload() {
     }
     if (state.wager != null && state.players[state.turn]) {
       p.clue.ddOwner = state.players[state.turn].name; // their question alone
+    }
+    // A Daily Double used to reach phones as an ordinary question: the same
+    // category, the same points, nothing to say why one player was answering
+    // alone. The tile announces itself the moment it opens, and the wager is
+    // public once it is locked in, so neither is a spoiler.
+    if (state.active && isDailyDoubleTile(state.active.catKey, state.active.qIndex)) {
+      p.clue.isDD = true;
+      if (state.wager != null) p.clue.wager = state.wager;
+      p.clue.ddRisk = ddRiskNote();
     }
     p.buzz = { winner: state.buzzer.winnerName || null, armed: !!state.buzzer.armed };
     if (state.timerEnabled && !state.revealed && !state.wagering) p.timerDuration = state.timerDuration;
@@ -7702,8 +7769,102 @@ function openQuestion(catKey, qIndex) {
 }
 // Daily double wager cap: your score or the round's top tile value,
 // whichever is greater - so trailing players can still bet big.
+// ---- what is switched on, in one place ----
+// Every rule, mode and effect in force, said in terms of what it does during a
+// game rather than what the switch was called. Nothing anywhere used to tell
+// players any of this: you found out a wrong answer was free, or that one buzz
+// was all you got, by running into it. One list, and the host screen, the TV
+// and every phone all read from it, so they can never disagree.
+function activeModifiers() {
+  var r = state.roomRules || {};
+  var mods = [];
+  var add = function (key, name, note) { mods.push({ key: key, name: name, note: note }); };
+
+  if (teamModeOn()) add("teams", "Teams", "Teammates share one score and move together.");
+  if (state.buzzer.on) add("buzzers", "Phone Buzzers", "Everyone buzzes from their own phone.");
+  if (state.match) {
+    add("match", state.match.round === 2 ? "Double Jeopardy" : "Full Match",
+        state.match.round === 2 ? "Every tile is worth double this round."
+                                : "Two rounds, then Final Jeopardy.");
+  }
+  if (r.ddCount > 0) {
+    add("dd", "Daily Double" + (r.ddCount > 1 ? " \u00d7" + r.ddCount : ""),
+        r.ddCount === 1 ? "One hidden tile. Whoever finds it wagers, and answers it alone."
+                        : r.ddCount + " hidden tiles. Whoever finds one wagers, and answers it alone.");
+  }
+  if (state.wheelOfChaosEnabled) add("wheel", "Wheel of Chaos", "Spins hand out rewards and damage. Some tiles trigger a spin on their own.");
+  if (state.timerEnabled) add("timer", "Timer", state.timerDuration + " seconds on the clock once a question opens.");
+  if (r.streakBonus) add("streak", "Streak Bonus", "+100 every third correct answer in a row.");
+  if (r.noMinus) add("noMinus", "No Minus Points", "A wrong answer costs nothing \u2014 except a Daily Double wager, which is always at risk.");
+  if (r.floorZero) add("floor", "Never Below Zero", "Scores stop at 0 instead of going negative.");
+  if (r.keepTurn) add("keepTurn", "Correct Answer Picks Next", "Get it right and you keep the board.");
+  if (r.oneBuzz) add("oneBuzz", "One Buzz Per Question", "Miss it and you are out of that question.");
+  if (r.readAloud) add("readAloud", "Host Reads It Out", "The question stays hidden until the host shows it. Buzzing early is a gamble.");
+  // The three the host has to reach for. Saying so is the point: switching them
+  // on does not make them happen, it puts a button in front of the host.
+  if (r.drawing) add("drawing", "Someone Draws It", "The host can hand any question to a player to draw on their phone. It is offered question by question, not automatic.");
+  if (r.groupClues) add("group", "Everybody Answers", "The host can throw any question open to the whole room. Offered question by question.");
+  if (r.letterReveal) {
+    add("letters", "Give Away Letters",
+        (r.letterAuto ? "A letter opens every " + r.letterAuto + " seconds on its own."
+                      : "The host can open the answer a letter at a time.") +
+        " Every letter makes the question worth less.");
+  }
+  if (state.phoneMirror) add("mirror", "Questions on Phones", "The question and its picture reach every phone.");
+  if (state.musicOn) add("music", "Board Music", "A bed of music under the board between questions.");
+  return mods;
+}
+// A phone and a TV cannot work the list out for themselves -- their own state
+// is a blank game -- so on those it comes off the wire. One function so the
+// chips, the sheet and the host screen can never show three different answers.
+function modsForThisDevice() {
+  var bc = state.buzzClient;
+  if (state.phase === "buzzer" && bc && bc.game && bc.game.mods) return bc.game.mods;
+  return activeModifiers();
+}
+// The compact version: a row of chips that fits above a board. Tapping one
+// opens the full list, so the detail is one press away rather than absent.
+function modChipsHtml(tappable) {
+  var mods = modsForThisDevice();
+  if (!mods.length) return "";
+  var chips = mods.map(function (m) {
+    return '<span class="mod-chip">' + esc(m.name) + '</span>';
+  }).join("");
+  return '<div class="mod-row"' + (tappable ? ' data-action="openMods" role="button" tabindex="0"' : '') + '>' +
+      '<span class="mod-row-lbl">RULES IN PLAY</span>' + chips +
+      (tappable ? '<span class="mod-row-more">what do these do?</span>' : '') +
+    '</div>';
+}
+// The full list, as a sheet over whatever is underneath.
+function renderMods() {
+  if (!state.modsOpen) return "";
+  var mods = modsForThisDevice();
+  return '<div class="confirm-overlay">' +
+    '<div class="confirm-card mods-card">' +
+      '<p class="mods-title">RULES IN PLAY</p>' +
+      (mods.length
+        ? '<div class="mods-list">' + mods.map(function (m) {
+            return '<div class="mods-item"><span class="mods-name">' + esc(m.name) + '</span>' +
+              '<span class="mods-note">' + esc(m.note) + '</span></div>';
+          }).join("") + '</div>'
+        : '<p class="mods-none">Nothing special is switched on \u2014 straight Jeopardy.</p>') +
+      '<button class="big-gold" data-action="closeMods">Got it</button>' +
+    '</div>' +
+  '</div>';
+}
+function openMods() { state.menuOpen = false; state.modsOpen = true; render(); }
+function closeMods() { state.modsOpen = false; render(); }
 function ddWagerCap(player) {
   return Math.max(player.score, 500 * roundMultiplier());
+}
+// "No Minus Points" protects you from the board, never from your own wager.
+// Saying so out loud is the difference between a house rule and an ambush, so
+// this line goes on the wager screen, on every phone and on the TV.
+function ddRiskNote() {
+  if (!state.roomRules.noMinus) return null;
+  return state.wager != null
+    ? "No Minus Points is on, but a wager is always at risk \u2014 wrong costs " + state.wager + "."
+    : "No Minus Points is on, but your wager is still at risk if you get it wrong.";
 }
 function submitWager() {
   var player = state.players[state.turn];
@@ -7854,7 +8015,13 @@ function scoreQuestion(i, correct) {
   var delta = correct ? val : -val;
   // House rules: a wrong answer can cost nothing, and scores can be floored at
   // zero so nobody ends up in the red.
-  if (!correct && state.roomRules.noMinus) delta = 0;
+  if (!correct && state.roomRules.noMinus) {
+    // The one thing the rule does not cover is a Daily Double wager. It protects
+    // you from what the board costs you, not from what you chose to put up
+    // yourself -- otherwise a wager has no downside, everybody bets the maximum
+    // every time, and every Daily Double is free points.
+    delta = state.wager != null ? -Math.min(state.wager, val) : 0;
+  }
   if (correct) {
     pl.streak = (pl.streak || 0) + 1;
     if (state.roomRules.streakBonus && pl.streak > 0 && pl.streak % 3 === 0) delta += 100;
@@ -11681,6 +11848,10 @@ function buzzMirrorHtml(bc) {
     }
     return '<div class="buzz-mirror">' +
       '<p class="buzz-mirror-cat">' + esc(c.cat.toUpperCase()) + '</p>' +
+      // A Daily Double reached phones looking exactly like any other question,
+      // so the one player answering alone was unexplained and the wager --
+      // the whole reason the number on screen is what it is -- was invisible.
+      (c.isDD ? ddPhoneBannerHtml(c, bc) : '') +
       '<p class="buzz-mirror-value">' + c.value + ' POINTS</p>' +
       (c.hiddenQ
         ? '<div class="clue-box clue-box-hidden" style="font-size:14px;padding:16px 12px">' +
@@ -11729,6 +11900,7 @@ function buzzMirrorHtml(bc) {
         (g.board ? '<p class="buzz-mirror-value">' + esc(g.board.name) + '</p>' : '') +
         '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">' + esc(g.pick.turn || "Someone") + ' is picking the next question.</p>' +
         (g.board ? '<p class="buzz-timer-note">' + g.board.cluesLeft + ' questions left' + (g.board.round ? ' &middot; Round ' + g.board.round : '') + '</p>' : '') +
+        modChipsHtml(true) +
       '</div>';
     }
     var usedSet = {};
@@ -11744,6 +11916,9 @@ function buzzMirrorHtml(bc) {
     return '<div class="buzz-mirror">' +
       '<p class="buzz-mirror-value">YOUR PICK, ' + esc(bc.name.toUpperCase()) + '</p>' +
       '<div class="buzz-pick-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr))">' + grid + '</div>' +
+      // The one screen where knowing the rules changes what you do: this is
+      // where you decide whether to go for the 500 with one buzz on the line.
+      modChipsHtml(true) +
     '</div>';
   }
   var bInfo = g && g.board
@@ -11755,7 +11930,28 @@ function buzzMirrorHtml(bc) {
   return '<div class="buzz-mirror buzz-mirror-idle">' +
     bInfo +
     '<p class="buzz-mirror-q" style="text-align:center;color:#8b92c0">Sit tight &mdash; the next question lands right here.</p>' +
+    modChipsHtml(true) +
   '</div>';
+}
+// The Daily Double banner a phone shows: whose it is, what they staked, and
+// whether the house rules protect any of it. "You" rather than a name when the
+// phone holding it is the one that wagered.
+function ddPhoneBannerHtml(c, bc) {
+  var mine = c.ddOwner && bc && bc.name &&
+             c.ddOwner.toLowerCase() === String(bc.name).toLowerCase();
+  var who = c.ddOwner ? (mine ? "YOURS" : esc(c.ddOwner.toUpperCase()) + "\u2019S") : "";
+  return '<div class="buzz-dd' + (mine ? ' buzz-dd-mine' : '') + '">' +
+      '<span class="buzz-dd-tag">DAILY DOUBLE' + (who ? ' \u00b7 ' + who : '') + '</span>' +
+      (c.wager != null
+        ? '<span class="buzz-dd-wager">' + c.wager + ' wagered</span>'
+        : '<span class="buzz-dd-wager">setting a wager\u2026</span>') +
+      (c.ddOwner
+        ? '<span class="buzz-dd-note">' + (mine
+            ? 'Your question alone \u2014 nobody else can buzz.'
+            : 'Only ' + esc(c.ddOwner) + ' answers this one.') + '</span>'
+        : '') +
+      (c.ddRisk ? '<span class="buzz-dd-note">' + esc(c.ddRisk) + '</span>' : '') +
+    '</div>';
 }
 function spectateTimerHtml(bc) {
   var g = bc.game;
@@ -12126,7 +12322,10 @@ function viewHostControl(bc) {
     : '';
 
   var buzzLine = (g.buzz && g.buzz.winner)
-    ? '<div class="hc-buzz">' + esc(g.buzz.winner) + ' buzzed in</div>' : '';
+    ? '<div class="hc-buzz">' + esc(g.buzz.winner) +
+        (c.isDD ? ' is answering the Daily Double' +
+                  (c.wager != null ? ' for ' + c.wager : '')
+                : ' buzzed in') + '</div>' : '';
 
   var judge = (g.buzz && g.buzz.winner && !c.judged)
     ? '<div class="hc-judge">' +
@@ -12253,8 +12452,25 @@ function tvJoinBoardHtml(bc, g) {
           return '<span class="tv-join-name">' + avatarHtml(pl, 14) + esc(pl.name) + '</span>';
         }).join("") + '</div>'
       : '<p class="tv-join-waiting">Nobody has joined yet.</p>') +
+    tvModsHtml(g) +
     '<p class="tv-join-waiting">The board appears here the moment the host starts.</p>' +
   '</div>';
+}
+// The rules, at TV size. Names only, deliberately: with everything switched on
+// there are fifteen of them, and fifteen two-line cards ran 201px off the
+// bottom of a 720p screen and 117px off a 1080p one -- and a TV cannot be
+// scrolled, so that is content nobody in the room can reach. The names read
+// from a sofa; what each one does is on every phone, which can scroll.
+function tvModsHtml(g) {
+  var mods = (g && g.mods) || [];
+  if (!mods.length) return "";
+  return '<div class="tv-mods">' +
+      '<p class="tv-mods-lbl">RULES IN PLAY</p>' +
+      '<div class="tv-mods-list">' + mods.map(function (m) {
+        return '<span class="tv-mod">' + esc(m.name) + '</span>';
+      }).join("") + '</div>' +
+      '<p class="tv-mods-foot">Tap &ldquo;what do these do?&rdquo; on your phone for what each one means.</p>' +
+    '</div>';
 }
 function viewSpectate(bc) {
   var g = bc.game || {};
@@ -12289,9 +12505,20 @@ function viewSpectate(bc) {
         '<p class="spectate-note">' + esc(c.dd ? c.dd.player : "Someone") + ' is setting a wager&hellip;</p>';
     } else {
       var buzzLine = "";
-      if (g.buzz && g.buzz.winner) buzzLine = '<p class="spectate-buzzline">' + esc(g.buzz.winner) + ' buzzed in!</p>';
+      // Nobody buzzed on a Daily Double -- the wager sets the winner so the
+      // host's Right/Wrong lands on the right player. Saying "buzzed in" there
+      // is a small lie the whole room can see.
+      if (g.buzz && g.buzz.winner && !c.isDD) buzzLine = '<p class="spectate-buzzline">' + esc(g.buzz.winner) + ' buzzed in!</p>';
       else if (g.buzz && g.buzz.armed && !c.revealed) buzzLine = '<p class="spectate-note">Buzzers open</p>';
       body = '<p class="spectate-kicker">' + esc(c.cat.toUpperCase()) + ' &middot; ' + c.value + '</p>' +
+        // The TV said nothing either: one player answering alone, for a number
+        // that came from a wager nobody in the room could see.
+        (c.isDD
+          ? '<p class="spectate-dd">DAILY DOUBLE' +
+              (c.ddOwner ? ' &middot; ' + esc(c.ddOwner.toUpperCase()) : '') +
+              (c.wager != null ? ' &middot; ' + c.wager + ' WAGERED' : '') + '</p>' +
+            (c.ddRisk ? '<p class="spectate-note">' + esc(c.ddRisk) + '</p>' : '')
+          : '') +
         (c.q ? '<p class="spectate-clue">' + esc(c.q) + '</p>' : '') +
         (c.img ? '<img class="answer-art" src="' + esc(c.img) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
         (c.isVideo && !c.revealed ? '<p class="spectate-note">' + (c.playing ? "Clip is playing" : "Audio not started yet") + '</p>' : '') +
@@ -12733,6 +12960,7 @@ function viewDailyDoubleWager() {
     '<p class="sub">' + esc(player.name) + ', the tile\'s ' + (questionItem().value * roundMultiplier()) + ' points are already on the line — your wager stacks on top. ' +
       'Right earns ' + (questionItem().value * roundMultiplier()) + ' plus your wager; wrong loses both. Wager 0 to ' + cap + '.</p>' +
     '<div class="card">' +
+      (ddRiskNote() ? '<p class="dd-risk">' + esc(ddRiskNote()) + '</p>' : '') +
       '<label class="lbl">Your wager (0 &ndash; ' + cap + ')</label>' +
       '<div style="display:flex;gap:8px;margin-top:6px">' +
         '<input class="input" id="wagerInput" type="number" min="0" max="' + cap + '" placeholder="0" value="' + esc(state.wagerInput) + '" />' +
@@ -13658,6 +13886,7 @@ function viewBoard() {
 
   return menu + stageBackdropHtml() + '<div class="board-screen" style="padding:' + (state.menuOpen ? "160px" : "16px") + ' 12px 16px"><div class="board-screen-inner">' +
     '<div class="board-chiprow">' + chips + '</div>' +
+    modChipsHtml(true) +
     '<div style="text-align:center;color:' + gold + ';font-weight:800;font-size:14px;margin-bottom:14px">' +
       esc(teamModeOn() ? teamLabel(teamOf(state.turn)) : state.players[state.turn].name) + "'s pick" +
     '</div>' +
@@ -14095,7 +14324,7 @@ function render() {
   // Double wager, all of Final Jeopardy, the win screen and the interlude --
   // so test-playing your own board and clearing it, which is the whole point
   // of a test play, stranded you in it with no way back to the maker.
-  root.innerHTML = testingBannerHtml() + html + renderPause() + renderConfirm() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt() + renderPasteImport();
+  root.innerHTML = testingBannerHtml() + html + renderPause() + renderConfirm() + renderMods() + renderImportPrompt() + renderAdultGate() + renderHelp() + renderModePicker() + renderSendIt() + renderPasteImport();
   if (keepScroll) {
     var scroller = document.querySelector(".bboard-scroll");
     if (scroller) scroller.scrollTop = keepScroll;
@@ -14368,6 +14597,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "hostLetter") sendHostCmd("letter");
   else if (action === "showQuestionText") showQuestionText();
   else if (action === "toggleClueHint") { state.clueHintOpen = !state.clueHintOpen; renderOrUpdateClue(); }
+  else if (action === "openMods") openMods();
+  else if (action === "closeMods") closeMods();
   else if (action === "watchAsTv") watchAsTv();
   else if (action === "controlAsHost") controlAsHost();
   else if (action === "hostPeek") toggleHostPeek();
