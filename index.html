@@ -4901,7 +4901,14 @@ function buzzerSyncPayload() {
   if (state.paused) p.paused = true;   // every screen in the room stops together
   var standings = winStandings();
   if (standings) p.win = standings;   // every device that played gets the result
-  p.players = state.players.map(function (pl) { return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape }; });
+  // immune and skipNextTurn are what the wheel left behind on somebody. The
+  // host's chips have always shown them; phones were told the score and nothing
+  // else, so a player could not see that their next pick was about to be taken
+  // away, or that the person they were about to hit was immune.
+  p.players = state.players.map(function (pl) {
+    return { name: pl.name, score: pl.score, color: pl.color, shape: pl.shape,
+             immune: !!pl.immune, skip: !!pl.skipNextTurn };
+  });
   // Which rules are in force. Players used to discover these by running into
   // them mid-game; now every phone and TV carries the same list the host sees.
   p.mods = activeModifiers();
@@ -6134,6 +6141,7 @@ function goHome(msg) {
   state.pasteImport = null;
   state.sendIt = null;
   state.helpOpen = false;
+  state.modsOpen = false;
   state.modePickerOpen = false;
   state.menuOpen = false;
   // A test run parked here would leave its board sitting in My Boards and the
@@ -7800,6 +7808,7 @@ function openQuestion(catKey, qIndex) {
     state.seqOrder = seqOrder;
   }
   state.clueOpenedAt = Date.now();
+  state.modsOpen = false;       // the rules sheet is not allowed over a question
   clearPause();                 // a new question always starts running
   clearLetters();
   clearGroupClue();
@@ -7824,9 +7833,14 @@ function activeModifiers() {
   var r = state.roomRules || {};
   var mods = [];
   var add = function (key, name, note) { mods.push({ key: key, name: name, note: note }); };
+  // Every house rule below is read only by Jeopardy -- Millionaire and Feud do
+  // not consult one of them. Listing "Daily Double" and "Streak Bonus" over a
+  // Millionaire ladder was telling the room about rules that were not running.
+  var jeopardy = state.gameMode === "jeopardy";
 
   if (teamModeOn()) add("teams", "Teams", "Teammates share one score and move together.");
   if (state.buzzer.on) add("buzzers", "Phone Buzzers", "Everyone buzzes from their own phone.");
+  if (!jeopardy) return mods;
   if (state.match) {
     add("match", state.match.round === 2 ? "Double Jeopardy" : "Full Match",
         state.match.round === 2 ? "Every tile is worth double this round."
@@ -11721,6 +11735,13 @@ function phoneWagerInputHtml(bc, sendAction) {
   '</div>';
 }
 // Everyone can see where they stand without looking at the big screen.
+// What the wheel left riding on a player. The host's own chips have shown these
+// since the wheel existed; everybody else was told a score and nothing else.
+function fxTagsHtml(pl) {
+  if (!pl || (!pl.immune && !pl.skip)) return "";
+  return (pl.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
+         (pl.skip ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '');
+}
 function phoneScoreboardHtml(bc) {
   var list = (bc.game && bc.game.players) || [];
   if (list.length < 2) return "";
@@ -11734,6 +11755,7 @@ function phoneScoreboardHtml(bc) {
           '<span class="phone-score-rank">' + (i + 1) + '</span>' +
           avatarHtml(pl, 11) +
           '<span class="phone-score-name">' + esc(pl.name) + '</span>' +
+          fxTagsHtml(pl) +
           '<span class="phone-score-val">' + pl.score + '</span>' +
         '</div>';
     }).join('') +
@@ -12471,6 +12493,7 @@ function viewHostControl(bc) {
         gridHtml +
         (g.final && g.final.a ? '<button class="hc-peek" data-action="hostPeek">' + (bc.peek ? 'Hide the answer' : 'Peek at the answer') + '</button>' + finalPeek : '') +
         '<div class="hc-scores">' + scores + '</div>' +
+        modChipsHtml(true) +
         '<button class="hc-btn hc-undo" data-action="hostUndo">Undo last score change</button>' +
       '</div>';
   }
@@ -12766,7 +12789,8 @@ function viewSpectate(bc) {
   // would say the same thing twice, and the room code chip would be a third
   // copy of a code that is already the biggest thing on the screen.
   var scoreStrip = joinBoard ? "" : (g.players || []).map(function (pl) {
-    return '<span class="spectate-score-chip">' + avatarHtml(pl, 11) + esc(pl.name) + ' ' + pl.score + '</span>';
+    return '<span class="spectate-score-chip">' + avatarHtml(pl, 11) + esc(pl.name) +
+      fxTagsHtml(pl) + ' ' + pl.score + '</span>';
   }).join("");
   return '<div class="spectate">' + backdrop +
     '<span class="spectate-chip">' + (joinBoard ? '' : 'Room <span class="buzz-room-code">' + esc(bc.code) + '</span>') +
