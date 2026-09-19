@@ -3673,6 +3673,8 @@ var state = {
   clueHintOpen: false,    // the host has asked to see this question's hint
   dailyDoubles: [],       // all hidden daily double tiles this round
   buzzedThisClue: {},     // playerIndex map for the one buzz per clue rule
+  streakAtOpen: {},       // each player's streak when this question opened
+  streakPaid: {},         // who has already been paid a streak bonus on it
   editNameInput: "",
   editNameError: "",
   settingsOpen: false,
@@ -7814,6 +7816,8 @@ function openQuestion(catKey, qIndex) {
   clearGroupClue();
   state.draw = null;
   state.buzzedThisClue = {};
+  state.streakAtOpen = {};
+  state.streakPaid = {};
   if (state.wagering) {
     sndDailyDouble(); fireConfetti(1600); hap("big"); shakeScreen(10);
     announce("DAILY DOUBLE", (state.players[state.turn] || {}).name || "", "#ffd166");
@@ -8081,9 +8085,18 @@ function scoreQuestion(i, correct) {
     // every time, and every Daily Double is free points.
     delta = state.wager != null ? -Math.min(state.wager, val) : 0;
   }
+  // A streak counts questions, not taps. The score row under a revealed answer
+  // is deliberately repeatable -- a host awards two players who both got it, or
+  // corrects themselves -- but three taps on one question is not three right
+  // answers in a row. It was counting them as three, and with Streak Bonus on
+  // it paid the bonus for them: 700 points off a 200 tile.
   if (correct) {
-    pl.streak = (pl.streak || 0) + 1;
-    if (state.roomRules.streakBonus && pl.streak > 0 && pl.streak % 3 === 0) delta += 100;
+    if (state.streakAtOpen[i] == null) state.streakAtOpen[i] = pl.streak || 0;
+    pl.streak = state.streakAtOpen[i] + 1;
+    if (state.roomRules.streakBonus && pl.streak > 0 && pl.streak % 3 === 0 && !state.streakPaid[i]) {
+      delta += 100;
+      state.streakPaid[i] = true;   // one bonus per question, however many taps
+    }
   } else {
     pl.streak = 0;
   }
