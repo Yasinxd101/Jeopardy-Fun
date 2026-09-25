@@ -3308,6 +3308,7 @@ function customBoards() {
   var list = jfRead("jf.myboards.v1", []);
   if (!Array.isArray(list)) return [];
   return list.filter(isValidBoard).map(function (b) {
+    sanitizeBoardFields(b);  // saved before sanitizing existed, or by hand
     b.genre = "My Boards"; // stored boards always live under this tab
     return b;
   });
@@ -3488,14 +3489,17 @@ function clueList(item) {
 function clueCorrectIndex(item) {
   if (!item) return -1;
   if (item.format === "alignmentChoice") return ALIGNMENT_OPTIONS.indexOf(alignmentAnswerWord(item.a));
-  return typeof item.correct === "number" ? item.correct : -1;
+  // An index has to be a whole number. 1.5 is "a number between 0 and the
+  // option count", so it passed validation -- and then matched no option, so
+  // the question could never be answered right.
+  return Number.isInteger(item.correct) ? item.correct : -1;
 }
 // "Pick them all" keeps a set instead of one index.
 function clueCorrectSet(item) {
   if (!item || !Array.isArray(item.correct)) return [];
   var n = clueList(item).length;
   return item.correct.map(Number)
-    .filter(function (i, at, all) { return i >= 0 && i < n && all.indexOf(i) === at; })
+    .filter(function (i, at, all) { return Number.isInteger(i) && i >= 0 && i < n && all.indexOf(i) === at; })
     .sort(function (a, b) { return a - b; });
 }
 function sameSet(a, b) {
@@ -3592,6 +3596,46 @@ function normalizeBoard(raw) {
     if (!f.category && f.title) f.category = f.title;
     b.final = f;
   }
+  return sanitizeBoardFields(b);
+}
+// A board from outside the app -- a share link, a pasted or opened file, a fan
+// board, or one saved on this device before any of this existed -- is data
+// written by somebody else. Validation checks its SHAPE; this makes its FIELDS
+// safe to use. It exists because a crafted share link could put markup in a
+// board's icon or in a question's point value, and both reached the page as
+// HTML: the icon ran the moment the board landed in My Boards, and ran again
+// every time the list was opened after that.
+var BOARD_VALUE_MAX = 100000;       // the same ceiling the maker puts on a tile
+var BOARD_ICON_MAX = 16;            // room for a flag or a family emoji, not a script
+function safeBoardValue(v, fallback) {
+  var n = typeof v === "number" ? v
+        : parseFloat((String(v == null ? "" : v).match(/-?\d+(?:\.\d+)?/) || [""])[0]);
+  if (!isFinite(n)) return fallback;
+  return Math.max(0, Math.min(BOARD_VALUE_MAX, Math.round(n)));
+}
+function safeNumberField(it, key) {
+  if (it[key] == null || it[key] === "") return;
+  var n = typeof it[key] === "number" ? it[key] : parseFloat(it[key]);
+  if (isFinite(n)) it[key] = n; else delete it[key];
+}
+function sanitizeBoardFields(b) {
+  if (!b || typeof b !== "object") return b;
+  if (typeof b.accent !== "string" || !/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(b.accent)) b.accent = DEFAULT_ACCENT;
+  if (b.icon != null) b.icon = String(b.icon).trim().slice(0, BOARD_ICON_MAX);
+  if (!b.icon) b.icon = String(b.name || "?").trim().charAt(0).toUpperCase() || "?";
+  if (Array.isArray(b.textBoard)) {
+    b.textBoard.forEach(function (col) {
+      if (!col || !Array.isArray(col.questions)) return;
+      col.questions.forEach(function (it, row) {
+        if (!it || typeof it !== "object") return;
+        // "$200" and "200 points" are what a person or a model writes by hand,
+        // and they used to show as NaN and turn every score they touched into
+        // NaN too. Markup in here was worse.
+        it.value = safeBoardValue(it.value, (row + 1) * 100);
+        ["start", "end", "target", "margin"].forEach(function (k) { safeNumberField(it, k); });
+      });
+    });
+  }
   return b;
 }
 function loadFanBoards() {
@@ -3601,6 +3645,7 @@ function loadFanBoards() {
     .then(function (list) {
       if (!Array.isArray(list)) return;
       FAN_BOARDS = list.filter(isValidBoard).map(function (b) {
+        sanitizeBoardFields(b);
         b.genre = "Fan Boards";
         return b;
       });
@@ -4043,7 +4088,7 @@ function announce(title, sub, accent) {
   if (!juiceOn()) return;
   var el = document.createElement("div");
   el.className = "takeover";
-  el.innerHTML = '<div class="takeover-inner" style="--tk:' + (accent || "#ffd166") + '">' +
+  el.innerHTML = '<div class="takeover-inner" style="--tk:' + esc(accent || "#ffd166") + '">' +
     '<div class="takeover-title">' + esc(title) + '</div>' +
     (sub ? '<div class="takeover-sub">' + esc(sub) + '</div>' : '') + '</div>';
   document.body.appendChild(el);
@@ -9618,11 +9663,11 @@ function boardCardHtml(b, riseIndex) {
   var rise = typeof riseIndex === "number";
   // Art is hotlinked from official CDNs; if an image fails to load, the
   // onerror handler hides it and the plain icon card shows through.
-  var iconBox = '<div class="board-card-icon board-card-artwrap' + (b.art ? ' has-art' : '') + '" style="background:' + hexToRgba(b.accent, 0.18) + '">' + (b.icon || (b.name || "?").charAt(0).toUpperCase()) +
+  var iconBox = '<div class="board-card-icon board-card-artwrap' + (b.art ? ' has-art' : '') + '" style="background:' + hexToRgba(b.accent, 0.18) + '">' + esc(b.icon || (b.name || "?").charAt(0).toUpperCase()) +
     (b.art ? '<img class="board-card-art" src="' + esc(b.art) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '') +
   '</div>';
   var backdrop = b.art ? '<img class="board-card-bg" src="' + esc(b.art) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '';
-  return '<button class="board-card' + (rise ? " card-rise" : "") + '" style="--accent:' + b.accent + (rise ? ';animation-delay:' + (riseIndex * 70) + 'ms' : '') + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
+  return '<button class="board-card' + (rise ? " card-rise" : "") + '" style="--accent:' + esc(b.accent) + (rise ? ';animation-delay:' + (riseIndex * 70) + 'ms' : '') + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' +
     backdrop +
     iconBox +
     '<div class="board-card-body">' +
@@ -9760,7 +9805,7 @@ function recentRowHtml() {
   var chips = ids.map(function (id) {
     var b = BOARDS.filter(function (x) { return x.id === id; })[0];
     if (!b || (b.adult && !state.adultEnabled)) return "";
-    return '<button class="recent-chip" style="border-color:' + b.accent + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' + esc(b.name) + '</button>';
+    return '<button class="recent-chip" style="border-color:' + esc(b.accent) + '" data-action="previewBoard" data-id="' + esc(b.id) + '">' + esc(b.name) + '</button>';
   }).join("");
   return '<div class="recent-row">' +
     (chips ? '<span class="recent-label">RECENT</span>' + chips : '') +
@@ -9838,7 +9883,7 @@ function viewBoardPreview() {
     '<div class="card">' +
       (b.art ? '<div class="preview-art-wrap"><img class="preview-art" src="' + esc(b.art) + '" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;"></div>' : '') +
       '<div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.14)">' +
-        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + b.accent + '">' + (b.icon || (b.name || "?").charAt(0).toUpperCase()) + '</div>' +
+        '<div class="board-card-icon" style="background:' + hexToRgba(b.accent, 0.18) + ';border:1px solid rgba(255,255,255,0.5);box-shadow:inset 0 0 0 1px ' + esc(b.accent) + '">' + esc(b.icon || (b.name || "?").charAt(0).toUpperCase()) + '</div>' +
         '<div>' +
           '<div style="font-size:20px;font-weight:900;color:#fff">' + esc(b.name) + '</div>' +
           '<div style="font-size:13px;color:#aab0d8;margin-top:2px">' + esc(b.tagline) + '</div>' +
@@ -9903,7 +9948,7 @@ function questionDemoHtml(b) {
   return '<div class="confirm-overlay">' +
     '<div class="confirm-card" style="max-width:400px">' +
       '<p class="demo-head">' + esc((col.category || "Category").toUpperCase()) +
-        ' &middot; <span class="demo-value">' + value + '</span></p>' +
+        ' &middot; <span class="demo-value">' + esc(value) + '</span></p>' +
       '<div class="clue-box" style="font-size:17px;padding:20px 16px;min-height:76px">' +
         esc(item.q || "(a clip plays here)") +
       '</div>' +
@@ -10649,9 +10694,9 @@ function viewBuilderBoard() {
       if (q.wheel) media += '<span class="bgrid-mark bgrid-mark-wheel">&#10036;</span>';
       rows += '<button class="bgrid-tile' + (done ? ' bgrid-tile-done' : '') + '" ' +
         'data-action="builderEdit" data-kind="tile" data-ci="' + c + '" data-row="' + r + '" ' +
-        'aria-label="' + (done ? 'Edit' : 'Write') + ' the ' + q.value + ' question in ' +
+        'aria-label="' + (done ? 'Edit' : 'Write') + ' the ' + esc(q.value) + ' question in ' +
           esc(d.textBoard[c].category || ("category " + (c + 1))) + '">' +
-        '<span class="bgrid-val">' + q.value + '</span>' + media +
+        '<span class="bgrid-val">' + esc(q.value) + '</span>' + media +
         (done ? '<span class="bgrid-tick">&#10003;</span>' : '<span class="bgrid-plus">+</span>') +
       '</button>';
     }
