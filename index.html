@@ -3307,7 +3307,7 @@ var BOARDS = BUILTIN_BOARDS.slice();
 function customBoards() {
   var list = jfRead("jf.myboards.v1", []);
   if (!Array.isArray(list)) return [];
-  return list.filter(isValidBoard).map(function (b) {
+  return list.filter(function (b) { return isValidBoard(b, true); }).map(function (b) {
     sanitizeBoardFields(b);  // saved before sanitizing existed, or by hand
     b.genre = "My Boards"; // stored boards always live under this tab
     return b;
@@ -3336,14 +3336,25 @@ function boardRows(b) {
   if (!cols || !cols.length || !cols[0] || !cols[0].questions) return ROWS_PER_CAT;
   return cols[0].questions.length;
 }
-function boardValidationError(b) {
+function boardValidationError(b, lenient) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return "the file is not a board object.";
-  if (!b.name) return 'the board needs a "name".';
+  // Every text check trims. "   " passed all of them, so a board made of nothing
+  // but spaces and tabs -- name, categories, questions, answers, Final -- imported
+  // and played as a grid of empty tiles.
+  //
+  // Except for a board already saved on this device (lenient): the maker stores
+  // what was typed, untrimmed, so a board saved with a stray space in it can
+  // exist -- and a stricter rule here would make it silently disappear from My
+  // Boards. Nobody's saved board should vanish because a check got tighter.
+  var blank = lenient
+    ? function (v) { return !v; }
+    : function (v) { return !String(v == null ? "" : v).trim(); };
+  if (blank(b.name)) return 'the board needs a "name".';
   if (!Array.isArray(b.textBoard) || b.textBoard.length < MIN_CATS || b.textBoard.length > MAX_CATS)
     return "a board needs between " + MIN_CATS + " and " + MAX_CATS + " categories.";
   for (var c = 0; c < b.textBoard.length; c++) {
     var col = b.textBoard[c];
-    if (!col || !col.category) return "category " + (c + 1) + " needs a title.";
+    if (!col || blank(col.category)) return "category " + (c + 1) + " needs a title.";
     if (!Array.isArray(col.questions) || col.questions.length < MIN_ROWS || col.questions.length > MAX_ROWS)
       return 'category "' + col.category + '" needs between ' + MIN_ROWS + ' and ' + MAX_ROWS + ' questions.';
     if (col.questions.length !== b.textBoard[0].questions.length)
@@ -3351,20 +3362,20 @@ function boardValidationError(b) {
              col.questions.length + ', the first has ' + b.textBoard[0].questions.length + '.';
     for (var q = 0; q < col.questions.length; q++) {
       var it = col.questions[q];
-      if (!it || (!it.q && !it.id)) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
-      if (!it.a) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
+      if (!it || (blank(it.q) && blank(it.id))) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
+      if (blank(it.a)) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
       var tErr = clueTypeError(it);
       if (tErr) return "clue " + (q + 1) + ' in "' + col.category + '" ' + tErr + ".";
     }
   }
-  if (!b.final || !b.final.category) return "Final Jeopardy needs a category.";
-  if (!b.final.q) return "Final Jeopardy needs a question.";
-  if (!b.final.a) return "Final Jeopardy needs an answer.";
+  if (!b.final || blank(b.final.category)) return "Final Jeopardy needs a category.";
+  if (blank(b.final.q)) return "Final Jeopardy needs a question.";
+  if (blank(b.final.a)) return "Final Jeopardy needs an answer.";
   return "";
 }
 // A board is playable if it has an id, a full grid of filled clues and a final.
-function isValidBoard(b) {
-  return !!(b && b.id) && boardValidationError(b) === "";
+function isValidBoard(b, lenient) {
+  return !!(b && b.id) && boardValidationError(b, lenient) === "";
 }
 
 // An inline SVG written by hand -- or by a model asked for a placeholder --
@@ -3608,8 +3619,17 @@ function normalizeBoard(raw) {
 var BOARD_VALUE_MAX = 100000;       // the same ceiling the maker puts on a tile
 var BOARD_ICON_MAX = 16;            // room for a flag or a family emoji, not a script
 function safeBoardValue(v, fallback) {
-  var n = typeof v === "number" ? v
-        : parseFloat((String(v == null ? "" : v).match(/-?\d+(?:\.\d+)?/) || [""])[0]);
+  var n;
+  if (typeof v === "number") n = v;
+  else {
+    // "$1,000" and "1e9" first as a person means them: drop the currency and the
+    // thousands commas, then read the whole thing. Only if that fails, take the
+    // first number in it ("300 points"). The first version of this took the first
+    // run of digits, so "1,000" came out as a 1-point tile.
+    var t = String(v == null ? "" : v).trim().replace(/[$\u00a3\u20ac\u00a5\s]/g, "").replace(/(\d),(?=\d{3}(\D|$))/g, "$1");
+    n = t === "" ? NaN : Number(t);
+    if (!isFinite(n)) n = parseFloat((t.match(/-?\d+(?:\.\d+)?/) || [""])[0]);
+  }
   if (!isFinite(n)) return fallback;
   return Math.max(0, Math.min(BOARD_VALUE_MAX, Math.round(n)));
 }
@@ -3623,6 +3643,7 @@ function sanitizeBoardFields(b) {
   if (typeof b.accent !== "string" || !/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(b.accent)) b.accent = DEFAULT_ACCENT;
   if (b.icon != null) b.icon = String(b.icon).trim().slice(0, BOARD_ICON_MAX);
   if (!b.icon) b.icon = String(b.name || "?").trim().charAt(0).toUpperCase() || "?";
+  if (b.tagline == null) b.tagline = "";
   if (Array.isArray(b.textBoard)) {
     b.textBoard.forEach(function (col) {
       if (!col || !Array.isArray(col.questions)) return;
@@ -3867,7 +3888,9 @@ function mmss(sec) {
   return Math.floor(n / 60) + ":" + ("0" + (n % 60)).slice(-2);
 }
 function esc(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  // A missing field is nothing, not the word "undefined" -- which is what every
+  // board without a tagline showed on its card, since tagline is optional.
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 // Imported boards often arrive without an accent colour, so fall back to the
 // house purple rather than throwing halfway through a render.
@@ -5552,8 +5575,22 @@ function jfRead(key, fallback) {
     return raw ? JSON.parse(raw) : fallback;
   } catch (e) { return fallback; }
 }
+// Returns whether the write actually happened. It used to swallow every error
+// silently -- including "this device's storage is full" -- and the save
+// buttons then told people their work was saved, closed the editor, and threw
+// the draft away. A board built in the maker with the pictures the maker
+// allows could be lost that way whole.
 function jfWrite(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; }
+}
+// What to say when a save does not fit. The browser gives this whole site
+// roughly 5MB, shared by every board, pack and setting saved here.
+function storageFullMsg(what, bytes) {
+  var mb = bytes ? " (" + (bytes / 1048576).toFixed(1) + "MB)" : "";
+  return "There is no room left on this device to save " + what + mb + ". Browsers give a site " +
+    "about 5MB in total, shared by everything saved here. Nothing was lost -- it is still open. " +
+    "Uploaded pictures take the most room: use a link to the picture instead, or delete boards you " +
+    "no longer need, then save again.";
 }
 function jfRemove(key) {
   try { localStorage.removeItem(key); } catch (e) {}
@@ -6779,7 +6816,10 @@ function saveBuilder() {
   if (!state.builder) return;
   var d = cleanDraft(state.builder.draft);
   if (!isValidBoard(d)) {
-    state.builder.error = "Every category needs a title, all 25 questions need a question and answer, and Final Jeopardy needs all three fields.";
+    // The real reason, not a fixed sentence about "all 25 questions" -- a board
+    // can be anything from one tile to sixty-four.
+    var why = boardValidationError(d) || "it is not finished yet.";
+    state.builder.error = "Not saved yet: " + why.charAt(0).toUpperCase() + why.slice(1);
     render();
     return;
   }
@@ -6787,7 +6827,13 @@ function saveBuilder() {
   if (!Array.isArray(list)) list = [];
   var idx = list.map(function (b) { return b.id; }).indexOf(d.id);
   if (idx !== -1) list[idx] = d; else list.push(d);
-  jfWrite(JF_MYBOARDS_KEY, list);
+  if (!jfWrite(JF_MYBOARDS_KEY, list)) {
+    // Keep the maker open with everything in it. Closing it here is what
+    // turned a full disk into a lost board.
+    state.builder.error = storageFullMsg("this board", JSON.stringify(d).length);
+    render();
+    return;
+  }
   rebuildBoards();
   state.boardsTab = "My Boards";
   goHome("“" + d.name + "” is saved. Start a game and you will find it under My Boards.");
@@ -6895,10 +6941,13 @@ function acceptImportedBoard(raw) {
         if (!Array.isArray(list)) list = [];
         var at = list.map(function (x) { return x.id; }).indexOf(b.id);
         if (at === -1) list.push(b); else list[at] = b;
-        jfWrite(JF_MYBOARDS_KEY, list);
-        rebuildBoards();
-        ok = true;
-        msg = 'Imported "' + b.name + '".';
+        if (jfWrite(JF_MYBOARDS_KEY, list)) {
+          rebuildBoards();
+          ok = true;
+          msg = 'Imported "' + b.name + '".';
+        } else {
+          msg = storageFullMsg('"' + b.name + '"', JSON.stringify(b).length);
+        }
       } else {
         msg = "Could not import that board: " + err;
       }
@@ -6970,7 +7019,16 @@ function acceptSharedBoard() {
   if (!Array.isArray(list)) list = [];
   var at = list.map(function (b) { return b.id; }).indexOf(board.id);
   if (at === -1) list.push(board); else list[at] = board; // re-import updates the copy
-  jfWrite(JF_MYBOARDS_KEY, list);
+  if (!jfWrite(JF_MYBOARDS_KEY, list)) {
+    // The link still has the board in it, so nothing is lost -- but say so,
+    // rather than landing on My Boards with nothing new in it.
+    state.importPrompt = null;
+    state.homeMsg = storageFullMsg('"' + board.name + '"', JSON.stringify(board).length)
+      .replace("Nothing was lost -- it is still open.", "The link still has it, so you can open it again after making room.");
+    state.phase = "players";
+    render();
+    return;
+  }
   rebuildBoards();
   state.importPrompt = null;
   state.phase = "boards";
@@ -11181,7 +11239,11 @@ function saveMilPack() {
   if (!Array.isArray(list)) list = [];
   var idx = list.map(function (p) { return p.id; }).indexOf(d.id);
   if (idx !== -1) list[idx] = d; else list.push(d);
-  jfWrite(JF_MILPACKS_KEY, list);
+  if (!jfWrite(JF_MILPACKS_KEY, list)) {
+    state.milBuilder.error = storageFullMsg("this pack", JSON.stringify(d).length);
+    render();
+    return;
+  }
   state.milBuilder = null;
   state.phase = "milPacks";
   render();
@@ -11635,7 +11697,11 @@ function saveFeudPack() {
   if (!Array.isArray(list)) list = [];
   var idx = list.map(function (p) { return p.id; }).indexOf(d.id);
   if (idx !== -1) list[idx] = d; else list.push(d);
-  jfWrite(JF_FEUDPACKS_KEY, list);
+  if (!jfWrite(JF_FEUDPACKS_KEY, list)) {
+    state.feudBuilder.error = storageFullMsg("this pack", JSON.stringify(d).length);
+    render();
+    return;
+  }
   state.feudBuilder = null;
   state.phase = "feudPacks";
   render();
