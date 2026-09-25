@@ -8267,16 +8267,18 @@ function respinWheel() {
 // The zoom takes 400ms, and the question used to open at the end of it
 // whatever had happened in between. Tap a tile and then Home, the board
 // picker or Stats, and the game you had just left pulled you back into a
-// question; tap a second tile and a second zoom queued up behind the first.
-// So one zoom at a time, and it opens nothing unless this same game's board
-// is still what is on screen.
-var tileZoomPending = false;
+// question; tap a second tile and both zooms opened a question, one after the
+// other. So the last tile tapped is the one that opens -- a mis-tap put right
+// straight away gets the right question -- and it opens nothing unless this
+// same game's board is still what is on screen.
+var tileZoomToken = 0, tileZoomEl = null;
 function zoomThenOpen(tileEl, catKey, qIndex) {
-  if (state.used[catKey + "-" + qIndex] || tileZoomPending) return;
+  if (state.used[catKey + "-" + qIndex]) return;
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!tileEl || reduce) { openQuestion(catKey, qIndex); return; }
   var usedAt = state.used;   // a new game or a new board is a new object
-  tileZoomPending = true;
+  var token = ++tileZoomToken;
+  if (tileZoomEl && tileZoomEl.parentNode) tileZoomEl.parentNode.removeChild(tileZoomEl);
   var r = tileEl.getBoundingClientRect();
   var ov = document.createElement("div");
   ov.className = "tile-zoom";
@@ -8286,13 +8288,14 @@ function zoomThenOpen(tileEl, catKey, qIndex) {
   ov.style.width = r.width + "px";
   ov.style.height = r.height + "px";
   document.body.appendChild(ov);
+  tileZoomEl = ov;
   sndSelect();
   requestAnimationFrame(function () {
     requestAnimationFrame(function () { ov.classList.add("tile-zoom-full"); });
   });
   setTimeout(function () {
-    tileZoomPending = false;
-    var stillHere = state.phase === "board" && !state.active && state.used === usedAt && !state.managePlayers;
+    var stillHere = token === tileZoomToken && state.phase === "board" && !state.active &&
+      state.used === usedAt;
     if (stillHere) openQuestion(catKey, qIndex);
     setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, stillHere ? 80 : 0);
   }, 400);
