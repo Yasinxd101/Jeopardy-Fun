@@ -8264,10 +8264,19 @@ function respinWheel() {
   broadcastSync();
   spinActiveWheel();
 }
+// The zoom takes 400ms, and the question used to open at the end of it
+// whatever had happened in between. Tap a tile and then Home, the board
+// picker or Stats, and the game you had just left pulled you back into a
+// question; tap a second tile and a second zoom queued up behind the first.
+// So one zoom at a time, and it opens nothing unless this same game's board
+// is still what is on screen.
+var tileZoomPending = false;
 function zoomThenOpen(tileEl, catKey, qIndex) {
-  if (state.used[catKey + "-" + qIndex]) return;
+  if (state.used[catKey + "-" + qIndex] || tileZoomPending) return;
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!tileEl || reduce) { openQuestion(catKey, qIndex); return; }
+  var usedAt = state.used;   // a new game or a new board is a new object
+  tileZoomPending = true;
   var r = tileEl.getBoundingClientRect();
   var ov = document.createElement("div");
   ov.className = "tile-zoom";
@@ -8282,8 +8291,10 @@ function zoomThenOpen(tileEl, catKey, qIndex) {
     requestAnimationFrame(function () { ov.classList.add("tile-zoom-full"); });
   });
   setTimeout(function () {
-    openQuestion(catKey, qIndex);
-    setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 80);
+    tileZoomPending = false;
+    var stillHere = state.phase === "board" && !state.active && state.used === usedAt && !state.managePlayers;
+    if (stillHere) openQuestion(catKey, qIndex);
+    setTimeout(function () { if (ov.parentNode) ov.parentNode.removeChild(ov); }, stillHere ? 80 : 0);
   }, 400);
 }
 function openQuestion(catKey, qIndex) {
