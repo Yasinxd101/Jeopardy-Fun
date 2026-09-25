@@ -6606,7 +6606,7 @@ function renderSendIt() {
       (s.note ? '<p class="sendit-note">' + esc(s.note) + '</p>' : '') +
       // Copy first: it is the thing that actually has to travel.
       '<button class="sendit-btn sendit-btn-go" data-action="copySendIt">' +
-        (s.copied ? 'Copied \u2713' : s.payload ? 'Copy the board' : 'Copy the details') + '</button>' +
+        (s.copied ? 'Copied \u2713' : s.payload ? 'Copy ' + (s.payloadLabel || 'The board').toLowerCase() : 'Copy the details') + '</button>' +
       '<textarea id="sendItText" class="sendit-text" readonly rows="' + (s.payload ? 5 : 4) + '" ' +
         'onclick="this.select()">' + esc(sendItText()) + '</textarea>' +
       (s.link
@@ -6972,14 +6972,64 @@ function importBoardText(text) {
   }
   acceptImportedBoard(String(text));
 }
-function openPasteImport() { state.pasteImport = ""; state.importFileMsg = ""; render(); }
+// One paste panel for everything that travels as text: a board, a Millionaire
+// question pack, or a Feud survey pack.
+var PASTE_KINDS = {
+  board: { title: "Paste a board", note: "Somebody sent you the board as text? Drop the whole thing in here." },
+  mil: { title: "Paste a question pack", note: "Somebody sent you a Millionaire pack as text? Drop the whole thing in here." },
+  feud: { title: "Paste a survey pack", note: "Somebody sent you a Feud pack as text? Drop the whole thing in here." },
+};
+function openPasteImport(kind) {
+  state.pasteImport = ""; state.importFileMsg = "";
+  state.pasteKind = PASTE_KINDS[kind] ? kind : "board";
+  render();
+}
 function closePasteImport() { state.pasteImport = null; render(); }
+function importPasted() {
+  if (state.pasteKind === "mil" || state.pasteKind === "feud") importPackText(state.pasteKind, state.pasteImport);
+  else importBoardText(state.pasteImport);
+}
+// A pack can be exported, and the pack makers send one in as text -- but there
+// was no way to bring one back, so the importers written for exactly this sat
+// unused. This is the way back in: the same loose shapes the importers accept,
+// then the same checks the pack makers apply.
+function importPackText(kind, text) {
+  if (!String(text || "").trim()) { state.importFileMsg = "Paste the pack text first."; render(); return; }
+  var isMil = kind === "mil";
+  var msg = "", ok = false;
+  try {
+    var p = (isMil ? normalizeMilPack : normalizeFeudPack)(JSON.parse(String(text)));
+    if (!p || typeof p !== "object" || Array.isArray(p)) throw new Error("not a pack");
+    // A pack that ships with the app is never replaced by one pasted in, and an
+    // id from somewhere else is not trusted to be the right kind of id.
+    var prefix = isMil ? "milpack-" : "feudpack-";
+    if (typeof p.id !== "string" || p.id.indexOf(prefix) !== 0 || isBuiltinPack(p.id) || !/^[a-z0-9-]{1,60}$/.test(p.id))
+      p.id = prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    var err = isMil ? milPackError(p) : feudPackError(p);
+    if (err) msg = "Could not bring that pack in: " + err;
+    else {
+      var key = isMil ? JF_MILPACKS_KEY : JF_FEUDPACKS_KEY;
+      var list = jfRead(key, []);
+      if (!Array.isArray(list)) list = [];
+      var at = list.map(function (x) { return x.id; }).indexOf(p.id);
+      if (at === -1) list.push(p); else list[at] = p;   // re-pasting your own pack updates it
+      if (jfWrite(key, list)) { ok = true; msg = "Brought in \u201C" + p.name + "\u201D."; }
+      else msg = storageFullMsg("\u201C" + p.name + "\u201D", JSON.stringify(p).length);
+    }
+  } catch (e) {
+    msg = "That is not pack text \u2014 check the whole thing was copied, opening brace to closing brace.";
+  }
+  if (ok) { state.pasteImport = null; state.packMsg = msg; state.importFileMsg = ""; }
+  else state.importFileMsg = msg;
+  render();
+}
 function renderPasteImport() {
   if (state.pasteImport == null) return "";
+  var kind = PASTE_KINDS[state.pasteKind] || PASTE_KINDS.board;
   return '<div class="confirm-overlay">' +
     '<div class="confirm-card" style="max-width:400px">' +
-      '<p class="bpop-title" style="margin:0 0 4px">Paste a board</p>' +
-      '<p class="sendit-note">Somebody sent you the board as text? Drop the whole thing in here.</p>' +
+      '<p class="bpop-title" style="margin:0 0 4px">' + kind.title + '</p>' +
+      '<p class="sendit-note">' + kind.note + '</p>' +
       '<textarea id="pasteBoardText" class="sendit-text" rows="6" placeholder=\'{ "name": ... }\'>' +
         esc(state.pasteImport) + '</textarea>' +
       (state.importFileMsg ? '<p class="sendit-note" style="color:#ff8aa0">' + esc(state.importFileMsg) + '</p>' : '') +
@@ -8682,7 +8732,10 @@ function milPackError(p) {
       if (!String(q.options[o] || "").trim())
         return "question " + (i + 1) + " is missing answer " + MIL_LETTERS[o] + ".";
     }
-    if (typeof q.correct !== "number" || q.correct < 0 || q.correct > 3)
+    // A whole number, 0-3. 1.5 is "a number between 0 and 3", so it used to
+    // pass -- and then no answer button matched it, every pick was wrong, and
+    // the run died on that question however it was played.
+    if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct > 3)
       return "question " + (i + 1) + " has no correct answer marked.";
   }
   return "";
@@ -8734,10 +8787,12 @@ function normalizeMilPack(raw) {
         if (Array.isArray(q.answers)) q.options = q.answers;
         else if (Array.isArray(q.choices)) q.options = q.choices;
       }
-      // "correct" may arrive as a letter or as the answer text
+      // "correct" may arrive as a letter, an index written as text, or as the
+      // answer text itself
       if (typeof q.correct === "string") {
         var letter = MIL_LETTERS.indexOf(q.correct.trim().toUpperCase());
-        if (letter !== -1) q.correct = letter;
+        if (/^[0-3]$/.test(q.correct.trim())) q.correct = +q.correct.trim();
+        else if (letter !== -1) q.correct = letter;
         else if (Array.isArray(q.options)) {
           var byText = q.options.map(function (o) { return String(o).trim(); }).indexOf(q.correct.trim());
           if (byText !== -1) q.correct = byText;
@@ -8747,7 +8802,10 @@ function normalizeMilPack(raw) {
         var m = q.options.map(function (o) { return String(o).trim(); }).indexOf(q.answer.trim());
         if (m !== -1) q.correct = m;
       }
-      if (typeof q.correct !== "number") q.correct = 0;
+      // Never guess. Defaulting to 0 quietly marked option A as right for any
+      // answer it could not read -- a wrong answer shown as the right one. Left
+      // unset, the pack check says which question has no answer marked.
+      if (typeof q.correct !== "number") delete q.correct;
       return q;
     });
   }
@@ -8971,6 +9029,7 @@ function quitMillionaire() {
 // A survey with ranked answers. Two teams, a face-off for control, three
 // strikes, then the other side gets one shot to steal the whole bank.
 var FEUD_MIN_ANSWERS = 3, FEUD_MAX_ANSWERS = 8, FEUD_STRIKES = 3;
+var FEUD_POINTS_MAX = 999, FEUD_MULT_MAX = 5;   // the pack maker's own limits
 var JF_FEUDPACKS_KEY = "jf.feudpacks.v1";
 
 function feudPackError(p) {
@@ -8991,7 +9050,16 @@ function feudPackError(p) {
       var pts = +ans.points;
       if (!isFinite(pts) || pts <= 0)
         return '"' + ans.text + '" in survey ' + (i + 1) + " needs a points value above zero.";
+      // The same ceiling the pack maker puts on a box. Without one, a survey of
+      // 1e308-point answers summed to Infinity, and "Infinity" is what the
+      // team's score then said on every screen for the rest of the game.
+      if (!Number.isInteger(pts) || pts > FEUD_POINTS_MAX)
+        return '"' + ans.text + '" in survey ' + (i + 1) + " needs a whole number of points, 1 to " + FEUD_POINTS_MAX + ".";
     }
+    // x1 to x5, as the maker offers. It was only ever capped by the pack
+    // importer, which nothing called, so a saved pack could ask for x1000000000.
+    if (r.multiplier != null && (!Number.isInteger(+r.multiplier) || +r.multiplier < 1 || +r.multiplier > FEUD_MULT_MAX))
+      return "survey " + (i + 1) + " needs a multiplier from 1 to " + FEUD_MULT_MAX + ".";
   }
   return "";
 }
@@ -9038,12 +9106,14 @@ function normalizeFeudPack(raw) {
       if (Array.isArray(list)) {
         r.answers = list.map(function (a) {
           // accept {text,points}, {answer,count}, or ["text", 42]
-          if (Array.isArray(a)) return { text: String(a[0] || ""), points: +a[1] || 0 };
+          // "30 points" and 33.3 read as 30 and 33, like the pack maker would.
+          var readPts = function (v) { var n = safeBoardValue(v, 0); return Math.min(n, FEUD_POINTS_MAX); };
+          if (Array.isArray(a)) return { text: String(a[0] || ""), points: readPts(a[1]) };
           if (typeof a === "string") return { text: a, points: 0 };
           if (!a || typeof a !== "object") return { text: "", points: 0 };
           var text = a.text != null ? a.text : (a.answer != null ? a.answer : a.label);
           var pts = a.points != null ? a.points : (a.count != null ? a.count : a.score);
-          return { text: String(text == null ? "" : text), points: +pts || 0 };
+          return { text: String(text == null ? "" : text), points: readPts(pts) };
         });
       }
       // a survey is ranked highest first, whatever order it arrived in
@@ -11236,9 +11306,11 @@ function viewMilPacks() {
         ? esc(state.players.map(function (p) { return p.name; }).join(", ")) + ' &mdash; pick a question pack'
         : 'Add players first') + '</p>' +
     '</div>' +
+    (state.packMsg ? '<p class="board-notice">' + esc(state.packMsg) + '</p>' : '') +
     '<div class="boards-grid">' + cards + '</div>' +
     '<div style="max-width:420px;margin:20px auto 0">' +
       '<button class="big-gold" data-action="openMilBuilder">Make a question pack</button>' +
+      '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="openPasteImport" data-kind="mil">Paste a pack someone sent you</button>' +
       '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="editPlayers">Back</button>' +
     '</div>' +
   '</div></div>';
@@ -11328,19 +11400,39 @@ function exportMilPack() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
 }
+// Sending a pack in used to download the pack file, open GitHub in a popup, and
+// ask for the file to be attached -- the one thing boards had been changed to
+// stop doing, since a file is something the owner has to open. And a phone
+// browser blocks that popup silently, so on a phone the message said "attach it
+// to the issue that just opened" about an issue that never opened. Packs now go
+// the way boards go: as text, through the send panel, with real links in it.
+function packFileName(d) {
+  return ((d.name || "pack").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pack") + ".json";
+}
+function sendPackIn(d, kindTitle, label, what) {
+  var title = kindTitle + ": " + d.name;
+  var head = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" + what + "\n\n";
+  var attachNote = "Paste the pack text underneath this line \u2014 the app's \"Copy the pack\" button puts it on " +
+    "your clipboard. Please do not attach a file; plain text can be read before it is opened.\n";
+  openSendIt({
+    title: "Send \u201C" + d.name + "\u201D in",
+    note: "Send it as text \u2014 never as a file. It pastes straight back into the app, and it can be read before it is opened.",
+    url: repoIssueUrl(title, head + attachNote, label),
+    subject: title,
+    body: head,
+    payload: JSON.stringify(d),
+    payloadLabel: "The pack",
+    fileName: packFileName(d),
+  });
+}
 function submitMilPack() {
   if (!state.milBuilder) return;
   var d = cleanMilPack(state.milBuilder.draft);
   var err = milPackError(d);
   if (err) { state.milBuilder.error = "Finish the pack first: " + err; render(); return; }
-  var body = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" +
-    "**Questions:** " + d.ladder.length + " (Millionaire ladder)\n\n" +
-    "The pack file has been downloaded to this device. Please drag it into this issue before you submit it.\n";
-  exportMilPack();
   state.milBuilder.error = "";
-  state.milBuilder.submitMsg = "Your pack file was downloaded. Attach it to the GitHub issue that just opened.";
-  openExternal(repoIssueUrl("Millionaire pack: " + d.name, body, "millionaire-pack"));
-  render();
+  state.milBuilder.submitMsg = "";
+  sendPackIn(d, "Millionaire pack", "millionaire-pack", "**Questions:** " + d.ladder.length + " (Millionaire ladder)");
 }
 function milBuilderProgress(d) {
   var done = d.ladder.filter(function (q) {
@@ -11650,9 +11742,11 @@ function viewFeudPacks() {
       '<h1 class="boards-title idle-float" style="color:#2cb67d">FAMILY FEUD</h1>' +
       '<p class="boards-subtitle">Pick a survey pack</p>' +
     '</div>' +
+    (state.packMsg ? '<p class="board-notice">' + esc(state.packMsg) + '</p>' : '') +
     '<div class="boards-grid">' + cards + '</div>' +
     '<div style="max-width:420px;margin:20px auto 0">' +
       '<button class="big-gold" data-action="openFeudBuilder">Make a survey pack</button>' +
+      '<button class="big-gold" style="background:#2cb67d;color:#04203a" data-action="openPasteImport" data-kind="feud">Paste a pack someone sent you</button>' +
       '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="openFeudTeams">Back to teams</button>' +
     '</div>' +
   '</div></div>';
@@ -11791,14 +11885,9 @@ function submitFeudPack() {
   var d = cleanFeudPack(state.feudBuilder.draft);
   var err = feudPackError(d);
   if (err) { state.feudBuilder.error = "Finish the pack first: " + err; render(); return; }
-  var body = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" +
-    "**Surveys:** " + d.rounds.length + "\n\n" +
-    "The pack file has been downloaded to this device. Please drag it into this issue before you submit it.\n";
-  exportFeudPack();
   state.feudBuilder.error = "";
-  state.feudBuilder.submitMsg = "Your pack file was downloaded. Attach it to the GitHub issue that just opened.";
-  openExternal(repoIssueUrl("Feud pack: " + d.name, body, "feud-pack"));
-  render();
+  state.feudBuilder.submitMsg = "";
+  sendPackIn(d, "Feud pack", "feud-pack", "**Surveys:** " + d.rounds.length);
 }
 function feudBuilderProgress(d) {
   var done = d.rounds.filter(function (r) {
@@ -15126,9 +15215,9 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "copySendIt") copySendIt();
   else if (action === "copySendItLink") copySendItLink();
   else if (action === "downloadSendIt") downloadSendIt();
-  else if (action === "openPasteImport") openPasteImport();
+  else if (action === "openPasteImport") openPasteImport(t.getAttribute("data-kind"));
   else if (action === "closePasteImport") closePasteImport();
-  else if (action === "importPastedBoard") importBoardText(state.pasteImport);
+  else if (action === "importPastedBoard") importPasted();
   else if (action === "sendOwnGuess") sendOwnGuess();
   else if (action === "toggleMulti") toggleMulti(t.getAttribute("data-i"));
   else if (action === "turnListSlot") turnListSlot(t.getAttribute("data-i"));
