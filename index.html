@@ -3641,6 +3641,16 @@ function safeNumberField(it, key) {
   var n = typeof it[key] === "number" ? it[key] : parseFloat(it[key]);
   if (isFinite(n)) it[key] = n; else delete it[key];
 }
+// A clip cue point in whole seconds, 0 to ten hours, or null for "not set".
+// The maker applies it as you type; a board from outside gets the same rule,
+// because the maker's hint line printed clipLen as it stood -- and a shared
+// board with markup there ran it as soon as that question was opened to edit.
+var CLIP_SECONDS_MAX = 36000;
+function clipSeconds(v) {
+  if (v == null || v === "") return null;
+  var n = parseInt(v, 10);
+  return isFinite(n) && n >= 0 ? Math.min(n, CLIP_SECONDS_MAX) : null;
+}
 function sanitizeBoardFields(b) {
   if (!b || typeof b !== "object") return b;
   if (typeof b.accent !== "string" || !/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(b.accent)) b.accent = DEFAULT_ACCENT;
@@ -3657,6 +3667,11 @@ function sanitizeBoardFields(b) {
         // NaN too. Markup in here was worse.
         it.value = safeBoardValue(it.value, (row + 1) * 100);
         ["start", "end", "target", "margin"].forEach(function (k) { safeNumberField(it, k); });
+        ["clipStart", "clipLen"].forEach(function (k) {
+          if (!(k in it)) return;
+          var secs = clipSeconds(it[k]);
+          if (secs == null) delete it[k]; else it[k] = secs;
+        });
       });
     });
   }
@@ -6485,9 +6500,8 @@ function builderSetField(path, value) {
       if (f === "id") it.id = youtubeId(value);
       else if (f === "img" || f === "aimg") it[f] = fixImageUri(value);
       else if (f === "clipStart" || f === "clipLen") {
-        var n = parseInt(value, 10);
-        if (value === "" || !isFinite(n) || n < 0) delete it[f];
-        else it[f] = Math.min(n, 36000);
+        var secs = clipSeconds(value);
+        if (secs == null) delete it[f]; else it[f] = secs;
       } else it[f] = value;
     }
   }
@@ -10971,7 +10985,7 @@ function builderExtrasHtml(q, r) {
           '</div>' +
           '<p class="builder-hint-note">' +
             (clipStartFor(q) ? 'Starts at ' + mmss(clipStartFor(q)) : 'Starts at the beginning') +
-            (q.clipLen ? ' and plays ' + q.clipLen + 's.' : ' and runs for however long the host has set.') +
+            (clipSeconds(q.clipLen) ? ' and plays ' + clipSeconds(q.clipLen) + 's.' : ' and runs for however long the host has set.') +
           '</p>'
         : '') +
     '</div>' +
