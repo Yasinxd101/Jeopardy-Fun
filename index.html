@@ -5588,6 +5588,57 @@ function enablePhoneAudio() {
   hap("press");
   render();
 }
+// ---- what a phone accepts from a host ----
+// A phone joining a room draws whatever the host's device sends it, and a host
+// running a modified copy of the app can send any value in any field. Text is
+// escaped wherever it is drawn. Numbers were not: a score, a tile value, a
+// wager, the count of questions left went into the page as they arrived,
+// because they were only ever numbers -- until someone makes them not. With
+// every field of every payload replaced by markup, 22 of them ran code on the
+// phone, the TV or Host Control.
+//
+// So every field that should be a number is made one on the way in, in one
+// place, rather than at each of the places it is drawn -- and the next number
+// someone adds to a payload is covered by name, not by remembering.
+// Every key here is a number, or a list of numbers, everywhere it appears in a
+// payload. "target" is deliberately absent: it is the number to guess in one
+// place and the NAME of the player the wheel is spinning for in another, and
+// making it a number turned "Sam" into 0 on every phone. It is escaped where
+// it is drawn, so it needs nothing here.
+var SYNC_NUMBER_KEYS = {
+  cap: 1, clipElapsed: 1, clipLimit: 1, clipStart: 1, cluesLeft: 1, grid: 1, lettersAll: 1,
+  lettersOut: 1, more: 1, score: 1, strokes: 1, timerDuration: 1, timerElapsed: 1, value: 1,
+  values: 1, wager: 1, wasWorth: 1, correct: 1, picked: 1, need: 1, found: 1,
+  pickedSet: 1, rightSet: 1, round: 1, cats: 1,
+};
+// "cats" is a count in one place and a list of category NAMES in another; a
+// list of names is text, and text is already escaped where it is drawn.
+var SYNC_NUMBER_SCALAR_ONLY = { cats: 1 };
+function syncNumber(v) {
+  if (v == null || typeof v === "boolean") return v;
+  var n = Number(v);
+  return isFinite(n) ? n : 0;
+}
+function syncNumbersDeep(v) {
+  if (Array.isArray(v)) return v.map(syncNumbersDeep);
+  if (v && typeof v === "object") return 0;      // an object where a number belongs
+  return syncNumber(v);
+}
+function sanitizeSyncNumbers(v) {
+  if (Array.isArray(v)) { for (var i = 0; i < v.length; i++) v[i] = sanitizeSyncNumbers(v[i]); return v; }
+  if (!v || typeof v !== "object") return v;
+  Object.keys(v).forEach(function (k) {
+    var x = v[k];
+    if (SYNC_NUMBER_KEYS[k]) {
+      if (Array.isArray(x)) v[k] = SYNC_NUMBER_SCALAR_ONLY[k] ? sanitizeSyncNumbers(x) : syncNumbersDeep(x);
+      else if (x && typeof x === "object") v[k] = sanitizeSyncNumbers(x);
+      else v[k] = syncNumber(x);
+    } else if (x && typeof x === "object") {
+      sanitizeSyncNumbers(x);
+    }
+  });
+  return v;
+}
 // This phone's private seat key. It never appears on any screen: it is how the
 // host tells this phone coming back after a dropped signal from a different
 // phone claiming the same name.
@@ -5648,6 +5699,7 @@ function handleClientData(d) {
     return;
   }
   else if (d.type === "sync") {
+    sanitizeSyncNumbers(d);
     inflateMedia(d, bc.media);
     // a different clue (or no clue) stops any clip the phone was playing
     var clueKey = d.clue ? d.clue.cat + "|" + (d.clue.videoId || d.clue.q) : "";
