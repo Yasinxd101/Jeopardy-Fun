@@ -3358,14 +3358,17 @@ function boardValidationError(b, lenient) {
     if (!Array.isArray(col.questions) || col.questions.length < MIN_ROWS || col.questions.length > MAX_ROWS)
       return 'category "' + col.category + '" needs between ' + MIN_ROWS + ' and ' + MAX_ROWS + ' questions.';
     if (col.questions.length !== b.textBoard[0].questions.length)
-      return 'every category needs the same number of questions &mdash; "' + col.category + '" has ' +
+      return 'every category needs the same number of questions \u2014 "' + col.category + '" has ' +
              col.questions.length + ', the first has ' + b.textBoard[0].questions.length + '.';
     for (var q = 0; q < col.questions.length; q++) {
       var it = col.questions[q];
-      if (!it || (blank(it.q) && blank(it.id))) return "clue " + (q + 1) + ' in "' + col.category + '" needs a question.';
-      if (blank(it.a)) return "clue " + (q + 1) + ' in "' + col.category + '" needs an answer.';
+      // Shown to people as it stands, so it says "question", as the app does
+      // everywhere else -- and as plain text: it is escaped where it is shown,
+      // so an HTML entity here reached the screen as "&mdash;".
+      if (!it || (blank(it.q) && blank(it.id))) return "question " + (q + 1) + ' in "' + col.category + '" is blank.';
+      if (blank(it.a)) return "question " + (q + 1) + ' in "' + col.category + '" needs an answer.';
       var tErr = clueTypeError(it);
-      if (tErr) return "clue " + (q + 1) + ' in "' + col.category + '" ' + tErr + ".";
+      if (tErr) return "question " + (q + 1) + ' in "' + col.category + '" ' + tErr + ".";
     }
   }
   if (!b.final || blank(b.final.category)) return "Final Jeopardy needs a category.";
@@ -3790,6 +3793,7 @@ var state = {
   dailyDoubleB: null,     // second daily double (Double Jeopardy round only)
   builder: null,          // {draft, catIndex, error, shareUrl} while editing a custom board
   importPrompt: null,     // a board decoded from a #b= share link, awaiting accept
+  shareLinkMsg: "",       // why a #b= link could not become a board
   importFileMsg: "",      // result line after importing a board JSON file
   adultGate: null,        // {type: "tab"|"preview"|"notice"|"enable", id?} pending 18+ check
   adultEnabled: false,    // After Dark 18+ section is opt-in from Settings
@@ -6438,6 +6442,7 @@ function goHome(msg) {
   state.questionDemo = null;
   state.exampleOpen = false;
   state.importPrompt = null;
+  state.shareLinkMsg = "";
   // Every panel that floats over the page comes down on the way out. The paste
   // one was staying up over the start screen with everything behind it
   // unreachable -- the board imported fine and you could not get to it. The
@@ -7193,6 +7198,50 @@ function renderPasteImport() {
     '</div>' +
   '</div>';
 }
+// A board coming back in -- by link, paste or file -- can carry the id of one
+// already in My Boards: the person who made it tapping a link they sent weeks
+// ago, or a friend's corrected copy of a board you shared with them. Both used
+// to replace the board with that id, without a word, and in the first case
+// that threw away every edit made since the link was sent. So a copy that
+// differs is never written over yours unasked.
+//
+// Two copies are the same board when everything a player meets is the same --
+// not the id, not the tab it is filed under, not the order its fields were
+// written in.
+function boardFingerprint(b) {
+  var n = normalizeBoard(b);
+  if (!n || typeof n !== "object") return "";
+  var sorted = function (v) {
+    if (Array.isArray(v)) return v.map(sorted);
+    if (v && typeof v === "object") {
+      var o = {};
+      Object.keys(v).sort().forEach(function (k) { o[k] = sorted(v[k]); });
+      return o;
+    }
+    return v;
+  };
+  var top = sorted(n);
+  delete top.id;
+  delete top.genre;
+  return JSON.stringify(top);
+}
+// The board in My Boards that an incoming one shares an id with, if any.
+function savedBoardWithId(id) {
+  var list = jfRead(JF_MYBOARDS_KEY, []);
+  if (!Array.isArray(list)) return null;
+  return list.filter(function (b) { return b && b.id === id; })[0] || null;
+}
+// "Quiz Night" is taken, so the second copy is "Quiz Night (2)" -- two boards
+// with one name in My Boards cannot be told apart.
+function freeBoardName(name) {
+  var taken = customBoards().map(function (b) { return String(b.name || "").toLowerCase(); });
+  var base = String(name || "Board"), pick = base, n = 2;
+  while (taken.indexOf(pick.toLowerCase()) !== -1) pick = base + " (" + (n++) + ")";
+  return pick;
+}
+function newCustomId() {
+  return "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
 // One place decides what an imported board does, whether it arrived as a
 // file or as text somebody pasted in.
 function acceptImportedBoard(raw) {
@@ -7202,19 +7251,29 @@ function acceptImportedBoard(raw) {
       // Assign id/icon before validating so a board file without an id (the
       // usual case for a hand-made or shared board) still imports fine.
       if (!b || typeof b !== "object") throw new Error("not a board");
-      if (!/^custom-/.test(String(b.id || ""))) b.id = "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      if (!/^custom-/.test(String(b.id || ""))) b.id = newCustomId();
       if (!b.icon) b.icon = (b.name || "?").trim().charAt(0).toUpperCase() || "?";
       var err = boardValidationError(b);
-      if (!err) {
+      var had = err ? null : savedBoardWithId(b.id);
+      if (had && boardFingerprint(had) === boardFingerprint(b)) {
+        // Nothing new in it. Say so, rather than "Imported" over a no-op.
+        ok = true;
+        msg = 'You already have "' + had.name + '" — that is the same board.';
+      } else if (!err) {
+        // Pasting has no "are you sure", so a differing copy goes in beside
+        // yours. Deleting the one you do not want is one tap; getting back an
+        // overwritten board is impossible.
+        if (had) { b.id = newCustomId(); b.name = freeBoardName(b.name); }
         b.genre = "My Boards";
         var list = jfRead(JF_MYBOARDS_KEY, []);
         if (!Array.isArray(list)) list = [];
-        var at = list.map(function (x) { return x.id; }).indexOf(b.id);
-        if (at === -1) list.push(b); else list[at] = b;
+        list.push(b);
         if (jfWrite(JF_MYBOARDS_KEY, list)) {
           rebuildBoards();
           ok = true;
-          msg = 'Imported "' + b.name + '".';
+          msg = had
+            ? 'Imported "' + b.name + '" next to your "' + had.name + '" — it is a different version of the same board, so yours was left as it is.'
+            : 'Imported "' + b.name + '".';
         } else {
           msg = storageFullMsg('"' + b.name + '"', JSON.stringify(b).length);
         }
@@ -7267,28 +7326,61 @@ function checkJoinInUrl() {
   state.phase = "buzzer";
   try { history.replaceState(null, "", location.pathname); } catch (e) {}
 }
-// On load, a #b= hash offers to import a shared board.
+// A link does not always arrive the way it left. Mail clients and chat apps
+// percent-encode its "=", "+" and "/", wrap it across lines, turn a "+" into a
+// space. None of that touches the board, so it is undone before reading --
+// "=" arriving as "%3D" used to be enough to make a good link do nothing.
+function shareHashBase64(raw) {
+  var s = String(raw || "");
+  try { s = decodeURIComponent(s); } catch (e) {}
+  s = s.replace(/ /g, "+").replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/").replace(/=+$/, "");
+  while (s.length % 4) s += "=";
+  return s;
+}
+// On load, a #b= hash offers to import a shared board. A link that cannot
+// become a board says why, instead of opening the start screen as if nothing
+// had been tapped -- which is all a cut-short link used to do.
 function checkSharedBoardInUrl() {
   var h = location.hash || "";
-  var m = h.match(/[#&]b=([^&]+)/);
+  var m = h.match(/[#&]b=([^&]*)/);
   if (!m) return;
-  try {
-    var json = decodeURIComponent(escape(atob(m[1])));
-    var board = normalizeBoard(JSON.parse(json));
-    if (board && typeof board === "object" && !board.id) board.id = "custom-" + Date.now().toString(36);
-    if (isValidBoard(board)) state.importPrompt = board;
-  } catch (e) {}
+  var board = null;
+  try { board = normalizeBoard(JSON.parse(decodeURIComponent(escape(atob(shareHashBase64(m[1])))))); } catch (e) {}
+  state.importPrompt = null;
+  state.shareLinkMsg = "";
+  if (!board || typeof board !== "object" || Array.isArray(board)) {
+    state.shareLinkMsg = "This link was meant to open a board, but it arrived damaged — most likely cut " +
+      "short by the app it was sent through. Ask whoever sent it for the board as text instead, and paste it " +
+      "in under My Boards.";
+  } else {
+    if (!/^custom-/.test(String(board.id || ""))) board.id = newCustomId();
+    var why = boardValidationError(board);
+    if (why) {
+      state.shareLinkMsg = "The board in this link is not finished yet: " + why + " Ask whoever sent it to " +
+        "finish it in the board maker and send it again.";
+    } else {
+      state.importPrompt = board;
+    }
+  }
   try { history.replaceState(null, "", location.pathname); } catch (e) {}
 }
-function acceptSharedBoard() {
+function dismissShareLinkMsg() { state.shareLinkMsg = ""; render(); }
+// mode: "replace" writes over the board in My Boards with the same id,
+// "copy" puts it in beside that one. With no board of that id, both just add.
+function acceptSharedBoard(mode) {
   var board = state.importPrompt;
   if (!board) return;
   board.genre = "My Boards";
-  if (!/^custom-/.test(board.id)) board.id = "custom-" + Date.now().toString(36);
+  if (!/^custom-/.test(board.id)) board.id = newCustomId();
+  var had = savedBoardWithId(board.id);
+  if (had && mode !== "replace" && boardFingerprint(had) !== boardFingerprint(board)) {
+    board.id = newCustomId();
+    board.name = freeBoardName(board.name);
+  }
   var list = jfRead(JF_MYBOARDS_KEY, []);
   if (!Array.isArray(list)) list = [];
   var at = list.map(function (b) { return b.id; }).indexOf(board.id);
-  if (at === -1) list.push(board); else list[at] = board; // re-import updates the copy
+  if (at === -1) list.push(board); else list[at] = board;
   if (!jfWrite(JF_MYBOARDS_KEY, list)) {
     // The link still has the board in it, so nothing is lost -- but say so,
     // rather than landing on My Boards with nothing new in it.
@@ -8886,7 +8978,7 @@ function milPackError(p) {
   for (var i = 0; i < p.ladder.length; i++) {
     var q = p.ladder[i];
     if (!q || typeof q !== "object") return "question " + (i + 1) + " is missing.";
-    if (!q.q) return "question " + (i + 1) + " needs a question.";
+    if (!q.q) return "question " + (i + 1) + " has no question written.";
     if (!Array.isArray(q.options) || q.options.length !== 4)
       return "question " + (i + 1) + " needs four answers.";
     for (var o = 0; o < 4; o++) {
@@ -14892,14 +14984,39 @@ function renderConfirm() {
 }
 
 function renderImportPrompt() {
+  if (state.shareLinkMsg) {
+    return '<div class="confirm-overlay"><div class="confirm-card">' +
+      '<p class="confirm-msg">' + esc(state.shareLinkMsg) + '</p>' +
+      '<div class="confirm-actions">' +
+        '<button class="confirm-btn-yes" data-action="dismissShareLinkMsg">OK</button>' +
+      '</div>' +
+    '</div></div>';
+  }
   if (!state.importPrompt) return "";
   var b = state.importPrompt;
+  var had = savedBoardWithId(b.id);
+  var same = had && boardFingerprint(had) === boardFingerprint(b);
+  var msg, buttons;
+  if (same) {
+    msg = 'You already have "' + esc(had.name) + '" in My Boards, and this link is the same board.';
+    buttons = '<button class="confirm-btn-cancel" data-action="dismissSharedBoard">OK</button>' +
+      '<button class="confirm-btn-yes" data-action="acceptSharedBoard">Show Me</button>';
+  } else if (had) {
+    // Could be your own old link, or a friend's corrected copy of your board.
+    // Only the person holding the phone knows which, so they choose.
+    msg = 'You already have "' + esc(had.name) + '" in My Boards, and this link has a different ' +
+      'version of it. Keep both, or replace yours with the one in the link?';
+    buttons = '<button class="confirm-btn-cancel" data-action="dismissSharedBoard">Not Now</button>' +
+      '<button class="confirm-btn-cancel" data-action="acceptSharedBoard" data-mode="replace">Replace Mine</button>' +
+      '<button class="confirm-btn-yes" data-action="acceptSharedBoard" data-mode="copy">Keep Both</button>';
+  } else {
+    msg = 'Someone shared the board "' + esc(b.name) + '" with you. Add it to My Boards?';
+    buttons = '<button class="confirm-btn-cancel" data-action="dismissSharedBoard">Not Now</button>' +
+      '<button class="confirm-btn-yes" data-action="acceptSharedBoard">Add Board</button>';
+  }
   return '<div class="confirm-overlay"><div class="confirm-card">' +
-    '<p class="confirm-msg">Someone shared the board "' + esc(b.name) + '" with you. Add it to My Boards?</p>' +
-    '<div class="confirm-actions">' +
-      '<button class="confirm-btn-cancel" data-action="dismissSharedBoard">Not Now</button>' +
-      '<button class="confirm-btn-yes" data-action="acceptSharedBoard">Add Board</button>' +
-    '</div>' +
+    '<p class="confirm-msg">' + msg + '</p>' +
+    '<div class="confirm-actions">' + buttons + '</div>' +
   '</div></div>';
 }
 
@@ -15426,7 +15543,8 @@ document.getElementById("root").addEventListener("click", function (e) {
   else if (action === "confirmReportBoard") askConfirm("Report this board to the owner? It will be hidden on this device and a GitHub issue will open for you to describe the problem.", "reportBoard", t.getAttribute("data-id"));
   else if (action === "unhideBoards") unhideAllBoards();
   else if (action === "deleteCustomBoard") askConfirm("Delete this custom board? A saved share link can bring it back.", "deleteCustomBoard", t.getAttribute("data-id"));
-  else if (action === "acceptSharedBoard") acceptSharedBoard();
+  else if (action === "acceptSharedBoard") acceptSharedBoard(t.getAttribute("data-mode"));
+  else if (action === "dismissShareLinkMsg") dismissShareLinkMsg();
   else if (action === "dismissSharedBoard") dismissSharedBoard();
   else if (action === "newRound") newRound();
   else if (action === "confirmSwitchBoard") confirmSwitchBoard();
@@ -15497,7 +15615,7 @@ render();
 window.addEventListener("hashchange", function () {
   checkSharedBoardInUrl();
   checkJoinInUrl();
-  if (state.importPrompt || state.phase === "buzzer") render();
+  if (state.importPrompt || state.shareLinkMsg || state.phase === "buzzer") render();
 });
 </script>
 </body>
