@@ -1451,6 +1451,11 @@
   .mini-opt-right .mini-opt-letter { background: #2cb67d; color: #04210f; }
   .mini-opt-wrong { border-color: #ff5470; background: rgba(255, 84, 112, 0.14); color: #ff8aa0; }
   .mini-opt-wrong .mini-opt-letter { background: #ff5470; color: #2a0410; }
+  /* The option text is a flex item, and a flex item will not shrink below its
+     longest word -- so one long unbroken word (a URL, a keyboard mash) pushed
+     the options off the side of Host Control, clipped where nobody could read
+     them. */
+  .mini-opt > span:last-child, .mini-seq-row > span:last-child { min-width: 0; overflow-wrap: anywhere; }
   .mini-seq { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
   .mini-seq-row {
     display: flex; align-items: center; gap: 8px; text-align: left;
@@ -1845,7 +1850,7 @@
   .sequence-row-correct { border-color: #7ee2b0; background: rgba(126, 226, 176, 0.12); }
   .sequence-row-wrong { border-color: #ff8aa0; background: rgba(255, 138, 160, 0.12); }
   .sequence-num { font-weight: 900; color: #ffd166; font-size: 18px; min-width: 22px; }
-  .sequence-text { flex: 1; color: #f5f3ff; font-size: 16px; }
+  .sequence-text { flex: 1; min-width: 0; overflow-wrap: anywhere; color: #f5f3ff; font-size: 16px; }
   .sequence-arrows { display: flex; flex-direction: column; gap: 4px; }
   .sequence-arrow-btn {
     background: #2e3470; color: #f5f3ff; border: none; border-radius: 6px;
