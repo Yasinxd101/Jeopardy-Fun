@@ -6757,9 +6757,22 @@ function copySendIt() {
     navigator.clipboard.writeText(text).then(mark, fallback);
   } else fallback();
 }
+// GitHub refuses an issue whose text runs past this many characters. A picture
+// uploaded into a board is stored inside it as text, and one photo is enough
+// to go past it -- so "copy it, open an issue, paste" failed at GitHub, after
+// the panel had offered it as the way to go.
+var ISSUE_BODY_MAX = 65536;
+function sendItTooBigForIssue(s) {
+  if (!s || !s.payload) return 0;
+  // the same text sendItText() puts on the clipboard
+  var n = (s.subject + "\n\n" + s.body + "\n" + s.payloadLabel + ":\n").length + s.payload.length;
+  return n > ISSUE_BODY_MAX ? n : 0;
+}
 function renderSendIt() {
   var s = state.sendIt;
   if (!s) return "";
+  var tooBig = sendItTooBigForIssue(s);
+  var picChars = tooBig ? (s.payload.match(/data:[^"]*/g) || []).reduce(function (a, x) { return a + x.length; }, 0) : 0;
   return '<div class="confirm-overlay">' +
     '<div class="confirm-card" style="max-width:400px">' +
       '<p class="bpop-title" style="margin:0 0 4px">' + esc(s.title) + '</p>' +
@@ -6781,7 +6794,15 @@ function renderSendIt() {
               : 'One line of text. It opens the board in the browser instead of downloading anything.') +
           '</p>'
         : '') +
-      (s.url
+      (s.url && tooBig
+        ? '<p class="sendit-fine">Too long for a GitHub issue: ' + groupedNumber(tooBig) + ' characters, and ' +
+            'GitHub takes ' + groupedNumber(ISSUE_BODY_MAX) + '. ' +
+            (picChars > tooBig / 2
+              ? 'Nearly all of it is the pictures uploaded into it &mdash; in the board maker, swap them for ' +
+                'links to the pictures and it will fit. Or send it by email as it is.'
+              : 'Send it by email instead.') +
+          '</p>'
+        : s.url
         ? '<a class="sendit-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
             'Open an issue on GitHub</a>'
         : '') +
