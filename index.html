@@ -4564,7 +4564,7 @@ function handleBuzzerData(conn, d) {
     state.buzzer.hostClaimed = true;
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     try { conn.send({ type: "joined", room: state.buzzer.code, armed: false, hostControl: true }); } catch (e) {}
-    try { conn.send(withTimerElapsed(extendHostPayload(buzzerSyncPayload()))); } catch (e) {}
+    sendSync(conn, withTimerElapsed(extendHostPayload(buzzerSyncPayload())));
     renderOrUpdateClue();
   } else if (d.type === "hostCmd") {
     // Only an authenticated host connection may drive the game remotely.
@@ -4575,7 +4575,7 @@ function handleBuzzerData(conn, d) {
     conn.buzzName = "TV";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
     try { conn.send({ type: "joined", room: state.buzzer.code, armed: false }); } catch (e) {}
-    try { conn.send(withTimerElapsed(extendScreenPayload(buzzerSyncPayload()))); } catch (e) {}
+    sendSync(conn, withTimerElapsed(extendScreenPayload(buzzerSyncPayload())));
     renderOrUpdateClue();
   } else if (d.type === "hello") {
     conn.buzzName = clampName(d.name) || "Player";
@@ -4590,7 +4590,7 @@ function handleBuzzerData(conn, d) {
     conn.playerIndex = idx;
     if (state.buzzer.clients.indexOf(conn.buzzName) === -1) state.buzzer.clients.push(conn.buzzName);
     try { conn.send({ type: "joined", room: state.buzzer.code, armed: state.buzzer.armed && state.buzzer.winnerName == null }); } catch (e) {}
-    try { conn.send(withTimerElapsed(buzzerSyncPayload())); } catch (e) {}
+    sendSync(conn, withTimerElapsed(buzzerSyncPayload()));
     renderOrUpdateClue();
   } else if (d.type === "buzz") {
     registerBuzz(conn.buzzName || "Player", conn.playerIndex, conn);
@@ -4964,6 +4964,64 @@ function stopHostRoom() {
   closeHostRoom();
 }
 
+// ---- pictures travel once ----
+// A picture uploaded in the maker is stored in the board itself as a data: URI
+// -- up to ~533KB of text. It used to ride along in every sync message to every
+// phone: board art for the whole game, a question's picture for as long as the
+// question was open. One ordinary question (open, two buzzes, a wrong and a
+// right) sent 7.5MB to two phones; the same question with a linked picture sent
+// 19KB. And messages on the link are delivered in order, so "Ann buzzed in"
+// waited behind whatever picture was still going out.
+//
+// Now a big data: URI in a sync is replaced by a short key, and the picture
+// itself goes to each phone once, just before the first sync that needs it.
+var MEDIA_INLINE_MAX = 2048;     // small inline SVGs stay where they are
+var MEDIA_PREFIX = "@media:";
+var mediaKeys = new Map();       // picture -> key
+var mediaByKey = {};             // key -> picture
+function mediaRef(src) {
+  if (typeof src !== "string" || src.length <= MEDIA_INLINE_MAX || !/^data:/i.test(src)) return src;
+  var k = mediaKeys.get(src);
+  if (!k) {
+    var h = 5381;
+    for (var i = 0; i < src.length; i++) h = ((h << 5) + h + src.charCodeAt(i)) | 0;
+    k = (h >>> 0).toString(36) + "." + src.length.toString(36);
+    mediaKeys.set(src, k);
+    mediaByKey[k] = src;
+  }
+  return MEDIA_PREFIX + k;
+}
+// Every place a picture can sit in a sync, so the host and the phone agree.
+function mediaSlots(m) {
+  var slots = [];
+  if (!m) return slots;
+  slots.push([m, "art"]);
+  if (m.clue) { slots.push([m.clue, "img"]); slots.push([m.clue, "aimg"]); }
+  if (m.picking && m.picking.preview) slots.push([m.picking.preview, "art"]);
+  return slots;
+}
+// Send a sync, preceded by any picture this phone has not been sent yet.
+function sendSync(conn, msg) {
+  conn.mediaSent = conn.mediaSent || {};
+  mediaSlots(msg).forEach(function (slot) {
+    var v = slot[0][slot[1]];
+    if (typeof v !== "string" || v.indexOf(MEDIA_PREFIX) !== 0) return;
+    var k = v.slice(MEDIA_PREFIX.length);
+    if (conn.mediaSent[k] || !mediaByKey[k]) return;
+    try { conn.send({ type: "media", key: k, data: mediaByKey[k] }); conn.mediaSent[k] = true; } catch (e) {}
+  });
+  try { conn.send(msg); } catch (e) {}
+}
+// ...and on the phone, put the pictures back before anything looks at them.
+function inflateMedia(m, store) {
+  mediaSlots(m).forEach(function (slot) {
+    var v = slot[0][slot[1]];
+    if (typeof v !== "string" || v.indexOf(MEDIA_PREFIX) !== 0) return;
+    slot[0][slot[1]] = (store && store[v.slice(MEDIA_PREFIX.length)]) || null;
+  });
+  return m;
+}
+
 // ---- live game sync: phones mirror the clue, timer, wheel, and scores ----
 var lastSyncBase = "";
 function buzzerSyncPayload() {
@@ -4985,7 +5043,7 @@ function buzzerSyncPayload() {
   var picking = boardPickPayload();
   if (picking) p.picking = picking;
   var curB = state.boardId ? currentBoard() : null;
-  if (curB && curB.art) p.art = curB.art;
+  if (curB && curB.art) p.art = mediaRef(curB.art);
   // Which board is in play, so phones and the host know what was picked
   // instead of just saying "waiting".
   if (curB) {
@@ -5065,7 +5123,7 @@ function buzzerSyncPayload() {
       // Clue art rides along to phones so players who cannot see the host
       // screen still get the picture. Answers only follow after the reveal.
       mirror: !!state.phoneMirror,
-      img: (state.phoneMirror && !state.wagering) ? (item.img || null) : null,
+      img: (state.phoneMirror && !state.wagering) ? mediaRef(item.img || null) : null,
     };
     // A typed question is unreadable without its list: "put these in order"
     // with nothing to order, or "pick one" with nothing to pick. The list goes
@@ -5115,7 +5173,7 @@ function buzzerSyncPayload() {
     if (state.phoneMirror && state.revealed) {
       p.clue.a = item.a;
       p.clue.note = item.note || null;
-      p.clue.aimg = item.aimg || (item.id ? "https://i.ytimg.com/vi/" + item.id + "/hqdefault.jpg" : null);
+      p.clue.aimg = mediaRef(item.aimg || (item.id ? "https://i.ytimg.com/vi/" + item.id + "/hqdefault.jpg" : null));
     }
     if (state.wagering) {
       var ddp = state.players[state.turn];
@@ -5186,11 +5244,11 @@ function extendScreenPayload(p) {
   if (state.phase === "question" && state.active && p.clue) {
     var sitem = questionItem();
     // TVs always show the clue art, even when phone mirroring is switched off.
-    if (!state.wagering) p.clue.img = sitem.img || null;
+    if (!state.wagering) p.clue.img = mediaRef(sitem.img || null);
     if (state.revealed) {
       p.clue.a = sitem.a;
       p.clue.note = sitem.note || null;
-      p.clue.aimg = sitem.aimg || (sitem.id ? "https://i.ytimg.com/vi/" + sitem.id + "/hqdefault.jpg" : null);
+      p.clue.aimg = mediaRef(sitem.aimg || (sitem.id ? "https://i.ytimg.com/vi/" + sitem.id + "/hqdefault.jpg" : null));
     }
   }
   if (state.phase === "final" && state.finalStage === "answer" && p.final) {
@@ -5228,10 +5286,10 @@ function extendHostPayload(p) {
   }
   if (state.phase === "question" && state.active && p.clue) {
     var hitem = questionItem();
-    p.clue.img = state.wagering ? null : (hitem.img || null);
+    p.clue.img = state.wagering ? null : mediaRef(hitem.img || null);
     p.clue.a = hitem.a;
     p.clue.note = hitem.note || null;
-    p.clue.aimg = hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null);
+    p.clue.aimg = mediaRef(hitem.aimg || (hitem.id ? "https://i.ytimg.com/vi/" + hitem.id + "/hqdefault.jpg" : null));
     p.clue.q = hitem.q || "";                 // the host always has the text
     // The host is trusted with the answer, so on a typed question they get the
     // right option marked and the right order, revealed or not -- they cannot
@@ -5307,7 +5365,7 @@ function broadcastSync() {
       if (!hostMsg) hostMsg = withTimerElapsed(extendHostPayload(JSON.parse(base)));
       msg = hostMsg;
     }
-    try { c.send(msg); } catch (e) {}
+    sendSync(c, msg);
   });
 }
 // Elapsed seconds ride along outside the dedup compare, so the ticking
@@ -5480,7 +5538,14 @@ function handleClientData(d) {
   }
   else if (d.type === "roomClosed") { bc.stage = "closed"; bc.msg = String(d.reason || "The room was closed."); bc.game = null; }
   else if (d.type === "booted") { bc.stage = "closed"; bc.msg = "The host removed this phone from the room. You are still in the game on the host screen."; bc.game = null; }
+  else if (d.type === "media") {
+    // A picture, sent once, for the syncs that refer to it by key.
+    bc.media = bc.media || {};
+    if (typeof d.key === "string" && typeof d.data === "string") bc.media[d.key] = d.data;
+    return;
+  }
   else if (d.type === "sync") {
+    inflateMedia(d, bc.media);
     // a different clue (or no clue) stops any clip the phone was playing
     var clueKey = d.clue ? d.clue.cat + "|" + (d.clue.videoId || d.clue.q) : "";
     if (clueKey !== bc.clueKey) {
@@ -9800,7 +9865,7 @@ function boardPickPayload() {
     var pv = BOARDS.filter(function (x) { return x.id === state.previewBoardId; })[0];
     if (pv) {
       out.preview = light(pv);
-      out.preview.art = pv.art || null;
+      out.preview.art = mediaRef(pv.art || null);
       out.preview.cats = (pv.textBoard || []).length;
       out.preview.catNames = (pv.textBoard || []).map(function (c) { return c.category; });
     }
