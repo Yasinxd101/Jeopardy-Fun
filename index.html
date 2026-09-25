@@ -1327,12 +1327,19 @@
   .board-card-create .board-card-icon { font-size: 30px; color: #ffd166; font-weight: 900; }
 
   /* ---- confirmation dialog ---- */
+  /* A pop-up taller than the screen -- the send panel on a small phone, or on
+     one turned sideways, or any card holding a long board name -- was centred
+     in a fixed layer, so it overflowed off the top AND the bottom and nothing
+     scrolled: "Done" was out of reach and the pop-up could not be closed. The
+     layer scrolls now, and the card is centred with auto margins, which give
+     way to the top edge when there is no room rather than pushing past it. */
   .confirm-overlay {
     position: fixed; inset: 0; background: rgba(4, 6, 16, 0.72);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px; z-index: 50;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 20px; z-index: 50; overflow-y: auto; overscroll-behavior: contain;
   }
   .confirm-card {
+    margin: auto;
     width: 100%; max-width: 340px; background: #161b3d; border-radius: 16px;
     padding: 22px 20px; box-shadow: 0 14px 40px #000000aa; border: 1px solid rgba(255,255,255,0.08);
   }
