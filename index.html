@@ -4399,6 +4399,9 @@ function startBuzzerRoom() {
   state.buzzer.hostClaimed = false;
   state.buzzer.status = "starting";
   state.buzzer.clients = [];
+  state.buzzer.seatKeys = {};
+  state.buzzer.pinLock = null;
+  state.buzzer.pinAlarm = 0;
   state.buzzer.armed = false;
   state.buzzer.winnerName = null;
   state.buzzer.winnerIndex = null;
@@ -4546,13 +4549,44 @@ function applyHostCommand(d) {
 function broadcastBuzzer(msg) {
   hostConns.forEach(function (c) { try { c.send(msg); } catch (e) {} });
 }
+var PIN_FAILS_BEFORE_LOCK = 5;      // wrong host PINs, across the whole room, before the door shuts
+var PIN_LOCK_MS = 60000;             // ...for a minute, doubling each time it happens again
+var MAX_SCREENS = 4;                 // TVs watching one room
+// Turn a phone away with a reason it can show, and hang up.
+function refuseJoin(conn, reason) {
+  try { conn.send({ type: "refused", reason: reason }); } catch (e) {}
+  try { conn.close(); } catch (e) {}
+}
 function handleBuzzerData(conn, d) {
   if (!d || !state.buzzer.on) return;
   if (d.type === "hello" && d.role === "host") {
     // Answers ride on this connection, so it must prove it knows the PIN that
     // only ever appears on the host's own screen.
+    //
+    // Four digits is ten thousand guesses, and nothing used to slow a guesser
+    // down: a phone had Host Control -- every answer, judging and scoring --
+    // after 7,295 tries, in about a second. Now a wrong PIN costs that
+    // connection, and after a handful of wrong ones across the whole room the
+    // door shuts for a while, longer each time. A person who mistyped once is
+    // not bothered; running through all ten thousand would take days.
+    var now = Date.now();
+    var lock = state.buzzer.pinLock || (state.buzzer.pinLock = { fails: 0, until: 0, rounds: 0 });
+    if (now < lock.until) {
+      try { conn.send({ type: "hostDenied", reason: "Too many wrong PINs. Wait a minute, then try again." }); } catch (e) {}
+      try { conn.close(); } catch (e) {}
+      return;
+    }
     if (!state.buzzer.hostPin || String(d.pin || "") !== state.buzzer.hostPin) {
+      lock.fails++;
+      if (lock.fails >= PIN_FAILS_BEFORE_LOCK) {
+        lock.rounds++;
+        lock.fails = 0;
+        lock.until = now + PIN_LOCK_MS * Math.pow(2, lock.rounds - 1);
+        state.buzzer.pinAlarm = (state.buzzer.pinAlarm || 0) + 1;   // tell the host, on the room screen
+        renderOrUpdateClue();
+      }
       try { conn.send({ type: "hostDenied", reason: "That host PIN is not right." }); } catch (e) {}
+      try { conn.close(); } catch (e) {}
       return;
     }
     if (state.buzzer.hostClaimed && conn.role !== "host") {
@@ -4571,6 +4605,10 @@ function handleBuzzerData(conn, d) {
     if (conn.role !== "host") return;
     applyHostCommand(d);
   } else if (d.type === "hello" && d.role === "screen") {
+    if (hostConns.filter(function (c) { return c.role === "screen" && c !== conn; }).length >= MAX_SCREENS) {
+      refuseJoin(conn, "This room already has " + MAX_SCREENS + " TVs watching.");
+      return;
+    }
     conn.role = "screen";
     conn.buzzName = "TV";
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
@@ -4578,14 +4616,54 @@ function handleBuzzerData(conn, d) {
     sendSync(conn, withTimerElapsed(extendScreenPayload(buzzerSyncPayload())));
     renderOrUpdateClue();
   } else if (d.type === "hello") {
-    conn.buzzName = clampName(d.name) || "Player";
+    var wantName = clampName(d.name) || "Player";
+    var shape = AVATAR_SHAPES.indexOf(d.shape) !== -1 ? d.shape : "circle";
+    var idx = playerIndexByName(wantName);
+    // A seat somebody is already sitting in is not up for grabs. A second phone
+    // joining as "sam " used to land in Sam's seat, and could then buzz, wager
+    // and answer Final Jeopardy as Sam -- overwriting Sam's own answer. A seat
+    // is free to claim only if no live phone holds it and it is not the seat
+    // the host is playing from on this device. A phone that dropped and is
+    // coming back finds its old connection gone, so it gets its seat back.
+    if (idx !== -1) {
+      var holder = hostConns.filter(function (c) {
+        return c !== conn && c.open !== false && c.role !== "screen" && c.role !== "host" &&
+               c.buzzName && c.buzzName.toLowerCase() === state.players[idx].name.toLowerCase();
+      })[0];
+      var keys = state.buzzer.seatKeys || (state.buzzer.seatKeys = {});
+      var seatName = state.players[idx].name.toLowerCase();
+      var sameKey = typeof d.key === "string" && d.key.length >= 8 && keys[seatName] === d.key;
+      if (hostSeatIndex() === idx) {
+        refuseJoin(conn, "\u201C" + state.players[idx].name + "\u201D is the host\u2019s own seat. Pick a different name.");
+        return;
+      }
+      if (holder && !sameKey) {
+        refuseJoin(conn, "\u201C" + state.players[idx].name + "\u201D is already playing on another phone. " +
+          "If that is you reconnecting, try again in a few seconds \u2014 otherwise pick a different name.");
+        return;
+      }
+      // The same phone coming back before its old connection was noticed as
+      // gone: it holds the seat's key, so it takes its seat back and the stale
+      // connection is let go.
+      if (holder && sameKey) { try { holder.close(); } catch (e) {} dropBuzzerConn(holder); }
+    }
+    // A full room is full. Only eight people can play, but the room list and
+    // the connections used to grow for every phone that knocked -- 400 of them
+    // meant 400 chips on the host's screen and every message sent 400 times.
+    if (idx === -1 && state.players.length >= MAX_PLAYERS) {
+      refuseJoin(conn, "This game is full \u2014 it has " + MAX_PLAYERS + " players already.");
+      return;
+    }
+    conn.buzzName = wantName;
     if (hostConns.indexOf(conn) === -1) hostConns.push(conn);
-    var idx = playerIndexByName(conn.buzzName);
-    if (idx === -1 && state.players.length < MAX_PLAYERS) {
-      state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), shape: d.shape || "circle", immune: false, skipNextTurn: false });
+    if (typeof d.key === "string" && d.key.length >= 8) {
+      (state.buzzer.seatKeys || (state.buzzer.seatKeys = {}))[wantName.toLowerCase()] = d.key.slice(0, 64);
+    }
+    if (idx === -1) {
+      state.players.push({ name: conn.buzzName, score: 0, color: nextAvailableColor(), shape: shape, immune: false, skipNextTurn: false });
       idx = state.players.length - 1;
-    } else if (idx !== -1 && d.shape) {
-      state.players[idx].shape = d.shape;
+    } else if (d.shape) {
+      state.players[idx].shape = shape;
     }
     conn.playerIndex = idx;
     if (state.buzzer.clients.indexOf(conn.buzzName) === -1) state.buzzer.clients.push(conn.buzzName);
@@ -4644,7 +4722,13 @@ function kickBuzzer(name) {
 }
 function dropBuzzerConn(conn) {
   var i = hostConns.indexOf(conn);
-  if (i !== -1) hostConns.splice(i, 1);
+  // A connection that is not in the room has nothing to drop. This runs twice
+  // for any link the host closes itself -- once straight away, and again when
+  // the close event arrives -- and the late second run used to take the NAME
+  // off the room list, or give up the host slot, even after a new phone had
+  // taken that name or that slot in between.
+  if (i === -1) return;
+  hostConns.splice(i, 1);
   // free the host slot so the host can reconnect after a dropped signal
   if (conn.role === "host") state.buzzer.hostClaimed = false;
   if (conn.buzzName) {
@@ -5426,7 +5510,7 @@ function connectBuzzer(bc) {
   catch (e) { bc.stage = "join"; bc.msg = "Could not start the connection."; render(); return; }
   clientPeer.on("open", function () {
     clientConn = clientPeer.connect(BUZZ_PREFIX + bc.code);
-    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle", role: bc.role || "player", pin: bc.hostPin || "" }); });
+    clientConn.on("open", function () { clientConn.send({ type: "hello", name: bc.name, shape: bc.shape || "circle", role: bc.role || "player", pin: bc.hostPin || "", key: mySeatKey() }); });
     clientConn.on("data", function (d) { handleClientData(d); });
     clientConn.on("close", function () {
       var cur = state.buzzClient;
@@ -5504,6 +5588,20 @@ function enablePhoneAudio() {
   hap("press");
   render();
 }
+// This phone's private seat key. It never appears on any screen: it is how the
+// host tells this phone coming back after a dropped signal from a different
+// phone claiming the same name.
+function mySeatKey() {
+  var k = null;
+  try { k = localStorage.getItem("jf.seatkey"); } catch (e) {}
+  if (!k || k.length < 16) {
+    var a = new Uint8Array(12);
+    try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 256); }
+    k = Array.prototype.map.call(a, function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+    try { localStorage.setItem("jf.seatkey", k); } catch (e) {}
+  }
+  return k;
+}
 function handleClientData(d) {
   var bc = state.buzzClient;
   if (!bc || !d) return;
@@ -5511,6 +5609,11 @@ function handleClientData(d) {
     bc.stage = "ready";
     bc.buzzState = d.armed ? "armed" : "idle";
     if (d.hostControl) bc.hostControl = true;
+  }
+  else if (d.type === "refused") {
+    bc.stage = "join"; bc.role = "player";
+    bc.msg = String(d.reason || "The room turned this phone away.");
+    try { if (clientConn) clientConn.close(); } catch (e) {}
   }
   else if (d.type === "hostDenied") {
     bc.stage = "join"; bc.role = "player"; bc.hostControl = false;
@@ -7168,7 +7271,13 @@ function nextAvailableColor() {
 var AVATAR_SHAPES = ["circle", "square", "diamond", "triangle", "hex", "star", "ring", "cross"];
 function avatarHtml(p, size) {
   var sz = size || 12;
-  var shape = p.shape || "circle";
+  // Only a shape this app draws, and only a colour that is a colour. A phone
+  // chooses its own shape when it joins, and the shape went into this class
+  // attribute as it arrived -- so a phone joining with a crafted "shape" ran
+  // its code on the host's device, and then, relayed in the player list, on
+  // every other phone and TV in the room.
+  var shape = AVATAR_SHAPES.indexOf(p && p.shape) !== -1 ? p.shape : "circle";
+  p = { shape: shape, color: /^#[0-9a-fA-F]{3,8}$/.test(String(p && p.color)) ? p.color : "#8b92c0" };
   var style = "width:" + sz + "px;height:" + sz + "px;" +
     (shape === "ring" ? "border:3px solid " + p.color + ";background:none;border-radius:50%" : "background:" + p.color);
   return '<span class="avatar av-' + shape + '" style="' + style + '"></span>';
@@ -13377,7 +13486,11 @@ function viewHostRoom() {
             'data-action="toggleHostPin">' + (state.showHostPin ? 'Hide' : 'Show') + '</button>' +
           (b.hostClaimed ? ' &middot; <span style="color:#7ee2b0;font-weight:800">host phone connected</span>' : '') +
         '</p>' +
-        '<p class="buzz-timer-note" style="text-align:center">Keep this PIN to yourself &mdash; it shows the answers.</p>'
+        '<p class="buzz-timer-note" style="text-align:center">Keep this PIN to yourself &mdash; it shows the answers.</p>' +
+        (b.pinAlarm
+          ? '<p class="err" style="text-align:center">Someone has been guessing the host PIN, and was shut out ' +
+              b.pinAlarm + (b.pinAlarm === 1 ? ' time' : ' times') + '. If that was not you, close this room and open a new one.</p>'
+          : '')
       : '');
   }
   var qrBlock = "";
@@ -13585,8 +13698,16 @@ function clearDrawing() {
 }
 // A batch of points from whoever is drawing. `start` opens a new stroke; the
 // rest extend the one already going.
+// A finger sends a few dozen points every 120ms. A phone sending hundreds of
+// thousands in one message is not drawing.
+var DRAW_MSG_MAX = 600;
 function addDrawPoints(pts, start) {
   if (!state.draw || !Array.isArray(pts) || !pts.length) return;
+  // The cap on a picture used to be enforced by dropping whole earlier strokes
+  // -- so one stroke that never ended was never trimmed at all. One phone sent
+  // a single stroke of 4.2 million points against a cap of 4,000: 31MB relayed
+  // to every other phone, and seconds of the host's time spent drawing it.
+  if (pts.length > DRAW_MSG_MAX * 2) pts = pts.slice(0, DRAW_MSG_MAX * 2);
   var clean = [];
   for (var i = 0; i + 1 < pts.length; i += 2) {
     var x = Math.max(0, Math.min(1000, Math.round(+pts[i])));
@@ -13599,6 +13720,11 @@ function addDrawPoints(pts, start) {
          state.draw.strokes[state.draw.strokes.length - 1].concat(clean);
   while (drawTotalPoints(state.draw) > DRAW_MAX_POINTS && state.draw.strokes.length > 1) {
     state.draw.strokes.shift();
+  }
+  // ...and if what is left is one stroke that is still too long, keep its end.
+  var only = state.draw.strokes[0];
+  if (only && drawTotalPoints(state.draw) > DRAW_MAX_POINTS) {
+    state.draw.strokes[0] = only.slice(only.length - DRAW_MAX_POINTS * 2);
   }
   // The whole picture rides in the sync for anyone joining late, but a live
   // stroke goes out as its own small message -- a full sync per flick of a
