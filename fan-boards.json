@@ -162,5 +162,6071 @@
       "q": "This 1972 Atari table tennis game is widely credited with launching the commercial video game industry.",
       "a": "What is Pong?"
     }
+  },
+  {
+    "id": "fan-1990s-music",
+    "name": "1990s Music",
+    "tagline": "Pop, hip-hop, alternative, R&B, landmark albums, and decade chronology.",
+    "accent": "#b34ddb",
+    "icon": "9",
+    "art": "fan-art/1990s-music.jpg",
+    "textBoard": [
+      {
+        "category": "Pop Radio",
+        "questions": [
+          {
+            "q": "This singer's 1998 debut single began with the words 'Oh baby, baby.'",
+            "a": "Who is Britney Spears?",
+            "value": 150
+          },
+          {
+            "q": "This girl group had the 1996 hit 'Wannabe.'",
+            "a": "Who are the Spice Girls?",
+            "value": 300
+          },
+          {
+            "q": "This Canadian singer released 'My Heart Will Go On' for Titanic.",
+            "a": "Who is Celine Dion?",
+            "value": 450
+          },
+          {
+            "q": "This boy band released 'I Want It That Way' in 1999.",
+            "a": "Who are the Backstreet Boys?",
+            "value": 600
+          },
+          {
+            "q": "This singer's 1989 album Rhythm Nation 1814 kept producing hits well into 1990.",
+            "a": "Who is Janet Jackson?",
+            "value": 750
+          },
+          {
+            "q": "This Swedish pop group scored 1990s hits including 'The Sign' and 'All That She Wants.'",
+            "a": "Who are Ace of Base?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Hip-Hop",
+        "questions": [
+          {
+            "q": "This rapper released 'California Love' with Dr. Dre.",
+            "a": "Who is 2Pac?",
+            "value": 150
+          },
+          {
+            "q": "The Notorious B.I.G.'s 1994 debut album is this.",
+            "a": "What is Ready to Die?",
+            "value": 300
+          },
+          {
+            "q": "This Queensbridge rapper released Illmatic in 1994.",
+            "a": "Who is Nas?",
+            "value": 450
+          },
+          {
+            "q": "This group released Enter the Wu-Tang (36 Chambers) in 1993.",
+            "a": "Who are Wu-Tang Clan?",
+            "value": 600
+          },
+          {
+            "q": "This duo of André 3000 and Big Boi released Southernplayalisticadillacmuzik in 1994.",
+            "a": "Who are OutKast?",
+            "value": 750
+          },
+          {
+            "q": "Lauryn Hill's only solo studio album, released in 1998, is this.",
+            "a": "What is The Miseducation of Lauryn Hill?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Alternative & Rock",
+        "questions": [
+          {
+            "q": "Nevermind, the 1991 album that pushed grunge into the mainstream, was released by this Seattle band.",
+            "a": "Who are Nirvana?",
+            "value": 150
+          },
+          {
+            "q": "This band released 'Creep' before later albums such as OK Computer.",
+            "a": "Who are Radiohead?",
+            "value": 300
+          },
+          {
+            "q": "This California trio released Dookie in 1994.",
+            "a": "Who are Green Day?",
+            "value": 450
+          },
+          {
+            "q": "This band fronted by Dolores O'Riordan released 'Zombie.'",
+            "a": "Who are The Cranberries?",
+            "value": 600
+          },
+          {
+            "q": "This British band released (What's the Story) Morning Glory? in 1995.",
+            "a": "Who are Oasis?",
+            "value": 750
+          },
+          {
+            "q": "This band released the 1991 album Blood Sugar Sex Magik.",
+            "a": "Who are Red Hot Chili Peppers?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "R&B & Soul",
+        "questions": [
+          {
+            "q": "This trio released 'No Scrubs' in 1999.",
+            "a": "Who are TLC?",
+            "value": 150
+          },
+          {
+            "q": "This singer's 1995 album Daydream includes 'Fantasy.'",
+            "a": "Who is Mariah Carey?",
+            "value": 300
+          },
+          {
+            "q": "This group released 'End of the Road' in 1992.",
+            "a": "Who are Boyz II Men?",
+            "value": 450
+          },
+          {
+            "q": "This singer released 'You Are Not Alone' on HIStory.",
+            "a": "Who is Michael Jackson?",
+            "value": 600
+          },
+          {
+            "q": "This artist's 1998 album Never Say Never includes 'The Boy Is Mine.'",
+            "a": "Who is Brandy?",
+            "value": 750
+          },
+          {
+            "q": "This neo-soul singer released Baduizm in 1997.",
+            "a": "Who is Erykah Badu?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Albums",
+        "questions": [
+          {
+            "q": "Pearl Jam's 1991 debut is this one-word album.",
+            "a": "What is Ten?",
+            "value": 150
+          },
+          {
+            "q": "This 1995 Alanis Morissette album includes 'You Oughta Know.'",
+            "a": "What is Jagged Little Pill?",
+            "value": 300
+          },
+          {
+            "q": "Dr. Dre's 1992 solo debut is this.",
+            "a": "What is The Chronic?",
+            "value": 450
+          },
+          {
+            "q": "This 1997 Daft Punk debut includes 'Around the World.'",
+            "a": "What is Homework?",
+            "value": 600
+          },
+          {
+            "q": "This 1998 Massive Attack album includes 'Teardrop.'",
+            "a": "What is Mezzanine?",
+            "value": 750
+          },
+          {
+            "q": "This 1999 Flaming Lips album opens with 'Race for the Prize.'",
+            "a": "What is The Soft Bulletin?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these landmark 1990s albums in release order.",
+            "items": [
+              "Nevermind",
+              "The Chronic",
+              "Dookie",
+              "OK Computer"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Nevermind → The Chronic → Dookie → OK Computer",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these 1990s pop hits in release order.",
+            "items": [
+              "Vogue",
+              "Wannabe",
+              "...Baby One More Time",
+              "I Want It That Way"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Vogue → Wannabe → ...Baby One More Time → I Want It That Way",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these hip-hop albums in release order.",
+            "items": [
+              "36 Chambers",
+              "Illmatic",
+              "Ready to Die",
+              "The Miseducation of Lauryn Hill"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "36 Chambers → Illmatic → Ready to Die → Miseducation",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these R&B hits in release order.",
+            "items": [
+              "End of the Road",
+              "Fantasy",
+              "The Boy Is Mine",
+              "No Scrubs"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "End of the Road → Fantasy → The Boy Is Mine → No Scrubs",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these British albums in release order.",
+            "items": [
+              "Definitely Maybe",
+              "(What’s the Story) Morning Glory?",
+              "OK Computer",
+              "Mezzanine"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Definitely Maybe → Morning Glory → OK Computer → Mezzanine",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these artists by the year of the listed breakthrough album, earliest first.",
+            "items": [
+              "Dr. Dre — The Chronic",
+              "Nas — Illmatic",
+              "Oasis — Definitely Maybe",
+              "Britney Spears — ...Baby One More Time"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Dr. Dre → Nas → Oasis → Britney Spears",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "90s Finale",
+      "q": "This 1991 R.E.M. album contains both “Losing My Religion” and “Shiny Happy People.”",
+      "a": "What is Out of Time?"
+    }
+  },
+  {
+    "id": "fan-2000s-music",
+    "name": "2000s Music",
+    "tagline": "Pop, hip-hop, rock, R&B, albums, and release-order memory.",
+    "accent": "#e83e8c",
+    "icon": "♪",
+    "art": "fan-art/2000s-music.jpg",
+    "textBoard": [
+      {
+        "category": "Pop Explosion",
+        "questions": [
+          {
+            "q": "Britney Spears opened the decade with this album featuring 'Oops!... I Did It Again.'",
+            "a": "What is Oops!... I Did It Again?",
+            "value": 150
+          },
+          {
+            "q": "This singer released 'Since U Been Gone' on Breakaway.",
+            "a": "Who is Kelly Clarkson?",
+            "value": 300
+          },
+          {
+            "q": "Lady Gaga's debut era produced 'Just Dance' and this poker-themed hit.",
+            "a": "What is Poker Face?",
+            "value": 450
+          },
+          {
+            "q": "This singer's 'Umbrella' featured Jay-Z.",
+            "a": "Who is Rihanna?",
+            "value": 600
+          },
+          {
+            "q": "Justin Timberlake's 2006 album featuring 'SexyBack' and 'My Love' is this.",
+            "a": "What is FutureSex/LoveSounds?",
+            "value": 750
+          },
+          {
+            "q": "This British singer's Back to Black includes 'Rehab.'",
+            "a": "Who is Amy Winehouse?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Hip-Hop",
+        "questions": [
+          {
+            "q": "This rapper released The Marshall Mathers LP in 2000.",
+            "a": "Who is Eminem?",
+            "value": 150
+          },
+          {
+            "q": "OutKast's 2003 double album includes 'Hey Ya!' and 'The Way You Move.'",
+            "a": "What is Speakerboxxx/The Love Below?",
+            "value": 300
+          },
+          {
+            "q": "This rapper released The College Dropout in 2004.",
+            "a": "Who is Kanye West?",
+            "value": 450
+          },
+          {
+            "q": "This rapper released '99 Problems' on The Black Album.",
+            "a": "Who is Jay-Z?",
+            "value": 600
+          },
+          {
+            "q": "This St. Louis rapper's 2002 album Nellyville includes 'Hot in Herre.'",
+            "a": "Who is Nelly?",
+            "value": 750
+          },
+          {
+            "q": "This rapper's 2006 album Food & Liquor includes 'Kick, Push.'",
+            "a": "Who is Lupe Fiasco?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Rock & Alternative",
+        "questions": [
+          {
+            "q": "Linkin Park's 2000 debut album is this.",
+            "a": "What is Hybrid Theory?",
+            "value": 150
+          },
+          {
+            "q": "The White Stripes scored a stadium chant staple with this seven-nation song.",
+            "a": "What is Seven Nation Army?",
+            "value": 300
+          },
+          {
+            "q": "This band released American Idiot in 2004.",
+            "a": "Who are Green Day?",
+            "value": 450
+          },
+          {
+            "q": "This Arctic Monkeys debut includes 'I Bet You Look Good on the Dancefloor.'",
+            "a": "What is Whatever People Say I Am, That’s What I’m Not?",
+            "value": 600
+          },
+          {
+            "q": "This Las Vegas band released 'Mr. Brightside.'",
+            "a": "Who are The Killers?",
+            "value": 750
+          },
+          {
+            "q": "This British band released In Rainbows in 2007.",
+            "a": "Who are Radiohead?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "R&B & Soul",
+        "questions": [
+          {
+            "q": "This singer's Confessions includes 'Yeah!' and 'Burn.'",
+            "a": "Who is Usher?",
+            "value": 150
+          },
+          {
+            "q": "Alicia Keys debuted with this album featuring 'Fallin'.'",
+            "a": "What is Songs in A Minor?",
+            "value": 300
+          },
+          {
+            "q": "This singer released 'Crazy in Love' from Dangerously in Love.",
+            "a": "Who is Beyoncé?",
+            "value": 450
+          },
+          {
+            "q": "This duo of CeeLo Green and Danger Mouse released 'Crazy.'",
+            "a": "Who are Gnarls Barkley?",
+            "value": 600
+          },
+          {
+            "q": "This singer's 'We Belong Together' powered her 2005 comeback.",
+            "a": "Who is Mariah Carey?",
+            "value": 750
+          },
+          {
+            "q": "This neo-soul artist released Voodoo in 2000.",
+            "a": "Who is D’Angelo?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Albums",
+        "questions": [
+          {
+            "q": "Coldplay's 2002 album featuring 'Clocks' is this.",
+            "a": "What is A Rush of Blood to the Head?",
+            "value": 150
+          },
+          {
+            "q": "50 Cent's 2003 breakthrough album is this.",
+            "a": "What is Get Rich or Die Tryin’?",
+            "value": 300
+          },
+          {
+            "q": "Beyoncé's 2006 album featuring 'Irreplaceable' is this.",
+            "a": "What is B’Day?",
+            "value": 450
+          },
+          {
+            "q": "Gorillaz's 2005 album featuring 'Feel Good Inc.' is this.",
+            "a": "What is Demon Days?",
+            "value": 600
+          },
+          {
+            "q": "Muse's 2006 album featuring 'Knights of Cydonia' is this.",
+            "a": "What is Black Holes and Revelations?",
+            "value": 750
+          },
+          {
+            "q": "This 2004 Arcade Fire debut is titled after a ceremony held after someone dies.",
+            "a": "What is Funeral?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these hits in release order.",
+            "items": [
+              "Crazy in Love",
+              "Yeah!",
+              "Umbrella",
+              "Poker Face"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Crazy in Love → Yeah! → Umbrella → Poker Face",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these albums in release order.",
+            "items": [
+              "Hybrid Theory",
+              "The Eminem Show",
+              "American Idiot",
+              "Back to Black"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Hybrid Theory → The Eminem Show → American Idiot → Back to Black",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these breakout hits in release order.",
+            "items": [
+              "Fallin’",
+              "Complicated",
+              "Mr. Brightside",
+              "Just Dance"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Fallin’ → Complicated → Mr. Brightside → Just Dance",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Kanye West albums in release order.",
+            "items": [
+              "The College Dropout",
+              "Late Registration",
+              "Graduation",
+              "808s & Heartbreak"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "College Dropout → Late Registration → Graduation → 808s",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Rihanna hits in release order.",
+            "items": [
+              "Pon de Replay",
+              "SOS",
+              "Umbrella",
+              "Disturbia"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Pon de Replay → SOS → Umbrella → Disturbia",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Green Day albums in release order.",
+            "items": [
+              "Warning",
+              "American Idiot",
+              "21st Century Breakdown",
+              "Revolution Radio"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Warning → American Idiot → 21st Century Breakdown → Revolution Radio",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Decade Finale",
+      "q": "This French electronic duo wore robot helmets and released Discovery in 2001.",
+      "a": "Who are Daft Punk?"
+    }
+  },
+  {
+    "id": "fan-2010s-music",
+    "name": "2010s Music",
+    "tagline": "Streaming-era pop, rap, indie, R&B, albums, and release chronology.",
+    "accent": "#8d5cf6",
+    "icon": "♫",
+    "art": "fan-art/2010s-music.jpg",
+    "textBoard": [
+      {
+        "category": "Pop Giants",
+        "questions": [
+          {
+            "q": "This singer opened the decade with hits including 'Teenage Dream' and 'Firework.'",
+            "a": "Who is Katy Perry?",
+            "value": 150
+          },
+          {
+            "q": "Adele's 2011 album titled with her age is this.",
+            "a": "What is 21?",
+            "value": 300
+          },
+          {
+            "q": "This singer released 'Shake It Off' as the lead single from 1989.",
+            "a": "Who is Taylor Swift?",
+            "value": 450
+          },
+          {
+            "q": "This Canadian singer's 'Sorry' appears on the album Purpose.",
+            "a": "Who is Justin Bieber?",
+            "value": 600
+          },
+          {
+            "q": "This artist's 2019 hit 'bad guy' helped make When We All Fall Asleep, Where Do We Go? a blockbuster.",
+            "a": "Who is Billie Eilish?",
+            "value": 750
+          },
+          {
+            "q": "This singer's visual album Lemonade arrived in 2016.",
+            "a": "Who is Beyoncé?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Rap & Hip-Hop",
+        "questions": [
+          {
+            "q": "This rapper released good kid, m.A.A.d city in 2012.",
+            "a": "Who is Kendrick Lamar?",
+            "value": 150
+          },
+          {
+            "q": "This Canadian rapper released Take Care in 2011.",
+            "a": "Who is Drake?",
+            "value": 300
+          },
+          {
+            "q": "This duo scored the 2012 hit 'Thrift Shop.'",
+            "a": "Who are Macklemore & Ryan Lewis?",
+            "value": 450
+          },
+          {
+            "q": "This Atlanta trio released 'Bad and Boujee.'",
+            "a": "Who are Migos?",
+            "value": 600
+          },
+          {
+            "q": "This rapper's 2018 album Astroworld includes 'Sicko Mode.'",
+            "a": "Who is Travis Scott?",
+            "value": 750
+          },
+          {
+            "q": "This artist released Igor in 2019.",
+            "a": "Who is Tyler, the Creator?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Indie & Alternative",
+        "questions": [
+          {
+            "q": "This band released 'Somebody Else' and 'The Sound' during the decade.",
+            "a": "Who are The 1975?",
+            "value": 150
+          },
+          {
+            "q": "Tame Impala's 2015 album featuring 'The Less I Know the Better' is this.",
+            "a": "What is Currents?",
+            "value": 300
+          },
+          {
+            "q": "This band had a crossover hit with 'Radioactive.'",
+            "a": "Who are Imagine Dragons?",
+            "value": 450
+          },
+          {
+            "q": "This singer-songwriter released Pure Heroine featuring 'Royals.'",
+            "a": "Who is Lorde?",
+            "value": 600
+          },
+          {
+            "q": "This British group released AM in 2013.",
+            "a": "Who are Arctic Monkeys?",
+            "value": 750
+          },
+          {
+            "q": "This indie band released The Suburbs in 2010.",
+            "a": "Who are Arcade Fire?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "R&B & Crossover",
+        "questions": [
+          {
+            "q": "The Weeknd's 2015 album containing 'Can't Feel My Face' is this.",
+            "a": "What is Beauty Behind the Madness?",
+            "value": 150
+          },
+          {
+            "q": "Frank Ocean's 2012 album featuring 'Thinkin Bout You' is this.",
+            "a": "What is Channel Orange?",
+            "value": 300
+          },
+          {
+            "q": "This singer's 2017 album Ctrl includes 'Love Galore.'",
+            "a": "Who is SZA?",
+            "value": 450
+          },
+          {
+            "q": "This artist released the 2016 album Malibu.",
+            "a": "Who is Anderson .Paak?",
+            "value": 600
+          },
+          {
+            "q": "This singer's 'Earned It' appeared on the Fifty Shades of Grey soundtrack.",
+            "a": "Who is The Weeknd?",
+            "value": 750
+          },
+          {
+            "q": "This British singer's debut In the Lonely Hour includes 'Stay with Me.'",
+            "a": "Who is Sam Smith?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Albums",
+        "questions": [
+          {
+            "q": "Daft Punk's 2013 album featuring 'Get Lucky' is this.",
+            "a": "What is Random Access Memories?",
+            "value": 150
+          },
+          {
+            "q": "Adele's 2015 follow-up to 21 is this age-titled album.",
+            "a": "What is 25?",
+            "value": 300
+          },
+          {
+            "q": "Kendrick Lamar's 2015 album opens with 'Wesley's Theory.'",
+            "a": "What is To Pimp a Butterfly?",
+            "value": 450
+          },
+          {
+            "q": "This 2016 Rihanna album includes 'Work.'",
+            "a": "What is Anti?",
+            "value": 600
+          },
+          {
+            "q": "Childish Gambino's 2016 album is titled this awaken-my-love phrase.",
+            "a": "What is Awaken, My Love!?",
+            "value": 750
+          },
+          {
+            "q": "This 2019 Lana Del Rey album is commonly abbreviated NFR!.",
+            "a": "What is Norman F***ing Rockwell!?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Arrange these 2010s hits from earliest release to latest.",
+            "items": [
+              "Rolling in the Deep",
+              "Royals",
+              "Uptown Funk",
+              "Old Town Road"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Rolling in the Deep → Royals → Uptown Funk → Old Town Road",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Kendrick Lamar albums in release order.",
+            "items": [
+              "Section.80",
+              "good kid, m.A.A.d city",
+              "To Pimp a Butterfly",
+              "DAMN."
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Section.80 → good kid → To Pimp a Butterfly → DAMN.",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Taylor Swift albums in release order.",
+            "items": [
+              "Speak Now",
+              "Red",
+              "1989",
+              "Reputation"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Speak Now → Red → 1989 → Reputation",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Weeknd releases in order.",
+            "items": [
+              "House of Balloons",
+              "Beauty Behind the Madness",
+              "Starboy",
+              "My Dear Melancholy,"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "House of Balloons → Beauty Behind the Madness → Starboy → My Dear Melancholy",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Drake albums in release order.",
+            "items": [
+              "Take Care",
+              "Nothing Was the Same",
+              "Views",
+              "Scorpion"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Take Care → Nothing Was the Same → Views → Scorpion",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these breakout pop moments in order.",
+            "items": [
+              "Call Me Maybe",
+              "Royals",
+              "Cheap Thrills",
+              "bad guy"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Call Me Maybe → Royals → Cheap Thrills → bad guy",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Streaming Era",
+      "q": "This South Korean group became a global stadium act with songs such as DNA and Boy With Luv.",
+      "a": "Who are BTS?"
+    }
+  },
+  {
+    "id": "fan-2020s-music-so-far",
+    "name": "2020s Music So Far",
+    "tagline": "Major pop, rap, R&B, alternative, albums, and release order from the decade so far.",
+    "accent": "#45b8ff",
+    "icon": "2",
+    "art": "fan-art/2020s-music-so-far.jpg",
+    "textBoard": [
+      {
+        "category": "Pop",
+        "questions": [
+          {
+            "q": "Dua Lipa's 2020 album featuring 'Levitating' is this.",
+            "a": "What is Future Nostalgia?",
+            "value": 150
+          },
+          {
+            "q": "Olivia Rodrigo's debut single was this driver's-license-themed ballad.",
+            "a": "What is drivers license?",
+            "value": 300
+          },
+          {
+            "q": "This Miley Cyrus song became a major 2023 hit built around buying herself flowers.",
+            "a": "What is Flowers?",
+            "value": 450
+          },
+          {
+            "q": "This Sabrina Carpenter hit from 2024 is named after a coffee drink.",
+            "a": "What is Espresso?",
+            "value": 600
+          },
+          {
+            "q": "Harry Styles' 2022 album contains 'As It Was.'",
+            "a": "What is Harry’s House?",
+            "value": 750
+          },
+          {
+            "q": "This standalone 2024 single became one of Chappell Roan's biggest breakout hits.",
+            "a": "What is Good Luck, Babe!?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Rap",
+        "questions": [
+          {
+            "q": "This rapper released the 2020 album My Turn.",
+            "a": "Who is Lil Baby?",
+            "value": 150
+          },
+          {
+            "q": "This artist released the 2022 album Mr. Morale & the Big Steppers.",
+            "a": "Who is Kendrick Lamar?",
+            "value": 300
+          },
+          {
+            "q": "This rapper's 2023 album Utopia includes 'FE!N.'",
+            "a": "Who is Travis Scott?",
+            "value": 450
+          },
+          {
+            "q": "This duo released Her Loss in 2022.",
+            "a": "Who are Drake and 21 Savage?",
+            "value": 600
+          },
+          {
+            "q": "This rapper's 2020 album Whole Lotta Red developed a large cult following.",
+            "a": "Who is Playboi Carti?",
+            "value": 750
+          },
+          {
+            "q": "This rapper released The Forever Story in 2022.",
+            "a": "Who is JID?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "R&B & Crossover",
+        "questions": [
+          {
+            "q": "SZA's 2022 album is this three-letter title.",
+            "a": "What is SOS?",
+            "value": 150
+          },
+          {
+            "q": "This singer released 'Leave the Door Open' as half of Silk Sonic.",
+            "a": "Who is Bruno Mars?",
+            "value": 300
+          },
+          {
+            "q": "This artist released the 2022 album Gemini Rights.",
+            "a": "Who is Steve Lacy?",
+            "value": 450
+          },
+          {
+            "q": "This singer's 2020 album It Was Good Until It Wasn't includes 'Can I.'",
+            "a": "Who is Kehlani?",
+            "value": 600
+          },
+          {
+            "q": "This artist released the 2021 album An Evening with Silk Sonic alongside Bruno Mars.",
+            "a": "Who is Anderson .Paak?",
+            "value": 750
+          },
+          {
+            "q": "This singer's 2023 album Jaguar II includes 'On My Mama.'",
+            "a": "Who is Victoria Monét?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Alternative & Indie",
+        "questions": [
+          {
+            "q": "This band released the 2020 album The New Abnormal.",
+            "a": "Who are The Strokes?",
+            "value": 150
+          },
+          {
+            "q": "Phoebe Bridgers' 2020 album is this.",
+            "a": "What is Punisher?",
+            "value": 300
+          },
+          {
+            "q": "This artist released the 2022 album Dragon New Warm Mountain I Believe in You.",
+            "a": "Who are Big Thief?",
+            "value": 450
+          },
+          {
+            "q": "This British band released Ants from Up There in 2022.",
+            "a": "Who are Black Country, New Road?",
+            "value": 600
+          },
+          {
+            "q": "This supergroup of Julien Baker, Phoebe Bridgers, and Lucy Dacus released the record in 2023.",
+            "a": "Who are boygenius?",
+            "value": 750
+          },
+          {
+            "q": "This singer-songwriter released Preacher's Daughter in 2022.",
+            "a": "Who is Ethel Cain?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Albums",
+        "questions": [
+          {
+            "q": "The Weeknd's 2020 album contains 'Blinding Lights.'",
+            "a": "What is After Hours?",
+            "value": 150
+          },
+          {
+            "q": "Beyoncé's 2022 album is this dance-focused project.",
+            "a": "What is Renaissance?",
+            "value": 300
+          },
+          {
+            "q": "Taylor Swift's 2020 surprise album is this.",
+            "a": "What is Folklore?",
+            "value": 450
+          },
+          {
+            "q": "Billie Eilish's 2021 album is this.",
+            "a": "What is Happier Than Ever?",
+            "value": 600
+          },
+          {
+            "q": "Lana Del Rey's 2023 album asks if you knew there is a tunnel under this location.",
+            "a": "What is Did You Know That There’s a Tunnel Under Ocean Blvd?",
+            "value": 750
+          },
+          {
+            "q": "Charli XCX's 2024 album is this four-letter title.",
+            "a": "What is Brat?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these major 2020s albums in release order.",
+            "items": [
+              "After Hours",
+              "SOUR",
+              "Renaissance",
+              "Utopia"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "After Hours → SOUR → Renaissance → Utopia",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these 2020s pop hits in release order.",
+            "items": [
+              "Levitating",
+              "drivers license",
+              "Flowers",
+              "Espresso"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Levitating → drivers license → Flowers → Espresso",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Taylor Swift albums from the 2020s in release order.",
+            "items": [
+              "Folklore",
+              "Evermore",
+              "Midnights",
+              "The Tortured Poets Department"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Folklore → Evermore → Midnights → The Tortured Poets Department",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these R&B albums in release order.",
+            "items": [
+              "It Was Good Until It Wasn’t",
+              "An Evening with Silk Sonic",
+              "SOS",
+              "Jaguar II"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "It Was Good Until It Wasn’t → Silk Sonic → SOS → Jaguar II",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these alternative albums in release order.",
+            "items": [
+              "Punisher",
+              "Ants from Up There",
+              "the record",
+              "Brat"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Punisher → Ants from Up There → the record → Brat",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these rap albums in release order.",
+            "items": [
+              "Whole Lotta Red",
+              "Mr. Morale & the Big Steppers",
+              "The Forever Story",
+              "Utopia"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Whole Lotta Red → Mr. Morale → The Forever Story → Utopia",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "2020s Finale",
+      "q": "This artist released the 2024 country-influenced album Cowboy Carter.",
+      "a": "Who is Beyoncé?"
+    }
+  },
+  {
+    "id": "fan-after-school-cartoons-2000s",
+    "name": "After-School Cartoons: 2000s",
+    "tagline": "A focused 2000s TV-animation board spanning Cartoon Network, Nickelodeon, Disney, action shows, and premiere order.",
+    "accent": "#f08a35",
+    "icon": "C",
+    "art": "fan-art/after-school-cartoons-2000s.jpg",
+    "textBoard": [
+      {
+        "category": "Cartoon Network",
+        "questions": [
+          {
+            "q": "This trio of kids constantly scams the cul-de-sac for jawbreakers.",
+            "a": "What is Ed, Edd n Eddy?",
+            "value": 150
+          },
+          {
+            "q": "This samurai is sent into a dystopian future ruled by Aku.",
+            "a": "Who is Samurai Jack?",
+            "value": 300
+          },
+          {
+            "q": "This series follows five teenage superheroes from a tower shaped like the letter T.",
+            "a": "What is Teen Titans?",
+            "value": 450
+          },
+          {
+            "q": "This blue imaginary friend causes chaos at a home founded by Madame Foster.",
+            "a": "Who is Bloo?",
+            "value": 600
+          },
+          {
+            "q": "Ben Tennyson transforms into aliens using this wrist device.",
+            "a": "What is the Omnitrix?",
+            "value": 750
+          },
+          {
+            "q": "This 2008 Batman cartoon deliberately leans into team-ups with heroes across DC history.",
+            "a": "What is Batman: The Brave and the Bold?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Nickelodeon",
+        "questions": [
+          {
+            "q": "This sponge lives in a pineapple under the sea.",
+            "a": "Who is SpongeBob SquarePants?",
+            "value": 150
+          },
+          {
+            "q": "Timmy Turner is granted fairy godparents named Cosmo and this character.",
+            "a": "Who is Wanda?",
+            "value": 300
+          },
+          {
+            "q": "Jimmy Neutron lives in this retro-futuristic town.",
+            "a": "What is Retroville?",
+            "value": 450
+          },
+          {
+            "q": "Danny Fenton becomes half-ghost after an accident involving this machine.",
+            "a": "What is the Ghost Portal?",
+            "value": 600
+          },
+          {
+            "q": "Aang is the last surviving member of this bending culture.",
+            "a": "What are the Air Nomads?",
+            "value": 750
+          },
+          {
+            "q": "This 2007 Nickelodeon series follows Manny Rivera, a 13-year-old who can become the masked El Tigre.",
+            "a": "What is El Tigre: The Adventures of Manny Rivera?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Disney Channel & XD",
+        "questions": [
+          {
+            "q": "Kim Possible's best friend and sidekick is this character.",
+            "a": "Who is Ron Stoppable?",
+            "value": 150
+          },
+          {
+            "q": "Ron Stoppable's loyal pet is this naked mole-rat.",
+            "a": "Who is Rufus?",
+            "value": 300
+          },
+          {
+            "q": "Jake Long is a teenager who can transform into this mythical creature.",
+            "a": "What is a dragon?",
+            "value": 450
+          },
+          {
+            "q": "Phineas and Ferb build enormous inventions while this sister tries to expose them.",
+            "a": "Who is Candace Flynn?",
+            "value": 600
+          },
+          {
+            "q": "This Disney XD cartoon follows Clarence 'Kick' Buttowski, a kid obsessed with extreme stunts.",
+            "a": "What is Kick Buttowski: Suburban Daredevil?",
+            "value": 750
+          },
+          {
+            "value": 1000,
+            "q": "This Disney Channel cartoon follows Riley and Todd, siblings who can replace adults by calling the Fleemco company.",
+            "a": "What is The Replacements?"
+          }
+        ]
+      },
+      {
+        "category": "Action Animation",
+        "questions": [
+          {
+            "q": "This DC series continues the animated Justice League into a larger hero roster in 2004.",
+            "a": "What is Justice League Unlimited?",
+            "value": 150
+          },
+          {
+            "q": "This empathic Titan is the daughter of the demon Trigon.",
+            "a": "Who is Raven?",
+            "value": 300
+          },
+          {
+            "q": "This 2008 series follows Ahsoka Tano and Anakin Skywalker during a galactic war.",
+            "a": "What is Star Wars: The Clone Wars?",
+            "value": 450
+          },
+          {
+            "q": "This 2000 series follows mutants several years before they become the adult X-Men of earlier cartoons.",
+            "a": "What is X-Men: Evolution?",
+            "value": 600
+          },
+          {
+            "q": "This 2008 Marvel cartoon centers on a young Peter Parker balancing school and superhero life.",
+            "a": "What is The Spectacular Spider-Man?",
+            "value": 750
+          },
+          {
+            "q": "This 2004 series reimagines Bruce Wayne early in his crime-fighting career with unusual villain designs.",
+            "a": "What is The Batman?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Villains & Threats",
+        "questions": [
+          {
+            "q": "Plankton repeatedly tries to steal this secret formula.",
+            "a": "What is the Krabby Patty formula?",
+            "value": 150
+          },
+          {
+            "q": "This Fire Lord, Zuko's father, is Aang's primary enemy.",
+            "a": "Who is Ozai?",
+            "value": 300
+          },
+          {
+            "q": "Slade is the recurring masked enemy of this team.",
+            "a": "Who are the Teen Titans?",
+            "value": 450
+          },
+          {
+            "q": "Vlad Masters is a recurring half-ghost rival to this teenage hero.",
+            "a": "Who is Danny Phantom?",
+            "value": 600
+          },
+          {
+            "q": "This alien warlord relentlessly hunts Ben Tennyson for control of the Omnitrix.",
+            "a": "Who is Vilgax?",
+            "value": 750
+          },
+          {
+            "q": "Aku can alter his form at will using this supernatural ability.",
+            "a": "What is shape-shifting?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Premiere Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these cartoons in premiere order.",
+            "items": [
+              "Ed, Edd n Eddy",
+              "Samurai Jack",
+              "Teen Titans",
+              "Ben 10"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Ed, Edd n Eddy → Samurai Jack → Teen Titans → Ben 10",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Nickelodeon shows in premiere order.",
+            "items": [
+              "SpongeBob SquarePants",
+              "The Fairly OddParents",
+              "Danny Phantom",
+              "Avatar: The Last Airbender"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "SpongeBob → Fairly OddParents → Danny Phantom → Avatar",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Disney shows in premiere order.",
+            "items": [
+              "Kim Possible",
+              "American Dragon: Jake Long",
+              "Phineas and Ferb",
+              "Kick Buttowski"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Kim Possible → American Dragon → Phineas and Ferb → Kick Buttowski",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these superhero cartoons in premiere order.",
+            "items": [
+              "X-Men: Evolution",
+              "Justice League",
+              "Teen Titans",
+              "The Spectacular Spider-Man"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "X-Men: Evolution → Justice League → Teen Titans → Spectacular Spider-Man",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these action cartoons in premiere order.",
+            "items": [
+              "Samurai Jack",
+              "Teen Titans",
+              "The Batman",
+              "The Clone Wars"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Samurai Jack → Teen Titans → The Batman → The Clone Wars",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these finales/end periods in rough order by original series ending.",
+            "items": [
+              "Samurai Jack original run",
+              "Teen Titans",
+              "Danny Phantom",
+              "Avatar: The Last Airbender"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Samurai Jack original run → Teen Titans → Danny Phantom → Avatar",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "2000s Cartoon Finale",
+      "q": "This animator created both The Fairly OddParents and Danny Phantom.",
+      "a": "Who is Butch Hartman?"
+    }
+  },
+  {
+    "id": "fan-cartoons-and-tv-favorites",
+    "name": "Cartoons & TV Favorites",
+    "tagline": "Cartoon Network, Nickelodeon, Disney TV, adult animation, sitcoms, and premiere order.",
+    "accent": "#21a8d8",
+    "icon": "T",
+    "art": "fan-art/cartoons-and-tv-favorites.jpg",
+    "textBoard": [
+      {
+        "category": "Cartoon Network",
+        "questions": [
+          {
+            "q": "This boy genius has a secret laboratory hidden behind his bedroom.",
+            "a": "What is Dexter’s Laboratory?",
+            "value": 150
+          },
+          {
+            "q": "Blossom, Bubbles, and Buttercup make up this superhero trio.",
+            "a": "Who are the Powerpuff Girls?",
+            "value": 300
+          },
+          {
+            "q": "Finn and Jake adventure through the Land of Ooo in this series.",
+            "a": "What is Adventure Time?",
+            "value": 450
+          },
+          {
+            "q": "Mordecai and Rigby work at a park in this surreal comedy.",
+            "a": "What is Regular Show?",
+            "value": 600
+          },
+          {
+            "q": "Steven inherits magical powers from his mother in this gem-filled series.",
+            "a": "What is Steven Universe?",
+            "value": 750
+          },
+          {
+            "q": "Samurai Jack's main enemy is this shape-shifting master of darkness.",
+            "a": "Who is Aku?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Nickelodeon",
+        "questions": [
+          {
+            "q": "This sponge works as a fry cook at the Krusty Krab.",
+            "a": "Who is SpongeBob SquarePants?",
+            "value": 150
+          },
+          {
+            "q": "Aang must master four elements in this animated series.",
+            "a": "What is Avatar: The Last Airbender?",
+            "value": 300
+          },
+          {
+            "q": "Tommy Pickles leads the babies in this 1990s cartoon.",
+            "a": "What is Rugrats?",
+            "value": 450
+          },
+          {
+            "q": "Timmy Turner receives two fairy godparents in this series.",
+            "a": "What is The Fairly OddParents?",
+            "value": 600
+          },
+          {
+            "q": "This football-headed kid lives in a city boarding house with his grandparents.",
+            "a": "Who is Arnold?",
+            "value": 750
+          },
+          {
+            "q": "This invader from Irk is disguised as a human child.",
+            "a": "Who is Zim?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Disney TV",
+        "questions": [
+          {
+            "q": "Kim Possible balances school with this unusual side job.",
+            "a": "What is saving the world?",
+            "value": 150
+          },
+          {
+            "q": "Dipper and Mabel spend the summer in this Oregon town.",
+            "a": "What is Gravity Falls?",
+            "value": 300
+          },
+          {
+            "q": "Phineas and Ferb's pet platypus secretly works under this agent name.",
+            "a": "Who is Agent P?",
+            "value": 450
+          },
+          {
+            "q": "Star Butterfly comes from this magical dimension.",
+            "a": "What is Mewni?",
+            "value": 600
+          },
+          {
+            "q": "Luz Noceda enters this demon realm in The Owl House.",
+            "a": "What are the Boiling Isles?",
+            "value": 750
+          },
+          {
+            "q": "Anne Boonchuy is transported to this amphibian-filled world.",
+            "a": "What is Amphibia?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Adult Animation",
+        "questions": [
+          {
+            "q": "This Springfield family includes Homer, Marge, Bart, Lisa, and Maggie.",
+            "a": "What is The Simpsons?",
+            "value": 150
+          },
+          {
+            "q": "Peter Griffin lives in Quahog in this series.",
+            "a": "What is Family Guy?",
+            "value": 300
+          },
+          {
+            "q": "Stan, Kyle, Cartman, and Kenny live in this Colorado town.",
+            "a": "What is South Park?",
+            "value": 450
+          },
+          {
+            "q": "This depressed former sitcom star is an anthropomorphic horse.",
+            "a": "Who is BoJack Horseman?",
+            "value": 600
+          },
+          {
+            "q": "Rick Sanchez travels the multiverse with this grandson.",
+            "a": "Who is Morty Smith?",
+            "value": 750
+          },
+          {
+            "q": "This sci-fi comedy follows delivery company Planet Express.",
+            "a": "What is Futurama?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Sitcom Staples",
+        "questions": [
+          {
+            "q": "Central Perk is the coffee shop hangout in this sitcom.",
+            "a": "What is Friends?",
+            "value": 150
+          },
+          {
+            "q": "Dunder Mifflin's Scranton branch is the setting of this sitcom.",
+            "a": "What is The Office?",
+            "value": 300
+          },
+          {
+            "q": "Ted Mosby recounts his romantic history in this series.",
+            "a": "What is How I Met Your Mother?",
+            "value": 450
+          },
+          {
+            "q": "Pawnee, Indiana is home to this local-government comedy.",
+            "a": "What is Parks and Recreation?",
+            "value": 600
+          },
+          {
+            "q": "This sitcom follows the wealthy Bluth family after the patriarch’s arrest.",
+            "a": "What is Arrested Development?",
+            "value": 750
+          },
+          {
+            "q": "This workplace comedy follows detectives at Brooklyn's 99th Precinct.",
+            "a": "What is Brooklyn Nine-Nine?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Premiere Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these Cartoon Network shows in premiere order.",
+            "items": [
+              "Dexter’s Laboratory",
+              "The Powerpuff Girls",
+              "Adventure Time",
+              "Steven Universe"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Dexter → Powerpuff Girls → Adventure Time → Steven Universe",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Nickelodeon cartoons in premiere order.",
+            "items": [
+              "Rugrats",
+              "SpongeBob SquarePants",
+              "The Fairly OddParents",
+              "Avatar: The Last Airbender"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Rugrats → SpongeBob → Fairly OddParents → Avatar",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Disney animated shows in premiere order.",
+            "items": [
+              "Kim Possible",
+              "Phineas and Ferb",
+              "Gravity Falls",
+              "The Owl House"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Kim Possible → Phineas and Ferb → Gravity Falls → The Owl House",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these adult animated series in premiere order.",
+            "items": [
+              "The Simpsons",
+              "South Park",
+              "Family Guy",
+              "BoJack Horseman"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "The Simpsons → South Park → Family Guy → BoJack Horseman",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these sitcoms in premiere order.",
+            "items": [
+              "Friends",
+              "The Office (US)",
+              "Parks and Recreation",
+              "Brooklyn Nine-Nine"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Friends → The Office → Parks and Recreation → Brooklyn Nine-Nine",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these fantasy cartoons in premiere order.",
+            "items": [
+              "Avatar: The Last Airbender",
+              "Adventure Time",
+              "Gravity Falls",
+              "Amphibia"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Avatar → Adventure Time → Gravity Falls → Amphibia",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Animation History",
+      "q": "This animator created Samurai Jack and Dexter’s Laboratory.",
+      "a": "Who is Genndy Tartakovsky?"
+    }
+  },
+  {
+    "id": "fan-dragon-ball-from-saiyans-to-super",
+    "name": "Dragon Ball: From Saiyans to Super",
+    "tagline": "Saiyans, techniques, forms, villains, wishes, and saga order.",
+    "accent": "#f28c28",
+    "icon": "D",
+    "art": "fan-art/dragon-ball-from-saiyans-to-super.jpg",
+    "textBoard": [
+      {
+        "category": "Saiyan Blood",
+        "questions": [
+          {
+            "q": "This Saiyan was sent to Earth as an infant under the name Kakarot.",
+            "a": "Who is Goku?",
+            "value": 150
+          },
+          {
+            "q": "This prince of the Saiyans first arrives on Earth alongside Nappa.",
+            "a": "Who is Vegeta?",
+            "value": 300
+          },
+          {
+            "q": "Goku's eldest son defeats Cell after reaching Super Saiyan 2.",
+            "a": "Who is Gohan?",
+            "value": 450
+          },
+          {
+            "q": "This fusion of Goten and Trunks is achieved through the Fusion Dance.",
+            "a": "Who is Gotenks?",
+            "value": 600
+          },
+          {
+            "q": "This Universe 6 Saiyan soldier teaches Caulifla how to become a Super Saiyan.",
+            "a": "Who is Cabba?",
+            "value": 750
+          },
+          {
+            "q": "This Saiyan is the central opponent of Dragon Ball Super: Broly.",
+            "a": "Who is Broly?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Techniques",
+        "questions": [
+          {
+            "q": "Goku's signature beam attack was taught to him by Master Roshi.",
+            "a": "What is the Kamehameha?",
+            "value": 150
+          },
+          {
+            "q": "Vegeta's famous beam attack is often shouted with the words Final and this noun.",
+            "a": "What is Flash?",
+            "value": 300
+          },
+          {
+            "q": "Piccolo's drilling beam technique is called this.",
+            "a": "What is the Special Beam Cannon?",
+            "value": 450
+          },
+          {
+            "q": "Goku learns this teleportation technique from the Yardrats.",
+            "a": "What is Instant Transmission?",
+            "value": 600
+          },
+          {
+            "q": "Tien can multiply his arms with this unusual technique.",
+            "a": "What is the Four Witches Technique?",
+            "value": 750
+          },
+          {
+            "q": "Goku's dangerous self-amplification technique taught by King Kai is this.",
+            "a": "What is the Kaio-ken?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Villains & Foes",
+        "questions": [
+          {
+            "q": "This galactic tyrant destroys Planet Vegeta.",
+            "a": "Who is Frieza?",
+            "value": 150
+          },
+          {
+            "q": "This bio-android reaches a perfect form by absorbing Androids 17 and 18.",
+            "a": "Who is Cell?",
+            "value": 300
+          },
+          {
+            "q": "This pink magical being is awakened by Babidi.",
+            "a": "Who is Majin Buu?",
+            "value": 450
+          },
+          {
+            "q": "This former Kai steals Goku's body and becomes Goku Black.",
+            "a": "Who is Zamasu?",
+            "value": 600
+          },
+          {
+            "q": "This assassin from Universe 6 uses a Time-Skip technique.",
+            "a": "Who is Hit?",
+            "value": 750
+          },
+          {
+            "q": "This Pride Trooper is Universe 11's mightiest warrior in the Tournament of Power.",
+            "a": "Who is Jiren?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Dragon Balls",
+        "questions": [
+          {
+            "q": "Earth's standard Dragon Balls require this many orbs.",
+            "a": "What is seven?",
+            "value": 150
+          },
+          {
+            "q": "This dragon is summoned by Earth's Dragon Balls.",
+            "a": "Who is Shenron?",
+            "value": 300
+          },
+          {
+            "q": "Namek's dragon is this much larger wish-granter.",
+            "a": "Who is Porunga?",
+            "value": 450
+          },
+          {
+            "q": "Goku's first Dragon Ball hunt begins when he meets this girl searching for them.",
+            "a": "Who is Bulma?",
+            "value": 600
+          },
+          {
+            "q": "These wish-granting spheres are the size of planets and are scattered across Universes 6 and 7.",
+            "a": "What are the Super Dragon Balls?",
+            "value": 750
+          },
+          {
+            "q": "In the original Dragon Ball, this shapeshifter interrupts Pilaf's wish to ask for a pair of panties.",
+            "a": "Who is Oolong?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Transformations",
+        "questions": [
+          {
+            "q": "Golden hair and a massive power boost define this form first reached by Goku on Namek.",
+            "a": "What is Super Saiyan?",
+            "value": 150
+          },
+          {
+            "q": "Gohan first reaches this lightning-charged form against Cell.",
+            "a": "What is Super Saiyan 2?",
+            "value": 300
+          },
+          {
+            "q": "This long-haired form lacks visible eyebrows.",
+            "a": "What is Super Saiyan 3?",
+            "value": 450
+          },
+          {
+            "q": "Dragon Ball Super introduces this red-haired godly Saiyan form.",
+            "a": "What is Super Saiyan God?",
+            "value": 600
+          },
+          {
+            "q": "Blue hair appears when Super Saiyan power is combined with godly ki in this form.",
+            "a": "What is Super Saiyan Blue?",
+            "value": 750
+          },
+          {
+            "q": "This state emphasizes instinctive movement rather than conscious thought.",
+            "a": "What is Ultra Instinct?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Saga Sequence",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these Dragon Ball Z arcs in order.",
+            "items": [
+              "Saiyan Saga",
+              "Frieza Saga",
+              "Cell Saga",
+              "Majin Buu Saga"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Saiyan → Frieza → Cell → Majin Buu",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these foes in the order Goku first faces them in Dragon Ball Z.",
+            "items": [
+              "Raditz",
+              "Vegeta",
+              "Frieza",
+              "Cell"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Raditz → Vegeta → Frieza → Cell",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these transformations in debut order.",
+            "items": [
+              "Super Saiyan",
+              "Super Saiyan 2",
+              "Super Saiyan 3",
+              "Super Saiyan God"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Super Saiyan → SSJ2 → SSJ3 → Super Saiyan God",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Dragon Ball Super arcs in order.",
+            "items": [
+              "Battle of Gods",
+              "Resurrection F",
+              "Universe 6 Tournament",
+              "Future Trunks"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Battle of Gods → Resurrection F → Universe 6 → Future Trunks",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these forms or fusions in story debut order.",
+            "items": [
+              "Gotenks",
+              "Vegito",
+              "Super Saiyan God",
+              "Gogeta in Dragon Ball Super: Broly"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Gotenks → Vegito → Super Saiyan God → Gogeta",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these events in chronological story order.",
+            "items": [
+              "21st World Martial Arts Tournament",
+              "23rd World Martial Arts Tournament",
+              "Cell Games",
+              "Tournament of Power"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "21st Tournament → 23rd Tournament → Cell Games → Tournament of Power",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "This manga artist created Dragon Ball after earlier success with Dr. Slump.",
+      "a": "Who is Akira Toriyama?"
+    }
+  },
+  {
+    "id": "fan-fighting-games-round-one",
+    "name": "Fighting Games: Round One",
+    "tagline": "Street Fighter, Mortal Kombat, Tekken, anime fighters, mechanics, and release history.",
+    "accent": "#e74b3c",
+    "icon": "F",
+    "art": "fan-art/fighting-games-round-one.jpg",
+    "textBoard": [
+      {
+        "category": "Street Fighter",
+        "questions": [
+          {
+            "q": "This wandering martial artist throws Hadokens and wears a white gi.",
+            "a": "Who is Ryu?",
+            "value": 150
+          },
+          {
+            "q": "This American fighter is famous for the Sonic Boom.",
+            "a": "Who is Guile?",
+            "value": 300
+          },
+          {
+            "q": "This Chinese Interpol officer uses lightning-fast kicks.",
+            "a": "Who is Chun-Li?",
+            "value": 450
+          },
+          {
+            "q": "This villain commands Shadaloo and uses Psycho Power.",
+            "a": "Who is M. Bison?",
+            "value": 600
+          },
+          {
+            "q": "This fighter's stretchy limbs and fire-breathing attacks come from his unusual yoga style.",
+            "a": "Who is Dhalsim?",
+            "value": 750
+          },
+          {
+            "q": "This final boss of Street Fighter III controls both fire and ice through opposing halves of his body.",
+            "a": "Who is Gill?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Mortal Kombat",
+        "questions": [
+          {
+            "q": "This yellow-clad ninja uses a spear and shouts 'Get over here!'.",
+            "a": "Who is Scorpion?",
+            "value": 150
+          },
+          {
+            "q": "This blue-clad ninja controls ice.",
+            "a": "Who is Sub-Zero?",
+            "value": 300
+          },
+          {
+            "q": "This thunder god protects Earthrealm.",
+            "a": "Who is Raiden?",
+            "value": 450
+          },
+          {
+            "q": "This four-armed Shokan prince is a recurring tournament champion and boss.",
+            "a": "Who is Goro?",
+            "value": 600
+          },
+          {
+            "q": "This sorcerer steals souls and often serves Outworld's rulers.",
+            "a": "Who is Shang Tsung?",
+            "value": 750
+          },
+          {
+            "q": "This fallen Elder God becomes a major villain in Mortal Kombat X.",
+            "a": "Who is Shinnok?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Tekken",
+        "questions": [
+          {
+            "q": "This Mishima heir has a devil form and begins Tekken as its protagonist.",
+            "a": "Who is Kazuya Mishima?",
+            "value": 150
+          },
+          {
+            "q": "This elderly patriarch repeatedly throws relatives off cliffs.",
+            "a": "Who is Heihachi Mishima?",
+            "value": 300
+          },
+          {
+            "q": "This son of Kazuya becomes central to Tekken 3 and later games.",
+            "a": "Who is Jin Kazama?",
+            "value": 450
+          },
+          {
+            "q": "This jaguar-masked professional wrestler is known by this ring name.",
+            "a": "Who is King?",
+            "value": 600
+          },
+          {
+            "q": "This sword-wielding Manji Clan ninja appears across both Tekken and Soulcalibur.",
+            "a": "Who is Yoshimitsu?",
+            "value": 750
+          },
+          {
+            "q": "This martial artist is Jin's mother and a practitioner of Kazama Style Traditional Martial Arts.",
+            "a": "Who is Jun Kazama?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Anime Fighters",
+        "questions": [
+          {
+            "q": "Dragon Ball FighterZ was developed by this studio known for Guilty Gear.",
+            "a": "Who is Arc System Works?",
+            "value": 150
+          },
+          {
+            "q": "This Guilty Gear hero fights with the Fireseal sword.",
+            "a": "Who is Sol Badguy?",
+            "value": 300
+          },
+          {
+            "q": "This BlazBlue protagonist wields the Azure Grimoire and a massive sword.",
+            "a": "Who is Ragna the Bloodedge?",
+            "value": 450
+          },
+          {
+            "q": "Granblue Fantasy Versus is based on this mobile RPG franchise.",
+            "a": "What is Granblue Fantasy?",
+            "value": 600
+          },
+          {
+            "q": "This arena-fighter series adapts Naruto and is developed by CyberConnect2.",
+            "a": "What is Naruto: Ultimate Ninja Storm?",
+            "value": 750
+          },
+          {
+            "q": "This Arc System Works series features characters such as Yu Narukami and Labrys.",
+            "a": "What is Persona 4 Arena?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Fighting Terms",
+        "questions": [
+          {
+            "q": "A sequence of attacks that connects before the opponent can recover is called this.",
+            "a": "What is a combo?",
+            "value": 150
+          },
+          {
+            "q": "Blocking while crouched is commonly called this.",
+            "a": "What is crouch block / low block?",
+            "value": 300
+          },
+          {
+            "q": "A move that cannot be blocked is described by this term.",
+            "a": "What is unblockable?",
+            "value": 450
+          },
+          {
+            "q": "A deliberate attack performed as the opponent rises from knockdown is called this pressure situation.",
+            "a": "What is oki / okizeme?",
+            "value": 600
+          },
+          {
+            "q": "A player repeatedly alternating between throws and attacks is creating this kind of guess-heavy pressure.",
+            "a": "What is a mix-up?",
+            "value": 750
+          },
+          {
+            "q": "The practice room used to test combos and frame data is usually called this mode.",
+            "a": "What is Training Mode?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these fighting franchises by first arcade/game release.",
+            "items": [
+              "Street Fighter",
+              "Mortal Kombat",
+              "Tekken",
+              "Guilty Gear"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Street Fighter → Mortal Kombat → Tekken → Guilty Gear",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Street Fighter titles in release order.",
+            "items": [
+              "Street Fighter II",
+              "Street Fighter Alpha",
+              "Street Fighter III",
+              "Street Fighter IV"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "SFII → Alpha → SFIII → SFIV",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Mortal Kombat games in release order.",
+            "items": [
+              "Mortal Kombat",
+              "Mortal Kombat II",
+              "Mortal Kombat 3",
+              "Mortal Kombat 4"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "MK → MKII → MK3 → MK4",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Tekken entries in release order.",
+            "items": [
+              "Tekken 2",
+              "Tekken 3",
+              "Tekken 5",
+              "Tekken 7"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Tekken 2 → Tekken 3 → Tekken 5 → Tekken 7",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Arc System Works fighters in release order.",
+            "items": [
+              "Guilty Gear",
+              "BlazBlue: Calamity Trigger",
+              "Persona 4 Arena",
+              "Dragon Ball FighterZ"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Guilty Gear → BlazBlue → Persona 4 Arena → Dragon Ball FighterZ",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these modern fighters in order of their home-console release.",
+            "items": [
+              "Street Fighter V",
+              "Tekken 7",
+              "Mortal Kombat 11",
+              "Street Fighter 6"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "SFV → Tekken 7 → MK11 → SF6",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Final Round",
+      "q": "This Japanese producer is the longtime face of the Tekken series and frequently appears in sunglasses.",
+      "a": "Who is Katsuhiro Harada?"
+    }
+  },
+  {
+    "id": "fan-hip-hop-through-the-eras",
+    "name": "Hip-Hop Through the Eras",
+    "tagline": "Foundations, golden age, 1990s, 2000s, modern rap, producers, and chronology.",
+    "accent": "#d88620",
+    "icon": "H",
+    "art": "fan-art/hip-hop-through-the-eras.jpg",
+    "textBoard": [
+      {
+        "category": "Foundations",
+        "questions": [
+          {
+            "q": "This DJ is widely credited with helping originate hip-hop at Bronx block parties in the 1970s.",
+            "a": "Who is DJ Kool Herc?",
+            "value": 150
+          },
+          {
+            "q": "The Sugarhill Gang's 1979 single is this landmark rap hit.",
+            "a": "What is Rapper’s Delight?",
+            "value": 300
+          },
+          {
+            "q": "Grandmaster Flash and the Furious Five released this socially conscious 1982 classic.",
+            "a": "What is The Message?",
+            "value": 450
+          },
+          {
+            "q": "This trio made rap a mainstream force with 'Walk This Way' alongside Aerosmith.",
+            "a": "Who are Run-D.M.C.?",
+            "value": 600
+          },
+          {
+            "q": "This Queens group featured Q-Tip and Phife Dawg.",
+            "a": "Who are A Tribe Called Quest?",
+            "value": 750
+          },
+          {
+            "q": "Eric B. teamed with this MC on the 1987 album Paid in Full.",
+            "a": "Who is Rakim?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "1990s",
+        "questions": [
+          {
+            "q": "This rapper's debut Illmatic arrived in 1994.",
+            "a": "Who is Nas?",
+            "value": 150
+          },
+          {
+            "q": "This West Coast producer-rapper released The Chronic in 1992.",
+            "a": "Who is Dr. Dre?",
+            "value": 300
+          },
+          {
+            "q": "This Brooklyn rapper was also known as Biggie Smalls.",
+            "a": "Who is The Notorious B.I.G.?",
+            "value": 450
+          },
+          {
+            "q": "This group released Aquemini in 1998.",
+            "a": "Who are OutKast?",
+            "value": 600
+          },
+          {
+            "q": "This rapper released All Eyez on Me in 1996.",
+            "a": "Who is 2Pac?",
+            "value": 750
+          },
+          {
+            "q": "This group made 36 Chambers their 1993 introduction.",
+            "a": "Who are Wu-Tang Clan?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "2000s",
+        "questions": [
+          {
+            "q": "This rapper's major-label debut Get Rich or Die Tryin’ arrived in 2003.",
+            "a": "Who is 50 Cent?",
+            "value": 150
+          },
+          {
+            "q": "This artist's debut The College Dropout arrived in 2004.",
+            "a": "Who is Kanye West?",
+            "value": 300
+          },
+          {
+            "q": "This rapper released Tha Carter III in 2008.",
+            "a": "Who is Lil Wayne?",
+            "value": 450
+          },
+          {
+            "q": "OutKast split this 2003 double album into one disc for Big Boi and one for André 3000.",
+            "a": "What is Speakerboxxx/The Love Below?",
+            "value": 600
+          },
+          {
+            "q": "Pusha T and Malice, brothers from Virginia, formed this duo that worked heavily with The Neptunes.",
+            "a": "Who are Clipse?",
+            "value": 750
+          },
+          {
+            "q": "This Detroit rapper's 2000 album is The Marshall Mathers LP.",
+            "a": "Who is Eminem?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "2010s & Beyond",
+        "questions": [
+          {
+            "q": "The concept album good kid, m.A.A.d city is a 2012 release by this Compton rapper.",
+            "a": "Who is Kendrick Lamar?",
+            "value": 150
+          },
+          {
+            "q": "This Toronto artist released Nothing Was the Same in 2013.",
+            "a": "Who is Drake?",
+            "value": 300
+          },
+          {
+            "q": "Astroworld, featuring 'Sicko Mode,' is a 2018 album by this Houston rapper.",
+            "a": "Who is Travis Scott?",
+            "value": 450
+          },
+          {
+            "q": "This artist released the 2019 album Igor.",
+            "a": "Who is Tyler, the Creator?",
+            "value": 600
+          },
+          {
+            "q": "This rapper released the 2020 album Whole Lotta Red.",
+            "a": "Who is Playboi Carti?",
+            "value": 750
+          },
+          {
+            "q": "This artist's 2022 album The Forever Story includes 'Dance Now.'",
+            "a": "Who is JID?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Producers & Crews",
+        "questions": [
+          {
+            "q": "This producer formed Gang Starr with Guru.",
+            "a": "Who is DJ Premier?",
+            "value": 150
+          },
+          {
+            "q": "This production duo of Pharrell Williams and Chad Hugo is called this.",
+            "a": "Who are The Neptunes?",
+            "value": 300
+          },
+          {
+            "q": "Future's voice on this producer's tag warns, 'If Young Metro don't trust you, I'm gon' shoot you.'",
+            "a": "Who is Metro Boomin?",
+            "value": 450
+          },
+          {
+            "q": "This Detroit producer behind Donuts was known professionally by this name.",
+            "a": "Who is J Dilla?",
+            "value": 600
+          },
+          {
+            "q": "This Wu-Tang Clan member served as the group’s chief producer and architect of its early sound.",
+            "a": "Who is RZA?",
+            "value": 750
+          },
+          {
+            "q": "Dr. Dre founded this record label in 1996, later signing artists including Eminem and 50 Cent.",
+            "a": "What is Aftermath Entertainment?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Timeline",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these landmark records in release order.",
+            "items": [
+              "Rapper’s Delight",
+              "The Message",
+              "Paid in Full",
+              "Straight Outta Compton"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Rapper’s Delight → The Message → Paid in Full → Straight Outta Compton",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these 1990s albums in release order.",
+            "items": [
+              "The Chronic",
+              "36 Chambers",
+              "Illmatic",
+              "All Eyez on Me"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "The Chronic → 36 Chambers → Illmatic → All Eyez on Me",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these 2000s albums in release order.",
+            "items": [
+              "The Marshall Mathers LP",
+              "Get Rich or Die Tryin’",
+              "The College Dropout",
+              "Tha Carter III"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Marshall Mathers LP → Get Rich or Die Tryin’ → College Dropout → Tha Carter III",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Arrange these Kendrick Lamar albums from earliest to latest.",
+            "items": [
+              "Section.80",
+              "good kid, m.A.A.d city",
+              "To Pimp a Butterfly",
+              "DAMN."
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Section.80 → good kid → To Pimp a Butterfly → DAMN.",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Arrange these Drake albums from earliest to latest.",
+            "items": [
+              "Take Care",
+              "Nothing Was the Same",
+              "Views",
+              "Scorpion"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Take Care → Nothing Was the Same → Views → Scorpion",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these artists by the release of the listed debut, earliest first.",
+            "items": [
+              "Nas — Illmatic",
+              "50 Cent — Get Rich or Die Tryin’",
+              "Kanye West — The College Dropout",
+              "JID — The Never Story"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Nas → 50 Cent → Kanye West → JID",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Hip-Hop Finale",
+      "q": "This New York borough is commonly identified as the birthplace of hip-hop culture.",
+      "a": "What is the Bronx?"
+    }
+  },
+  {
+    "id": "fan-horror-games-survive-the-night",
+    "name": "Horror Games: Survive the Night",
+    "tagline": "Survival horror, monsters, locations, mechanics, indie scares, and release order.",
+    "accent": "#7a1d2d",
+    "icon": "H",
+    "art": "fan-art/horror-games-survive-the-night.jpg",
+    "textBoard": [
+      {
+        "category": "Survival Horror",
+        "questions": [
+          {
+            "q": "This 1996 Capcom game sends S.T.A.R.S. members into a mansion outside Raccoon City.",
+            "a": "What is Resident Evil?",
+            "value": 150
+          },
+          {
+            "q": "This Konami series sends characters into a fog-covered town shaped by guilt and trauma.",
+            "a": "What is Silent Hill?",
+            "value": 300
+          },
+          {
+            "q": "Dead Space follows this engineer, sent to repair a mining ship that has gone silent.",
+            "a": "Who is Isaac Clarke?",
+            "value": 450
+          },
+          {
+            "q": "This 2014 game traps Amanda Ripley aboard Sevastopol Station with a xenomorph.",
+            "a": "What is Alien: Isolation?",
+            "value": 600
+          },
+          {
+            "q": "This 2013 horror game follows journalist Miles Upshur, armed only with a camcorder.",
+            "a": "What is Outlast?",
+            "value": 750
+          },
+          {
+            "q": "This 2023 remake revisits Leon S. Kennedy's rescue mission in rural Spain.",
+            "a": "What is Resident Evil 4?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Monsters",
+        "questions": [
+          {
+            "q": "This Resident Evil pursuer repeatedly growls 'S.T.A.R.S.'",
+            "a": "Who is Nemesis?",
+            "value": 150
+          },
+          {
+            "q": "This pyramid-helmeted executioner stalks James Sunderland.",
+            "a": "Who is Pyramid Head?",
+            "value": 300
+          },
+          {
+            "q": "These reanimated horrors are the primary enemies in Dead Space.",
+            "a": "What are Necromorphs?",
+            "value": 450
+          },
+          {
+            "q": "This towering Resident Evil 2 pursuer is commonly nicknamed Mr. X.",
+            "a": "Who is the Tyrant T-00?",
+            "value": 600
+          },
+          {
+            "q": "Five Nights at Freddy's centers on murderous versions of these entertainment robots.",
+            "a": "What are animatronics?",
+            "value": 750
+          },
+          {
+            "q": "This pale, stretchy Resident Evil 4 enemy can regrow tissue unless its internal parasites are destroyed.",
+            "a": "What is the Regenerator?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Locations",
+        "questions": [
+          {
+            "q": "Resident Evil's first game is set in this mansion, named for one of Umbrella's founders.",
+            "a": "What is the Spencer Mansion?",
+            "value": 150
+          },
+          {
+            "q": "This 2001 sequel follows James Sunderland after he receives a letter apparently written by his dead wife.",
+            "a": "What is Silent Hill 2?",
+            "value": 300
+          },
+          {
+            "q": "Dead Space takes place aboard this planet-cracking ship.",
+            "a": "What is the USG Ishimura?",
+            "value": 450
+          },
+          {
+            "q": "Amnesia: The Dark Descent takes place largely inside this castle.",
+            "a": "What is Brennenburg Castle?",
+            "value": 600
+          },
+          {
+            "q": "Outlast takes place at this psychiatric hospital.",
+            "a": "What is Mount Massive Asylum?",
+            "value": 750
+          },
+          {
+            "q": "The first BioShock takes place in this underwater city.",
+            "a": "What is Rapture?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Mechanics",
+        "questions": [
+          {
+            "q": "A limited supply of these is a classic survival-horror way to make combat decisions tense.",
+            "a": "What is ammunition?",
+            "value": 150
+          },
+          {
+            "q": "Resident Evil commonly uses these items to restore health.",
+            "a": "What are herbs?",
+            "value": 300
+          },
+          {
+            "q": "In Alien: Isolation, this device helps track nearby movement.",
+            "a": "What is the motion tracker?",
+            "value": 450
+          },
+          {
+            "q": "Amnesia punishes prolonged darkness partly through this mental-state system.",
+            "a": "What is sanity?",
+            "value": 600
+          },
+          {
+            "q": "Five Nights at Freddy's makes the player manage limited electricity for doors, lights, and cameras.",
+            "a": "What is power?",
+            "value": 750
+          },
+          {
+            "q": "Dead Space encourages players to shoot limbs rather than center mass, a tactic summarized by this phrase.",
+            "a": "What is strategic dismemberment?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Indie Scares",
+        "questions": [
+          {
+            "q": "This pixel-art horror RPG stars a girl named Ib visiting an art gallery.",
+            "a": "What is Ib?",
+            "value": 150
+          },
+          {
+            "q": "This indie game follows a child trapped in a strange world guided by a lightbulb sun.",
+            "a": "What is OneShot?",
+            "value": 300
+          },
+          {
+            "q": "This mascot-horror game begins with a former employee returning to an abandoned toy factory.",
+            "a": "What is Poppy Playtime?",
+            "value": 450
+          },
+          {
+            "q": "This psychological horror visual novel initially presents itself as a cheerful literature-club dating game.",
+            "a": "What is Doki Doki Literature Club!?",
+            "value": 600
+          },
+          {
+            "q": "This indie horror series features a faceless tall figure associated with collecting pages.",
+            "a": "What is Slender / Slender: The Eight Pages?",
+            "value": 750
+          },
+          {
+            "q": "This game by Puppet Combo strands a babysitter in a VHS-styled slasher scenario.",
+            "a": "What is Babysitter Bloodbath?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these survival-horror games in release order.",
+            "items": [
+              "Resident Evil",
+              "Silent Hill",
+              "Resident Evil 4",
+              "Dead Space"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Resident Evil → Silent Hill → Resident Evil 4 → Dead Space",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these indie horror games in release order.",
+            "items": [
+              "Amnesia: The Dark Descent",
+              "Slender: The Eight Pages",
+              "Outlast",
+              "Doki Doki Literature Club!"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Amnesia → Slender → Outlast → Doki Doki Literature Club",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Resident Evil games in release order.",
+            "items": [
+              "Resident Evil 2",
+              "Resident Evil 3: Nemesis",
+              "Resident Evil 4",
+              "Resident Evil 7"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "RE2 → RE3 → RE4 → RE7",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these horror locations by their game release order.",
+            "items": [
+              "Spencer Mansion",
+              "Silent Hill",
+              "USG Ishimura",
+              "Sevastopol Station"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Spencer Mansion → Silent Hill → Ishimura → Sevastopol",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these mascot-horror games in release order.",
+            "items": [
+              "Five Nights at Freddy’s",
+              "Bendy and the Ink Machine",
+              "Poppy Playtime",
+              "Garten of Banban"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "FNAF → Bendy → Poppy Playtime → Garten of Banban",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these remakes in release order.",
+            "items": [
+              "Resident Evil 2",
+              "Resident Evil 3",
+              "Dead Space",
+              "Resident Evil 4"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "RE2 remake → RE3 remake → Dead Space remake → RE4 remake",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Horror Finale",
+      "q": "This Japanese designer directed the original Resident Evil and later created The Evil Within.",
+      "a": "Who is Shinji Mikami?"
+    }
+  },
+  {
+    "id": "fan-isekai-and-fantasy-anime",
+    "name": "Isekai & Fantasy Anime",
+    "tagline": "Other worlds, guilds, kingdoms, abilities, party members, and adaptation chronology.",
+    "accent": "#55a46d",
+    "icon": "I",
+    "art": "fan-art/isekai-and-fantasy-anime.jpg",
+    "textBoard": [
+      {
+        "category": "Sent Elsewhere",
+        "questions": [
+          {
+            "q": "This shut-in dies, meets the goddess Aqua, and picks her as the one thing he brings to the new world.",
+            "a": "Who is Kazuma Satou?",
+            "value": 150
+          },
+          {
+            "q": "Satoru Mikami, a 37-year-old salaryman, is reborn as a slime and takes this name.",
+            "a": "Who is Rimuru Tempest?",
+            "value": 300
+          },
+          {
+            "q": "Subaru Natsuki gains this death-triggered looping ability.",
+            "a": "What is Return by Death?",
+            "value": 450
+          },
+          {
+            "q": "A jobless 34-year-old shut-in is reborn in a new world as this boy, son of Paul and Zenith.",
+            "a": "Who is Rudeus Greyrat?",
+            "value": 600
+          },
+          {
+            "q": "This skeleton overlord remains in the world of Yggdrasil as his avatar after the servers should shut down.",
+            "a": "Who is Ainz Ooal Gown?",
+            "value": 750
+          },
+          {
+            "q": "This shield-bearing hero is summoned as one of four Cardinal Heroes.",
+            "a": "Who is Naofumi Iwatani?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Guilds & Parties",
+        "questions": [
+          {
+            "q": "Kazuma, Aqua, Megumin, and Darkness adventure together in this comedy series.",
+            "a": "What is KonoSuba?",
+            "value": 150
+          },
+          {
+            "q": "Natsu Dragneel's wizard guild in the town of Magnolia gives this series its name.",
+            "a": "What is Fairy Tail?",
+            "value": 300
+          },
+          {
+            "q": "This dungeon-crawling series follows Bell Cranel, initially the sole member of Hestia's Familia.",
+            "a": "What is Is It Wrong to Try to Pick Up Girls in a Dungeon?",
+            "value": 450
+          },
+          {
+            "q": "Frieren once traveled in the Hero Party led by this human hero.",
+            "a": "Who is Himmel?",
+            "value": 600
+          },
+          {
+            "q": "This healer joins Goblin Slayer after her first adventuring party is wiped out by goblins.",
+            "a": "Who is Priestess?",
+            "value": 750
+          },
+          {
+            "q": "In Delicious in Dungeon, Laios leads a party back into a dungeon partly to rescue this sister.",
+            "a": "Who is Falin?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Magic & Skills",
+        "questions": [
+          {
+            "q": "Megumin specializes obsessively in this single destructive spell.",
+            "a": "What is Explosion?",
+            "value": 150
+          },
+          {
+            "q": "Rimuru gains this ability that analyzes and advises him, later evolving under different names.",
+            "a": "What is Great Sage?",
+            "value": 300
+          },
+          {
+            "q": "Ainz Ooal Gown is an undead magic caster who specializes in this grim school of spells.",
+            "a": "What is death magic (necromancy)?",
+            "value": 450
+          },
+          {
+            "q": "Frieren is particularly skilled at suppressing this magical energy to mislead demons.",
+            "a": "What is mana?",
+            "value": 600
+          },
+          {
+            "q": "Mashle's protagonist stands out because he lacks this power entirely.",
+            "a": "What is magic?",
+            "value": 750
+          },
+          {
+            "q": "In Black Clover, Asta's swords use this force that cancels magic.",
+            "a": "What is Anti-Magic?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Kingdoms & Worlds",
+        "questions": [
+          {
+            "q": "Rimuru establishes this monster nation in the Jura Forest.",
+            "a": "What is the Jura Tempest Federation?",
+            "value": 150
+          },
+          {
+            "q": "The Great Tomb of Nazarick is the base of this series' overlord.",
+            "a": "What is Overlord?",
+            "value": 300
+          },
+          {
+            "q": "Re:Zero's story begins in this royal-capital kingdom.",
+            "a": "What is Lugunica?",
+            "value": 450
+          },
+          {
+            "q": "Mushoku Tensei begins Rudeus' new life in this fantasy world.",
+            "a": "What is the Six-Faced World?",
+            "value": 600
+          },
+          {
+            "q": "Frieren's journey retraces paths through a world where this enemy race often deceives humans through speech.",
+            "a": "What are demons?",
+            "value": 750
+          },
+          {
+            "q": "In Delicious in Dungeon, this dwarf has spent years cooking monsters inside the dungeon.",
+            "a": "Who is Senshi?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Companions",
+        "questions": [
+          {
+            "q": "This explosion-obsessed Crimson Demon joins Kazuma.",
+            "a": "Who is Megumin?",
+            "value": 150
+          },
+          {
+            "q": "This half-elf royal candidate becomes central to Subaru's loyalty.",
+            "a": "Who is Emilia?",
+            "value": 300
+          },
+          {
+            "q": "This blue-haired maid becomes one of Subaru's closest allies.",
+            "a": "Who is Rem?",
+            "value": 450
+          },
+          {
+            "q": "This succubus overseer is fiercely devoted to Ainz.",
+            "a": "Who is Albedo?",
+            "value": 600
+          },
+          {
+            "q": "This tanuki-like demi-human swordswoman becomes the Shield Hero's closest companion.",
+            "a": "Who is Raphtalia?",
+            "value": 750
+          },
+          {
+            "q": "This human mage, raised by the priest Heiter, becomes Frieren's apprentice.",
+            "a": "Who is Fern?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Premiere Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these early 2010s isekai anime premieres in order.",
+            "items": [
+              "Sword Art Online",
+              "No Game No Life",
+              "Overlord",
+              "KonoSuba"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Sword Art Online → No Game No Life → Overlord → KonoSuba",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these later isekai anime premieres in order.",
+            "items": [
+              "Re:Zero",
+              "That Time I Got Reincarnated as a Slime",
+              "The Rising of the Shield Hero",
+              "Mushoku Tensei"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Re:Zero → Slime → Shield Hero → Mushoku Tensei",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these fantasy anime premieres in order.",
+            "items": [
+              "Fairy Tail",
+              "Is It Wrong to Try to Pick Up Girls in a Dungeon?",
+              "Black Clover",
+              "Frieren"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Fairy Tail → DanMachi → Black Clover → Frieren",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these protagonists by anime premiere, earliest first.",
+            "items": [
+              "Kirito",
+              "Sora",
+              "Ainz",
+              "Kazuma"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Kirito → Sora → Ainz → Kazuma",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these series premieres in order.",
+            "items": [
+              "Overlord",
+              "Re:Zero",
+              "Slime",
+              "Delicious in Dungeon"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Overlord → Re:Zero → Slime → Delicious in Dungeon",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these recent fantasy anime premieres in order.",
+            "items": [
+              "Mushoku Tensei",
+              "The Eminence in Shadow",
+              "Frieren",
+              "Delicious in Dungeon"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Mushoku Tensei → Eminence in Shadow → Frieren → Delicious in Dungeon",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Fantasy Finale",
+      "q": "This light-novel author created Re:Zero − Starting Life in Another World.",
+      "a": "Who is Tappei Nagatsuki?"
+    }
+  },
+  {
+    "id": "fan-nintendo-console-kingdom",
+    "name": "Nintendo: Console Kingdom",
+    "tagline": "Mario, Zelda, Metroid, Kirby, hardware, Smash, and release order.",
+    "accent": "#e60012",
+    "icon": "N",
+    "art": "fan-art/nintendo-console-kingdom.jpg",
+    "textBoard": [
+      {
+        "category": "Mario World",
+        "questions": [
+          {
+            "q": "This plumber's brother is usually dressed in green.",
+            "a": "Who is Luigi?",
+            "value": 150
+          },
+          {
+            "q": "This princess rules the Mushroom Kingdom.",
+            "a": "Who is Princess Peach?",
+            "value": 300
+          },
+          {
+            "q": "This dinosaur companion first appeared alongside Mario in Super Mario World.",
+            "a": "Who is Yoshi?",
+            "value": 450
+          },
+          {
+            "q": "This greedy rival wears yellow and purple.",
+            "a": "Who is Wario?",
+            "value": 600
+          },
+          {
+            "q": "This ghost king often traps Luigi's friends inside paintings.",
+            "a": "Who is King Boo?",
+            "value": 750
+          },
+          {
+            "q": "This cosmic guardian watches over the Lumas in Super Mario Galaxy.",
+            "a": "Who is Rosalina?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Legend of Zelda",
+        "questions": [
+          {
+            "q": "This hero usually carries the Master Sword.",
+            "a": "Who is Link?",
+            "value": 150
+          },
+          {
+            "q": "This princess gives the series its title.",
+            "a": "Who is Zelda?",
+            "value": 300
+          },
+          {
+            "q": "This recurring villain often seeks the Triforce of Power.",
+            "a": "Who is Ganondorf?",
+            "value": 450
+          },
+          {
+            "q": "In Ocarina of Time, playing this song on the ocarina calls Link's horse.",
+            "a": "What is Epona's Song?",
+            "value": 600
+          },
+          {
+            "q": "Majora's Mask gives Link only this many in-game days before the moon falls.",
+            "a": "What is three?",
+            "value": 750
+          },
+          {
+            "q": "Breath of the Wild opens with Link waking up in this chamber after a 100-year sleep.",
+            "a": "What is the Shrine of Resurrection?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Beyond Mario",
+        "questions": [
+          {
+            "q": "This bounty hunter is the armored protagonist of Metroid.",
+            "a": "Who is Samus Aran?",
+            "value": 150
+          },
+          {
+            "q": "This pink hero inhales enemies and copies abilities.",
+            "a": "Who is Kirby?",
+            "value": 300
+          },
+          {
+            "q": "This starfighter leads the team with Falco, Slippy, and Peppy.",
+            "a": "Who is Fox McCloud?",
+            "value": 450
+          },
+          {
+            "q": "Captain Olimar commands these tiny plant-like creatures.",
+            "a": "What are Pikmin?",
+            "value": 600
+          },
+          {
+            "q": "This boxing underdog faces King Hippo and Bald Bull.",
+            "a": "Who is Little Mac?",
+            "value": 750
+          },
+          {
+            "q": "This angelic hero battles Medusa and Hades in Kid Icarus.",
+            "a": "Who is Pit?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Nintendo Hardware",
+        "questions": [
+          {
+            "q": "This handheld launched with Tetris in many regions.",
+            "a": "What is the Game Boy?",
+            "value": 150
+          },
+          {
+            "q": "Nintendo's 16-bit home console is abbreviated SNES.",
+            "a": "What is the Super Nintendo Entertainment System?",
+            "value": 300
+          },
+          {
+            "q": "This 1996 console used distinctive three-pronged controllers.",
+            "a": "What is the Nintendo 64?",
+            "value": 450
+          },
+          {
+            "q": "This dual-screen handheld included a lower touch screen.",
+            "a": "What is the Nintendo DS?",
+            "value": 600
+          },
+          {
+            "q": "This motion-control console introduced the Wii Remote.",
+            "a": "What is the Wii?",
+            "value": 750
+          },
+          {
+            "q": "This 2012 console's GamePad controller had its own built-in touchscreen.",
+            "a": "What is the Wii U?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Super Smash Bros.",
+        "questions": [
+          {
+            "q": "This crossover fighting series brings Nintendo characters together.",
+            "a": "What is Super Smash Bros.?",
+            "value": 150
+          },
+          {
+            "q": "This creator is closely associated with directing the Smash series.",
+            "a": "Who is Masahiro Sakurai?",
+            "value": 300
+          },
+          {
+            "q": "This giant hand boss has appeared since the first Smash.",
+            "a": "Who is Master Hand?",
+            "value": 450
+          },
+          {
+            "q": "This number rises as a fighter takes damage instead of using a traditional health bar.",
+            "a": "What is damage percentage?",
+            "value": 600
+          },
+          {
+            "q": "Super Smash Bros. Brawl introduced this single-player adventure mode.",
+            "a": "What is The Subspace Emissary?",
+            "value": 750
+          },
+          {
+            "q": "Super Smash Bros. Ultimate marketed itself around this roster promise.",
+            "a": "What is Everyone is Here?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these consoles in release order.",
+            "items": [
+              "NES",
+              "Super Nintendo",
+              "Nintendo 64",
+              "GameCube"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "NES → SNES → Nintendo 64 → GameCube",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these handhelds in release order.",
+            "items": [
+              "Game Boy",
+              "Game Boy Advance",
+              "Nintendo DS",
+              "Nintendo 3DS"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Game Boy → GBA → DS → 3DS",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Mario games in release order.",
+            "items": [
+              "Super Mario Bros.",
+              "Super Mario World",
+              "Super Mario 64",
+              "Super Mario Galaxy"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Super Mario Bros. → Super Mario World → Super Mario 64 → Super Mario Galaxy",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Zelda games in release order.",
+            "items": [
+              "A Link to the Past",
+              "Ocarina of Time",
+              "The Wind Waker",
+              "Twilight Princess"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "A Link to the Past → Ocarina → Wind Waker → Twilight Princess",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Smash games in release order.",
+            "items": [
+              "Super Smash Bros.",
+              "Melee",
+              "Brawl",
+              "Ultimate"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Smash 64 → Melee → Brawl → Ultimate",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these modern systems in release order.",
+            "items": [
+              "GameCube",
+              "Wii",
+              "Wii U",
+              "Switch"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "GameCube → Wii → Wii U → Switch",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Nintendo Origins",
+      "q": "This legendary designer created Mario and The Legend of Zelda and helped shape many of Nintendo’s biggest franchises.",
+      "a": "Who is Shigeru Miyamoto?"
+    }
+  },
+  {
+    "id": "fan-playstation-through-the-generations",
+    "name": "PlayStation Through the Generations",
+    "tagline": "PS1 through PS5, mascots, hardware, exclusives, and console chronology.",
+    "accent": "#2f6fd6",
+    "icon": "P",
+    "art": "fan-art/playstation-through-the-generations.jpg",
+    "textBoard": [
+      {
+        "category": "PlayStation 1",
+        "questions": [
+          {
+            "q": "This orange marsupial first spun onto PlayStation in 1996.",
+            "a": "Who is Crash Bandicoot?",
+            "value": 150
+          },
+          {
+            "q": "Solid Snake infiltrates Shadow Moses in this 1998 stealth game.",
+            "a": "What is Metal Gear Solid?",
+            "value": 300
+          },
+          {
+            "q": "This racing series debuted on PlayStation in 1997 and became a flagship driving franchise.",
+            "a": "What is Gran Turismo?",
+            "value": 450
+          },
+          {
+            "q": "This purple dragon stars in a 1998 platformer developed by Insomniac.",
+            "a": "Who is Spyro the Dragon?",
+            "value": 600
+          },
+          {
+            "q": "This survival-horror sequel follows Leon Kennedy and Claire Redfield through Raccoon City.",
+            "a": "What is Resident Evil 2?",
+            "value": 750
+          },
+          {
+            "q": "This JRPG follows Cloud Strife and helped popularize the genre worldwide.",
+            "a": "What is Final Fantasy VII?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "PlayStation 2",
+        "questions": [
+          {
+            "q": "This 2001 launch-era action game introduced Dante.",
+            "a": "What is Devil May Cry?",
+            "value": 150
+          },
+          {
+            "q": "This 2001 game has players explore a strange castle as Ico and Yorda.",
+            "a": "What is Ico?",
+            "value": 300
+          },
+          {
+            "q": "This open-world Rockstar game follows Carl 'CJ' Johnson.",
+            "a": "What is Grand Theft Auto: San Andreas?",
+            "value": 450
+          },
+          {
+            "q": "This 2005 adventure sends Wander to slay sixteen giant beings.",
+            "a": "What is Shadow of the Colossus?",
+            "value": 600
+          },
+          {
+            "q": "Kratos first appeared in this 2005 action game.",
+            "a": "What is God of War?",
+            "value": 750
+          },
+          {
+            "q": "This Square Enix crossover RPG combines Disney characters with Final Fantasy elements.",
+            "a": "What is Kingdom Hearts?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "PS3 & PS4",
+        "questions": [
+          {
+            "q": "This treasure-hunting series introduced Nathan Drake on PS3.",
+            "a": "What is Uncharted?",
+            "value": 150
+          },
+          {
+            "q": "This 2013 Naughty Dog game follows Joel and Ellie.",
+            "a": "What is The Last of Us?",
+            "value": 300
+          },
+          {
+            "q": "This gothic FromSoftware action RPG was released for PS4 in 2015.",
+            "a": "What is Bloodborne?",
+            "value": 450
+          },
+          {
+            "q": "In the 2018 God of War, this son accompanies Kratos on the journey to scatter Faye’s ashes.",
+            "a": "Who is Atreus?",
+            "value": 600
+          },
+          {
+            "q": "This superhero game from Insomniac lets players swing through Manhattan as Peter Parker.",
+            "a": "What is Marvel’s Spider-Man?",
+            "value": 750
+          },
+          {
+            "q": "This samurai open-world game from Sucker Punch stars Jin Sakai.",
+            "a": "What is Ghost of Tsushima?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "PS5 Era",
+        "questions": [
+          {
+            "q": "This 2020 launch title is a remake of FromSoftware's 2009 action RPG.",
+            "a": "What is Demon’s Souls?",
+            "value": 150
+          },
+          {
+            "q": "Astro's Playroom was preinstalled to showcase this PS5 controller.",
+            "a": "What is the DualSense?",
+            "value": 300
+          },
+          {
+            "q": "This 2022 sequel continues Aloy's journey after Horizon Zero Dawn.",
+            "a": "What is Horizon Forbidden West?",
+            "value": 450
+          },
+          {
+            "q": "This 2022 God of War sequel is subtitled this Norse apocalypse.",
+            "a": "What is Ragnarök?",
+            "value": 600
+          },
+          {
+            "q": "This 2023 Insomniac sequel features Peter Parker and Miles Morales.",
+            "a": "What is Marvel’s Spider-Man 2?",
+            "value": 750
+          },
+          {
+            "q": "This 2024 platformer starring a small robot won widespread acclaim as a full-length follow-up to Astro's Playroom.",
+            "a": "What is Astro Bot?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Hardware & Features",
+        "questions": [
+          {
+            "q": "The original PlayStation stored saves on these removable accessories.",
+            "a": "What are memory cards?",
+            "value": 150
+          },
+          {
+            "q": "Original 'fat' PS2 models needed this add-on accessory to play games online.",
+            "a": "What is the Network Adapter?",
+            "value": 300
+          },
+          {
+            "q": "The PS3 famously adopted this high-capacity optical disc format.",
+            "a": "What is Blu-ray?",
+            "value": 450
+          },
+          {
+            "q": "The PS4 controller added a central clickable version of this input surface.",
+            "a": "What is a touchpad?",
+            "value": 600
+          },
+          {
+            "q": "The PS5 DualSense adds detailed resistance through these shoulder inputs.",
+            "a": "What are adaptive triggers?",
+            "value": 750
+          },
+          {
+            "q": "This PlayStation subscription service offers online multiplayer and rotating game catalogs depending on tier.",
+            "a": "What is PlayStation Plus?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Console Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these home consoles in release order.",
+            "items": [
+              "PlayStation",
+              "PlayStation 2",
+              "PlayStation 3",
+              "PlayStation 4"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "PS1 → PS2 → PS3 → PS4",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these handhelds/accessories in release order.",
+            "items": [
+              "PocketStation",
+              "PlayStation Portable",
+              "PlayStation Vita",
+              "PlayStation VR"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "PocketStation → PSP → Vita → PS VR",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Naughty Dog PlayStation series debuts in order.",
+            "items": [
+              "Crash Bandicoot",
+              "Jak and Daxter",
+              "Uncharted",
+              "The Last of Us"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Crash → Jak and Daxter → Uncharted → The Last of Us",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these God of War releases in order.",
+            "items": [
+              "God of War",
+              "God of War II",
+              "God of War III",
+              "God of War (2018)"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "God of War → II → III → 2018",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these controllers in release order.",
+            "items": [
+              "DualShock",
+              "DualShock 2",
+              "DualShock 4",
+              "DualSense"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "DualShock → DualShock 2 → DualShock 4 → DualSense",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these PlayStation launches in order.",
+            "items": [
+              "PlayStation 2",
+              "PlayStation Portable",
+              "PlayStation 3",
+              "PlayStation Vita"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "PS2 → PSP → PS3 → Vita",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "PlayStation Finale",
+      "q": "This Japanese executive is often called the “Father of the PlayStation.”",
+      "a": "Who is Ken Kutaragi?"
+    }
+  },
+  {
+    "id": "fan-pokemon-trainer-challenge",
+    "name": "Pokémon: Trainer Challenge",
+    "tagline": "Types, evolutions, regions, moves, legends, and generation order.",
+    "accent": "#ffcc00",
+    "icon": "P",
+    "art": "fan-art/pokemon-trainer-challenge.jpg",
+    "textBoard": [
+      {
+        "category": "Type Matchups",
+        "questions": [
+          {
+            "q": "Water-type attacks are super effective against this fiery type.",
+            "a": "What is Fire?",
+            "value": 150
+          },
+          {
+            "q": "Electric attacks have no effect on this type.",
+            "a": "What is Ground?",
+            "value": 300
+          },
+          {
+            "q": "Fairy was introduced partly to check this powerful type.",
+            "a": "What is Dragon?",
+            "value": 450
+          },
+          {
+            "q": "Fighting is super effective against this metallic type.",
+            "a": "What is Steel?",
+            "value": 600
+          },
+          {
+            "q": "Ghost moves are super effective against Ghost and this cerebral type.",
+            "a": "What is Psychic?",
+            "value": 750
+          },
+          {
+            "q": "Bug is super effective against Grass, Psychic, and this sinister type.",
+            "a": "What is Dark?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Evolution Lines",
+        "questions": [
+          {
+            "q": "Bulbasaur evolves into Ivysaur, then this final form.",
+            "a": "What is Venusaur?",
+            "value": 150
+          },
+          {
+            "q": "Magikarp evolves into this intimidating Water/Flying Pokémon.",
+            "a": "What is Gyarados?",
+            "value": 300
+          },
+          {
+            "q": "Riolu evolves into this Aura Pokémon.",
+            "a": "What is Lucario?",
+            "value": 450
+          },
+          {
+            "q": "Feebas evolves into this elegant Water-type.",
+            "a": "What is Milotic?",
+            "value": 600
+          },
+          {
+            "q": "Dusclops evolves into this Ghost-type when traded holding a Reaper Cloth.",
+            "a": "What is Dusknoir?",
+            "value": 750
+          },
+          {
+            "q": "Bisharp evolves into this commanding Dark/Steel Pokémon.",
+            "a": "What is Kingambit?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Regions",
+        "questions": [
+          {
+            "q": "Pallet Town and Indigo Plateau are in this first region.",
+            "a": "What is Kanto?",
+            "value": 150
+          },
+          {
+            "q": "Goldenrod City and Ecruteak City are in this region.",
+            "a": "What is Johto?",
+            "value": 300
+          },
+          {
+            "q": "This water-heavy region includes Slateport and Lilycove.",
+            "a": "What is Hoenn?",
+            "value": 450
+          },
+          {
+            "q": "This region is home to Mt. Coronet and Spear Pillar.",
+            "a": "What is Sinnoh?",
+            "value": 600
+          },
+          {
+            "q": "Castelia City and Nimbasa City are in this region.",
+            "a": "What is Unova?",
+            "value": 750
+          },
+          {
+            "q": "The academy-centered adventure of Scarlet and Violet takes place in this region.",
+            "a": "What is Paldea?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Moves & Abilities",
+        "questions": [
+          {
+            "q": "Pikachu famously uses this Electric move.",
+            "a": "What is Thunderbolt?",
+            "value": 150
+          },
+          {
+            "q": "This 150-power Normal move usually forces its user to recharge.",
+            "a": "What is Hyper Beam?",
+            "value": 300
+          },
+          {
+            "q": "This ability makes Shedinja vulnerable only to super-effective attacks and indirect damage.",
+            "a": "What is Wonder Guard?",
+            "value": 450
+          },
+          {
+            "q": "This Fire move is Charizard's classic high-power blast with imperfect accuracy.",
+            "a": "What is Fire Blast?",
+            "value": 600
+          },
+          {
+            "q": "This ability starts rain when the Pokémon enters battle.",
+            "a": "What is Drizzle?",
+            "value": 750
+          },
+          {
+            "q": "This move leaves the target at 1 HP if it would otherwise knock them out.",
+            "a": "What is False Swipe?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Legendary & Mythical",
+        "questions": [
+          {
+            "q": "This Electric/Flying legendary bird is found at the Power Plant in the original games.",
+            "a": "What is Zapdos?",
+            "value": 150
+          },
+          {
+            "q": "This genetically engineered Psychic Pokémon was created from Mew.",
+            "a": "What is Mewtwo?",
+            "value": 300
+          },
+          {
+            "q": "Groudon's ancient rival is this Sea Basin Pokémon.",
+            "a": "What is Kyogre?",
+            "value": 450
+          },
+          {
+            "q": "Dialga governs time while this counterpart governs space.",
+            "a": "What is Palkia?",
+            "value": 600
+          },
+          {
+            "q": "Reshiram represents truth while this black dragon represents ideals.",
+            "a": "What is Zekrom?",
+            "value": 750
+          },
+          {
+            "q": "This Mythical Pokémon is central to Sinnoh creation mythology and can change type using plates.",
+            "a": "What is Arceus?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Generation Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these regions in generation order.",
+            "items": [
+              "Kanto",
+              "Johto",
+              "Hoenn",
+              "Sinnoh"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Kanto → Johto → Hoenn → Sinnoh",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these starter trios by debut generation.",
+            "items": [
+              "Bulbasaur / Charmander / Squirtle",
+              "Chikorita / Cyndaquil / Totodile",
+              "Treecko / Torchic / Mudkip",
+              "Turtwig / Chimchar / Piplup"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Gen I → Gen II → Gen III → Gen IV",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these mechanics in debut order.",
+            "items": [
+              "Held items",
+              "Abilities",
+              "Physical/Special split by move",
+              "Mega Evolution"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Held items → Abilities → move split → Mega Evolution",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these regions in release order.",
+            "items": [
+              "Unova",
+              "Kalos",
+              "Alola",
+              "Galar"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Unova → Kalos → Alola → Galar",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Eeveelutions in debut order.",
+            "items": [
+              "Vaporeon",
+              "Espeon",
+              "Glaceon",
+              "Sylveon"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Vaporeon → Espeon → Glaceon → Sylveon",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these main-series pairs in release order.",
+            "items": [
+              "Ruby / Sapphire",
+              "Diamond / Pearl",
+              "Black / White",
+              "X / Y"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Ruby/Sapphire → Diamond/Pearl → Black/White → X/Y",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Pokédex History",
+      "q": "This 1996 Game Boy pair launched the franchise in Japan before Red and Blue became the famous international pair.",
+      "a": "What are Pokémon Red and Green?"
+    }
+  },
+  {
+    "id": "fan-rpg-worlds",
+    "name": "RPG Worlds",
+    "tagline": "Final Fantasy, Elder Scrolls, Persona, BioWare, classic CRPGs, and release order.",
+    "accent": "#5d76c9",
+    "icon": "R",
+    "art": "fan-art/rpg-worlds.jpg",
+    "textBoard": [
+      {
+        "category": "Final Fantasy",
+        "questions": [
+          {
+            "q": "This swordsman is the protagonist of Final Fantasy VII.",
+            "a": "Who is Cloud Strife?",
+            "value": 150
+          },
+          {
+            "q": "Final Fantasy X follows this blitzball player transported to Spira.",
+            "a": "Who is Tidus?",
+            "value": 300
+          },
+          {
+            "q": "This black mage from Final Fantasy IX wears a pointed hat and has glowing eyes.",
+            "a": "Who is Vivi?",
+            "value": 450
+          },
+          {
+            "q": "Final Fantasy XII's world, which it shares with Final Fantasy Tactics and Vagrant Story, is called this.",
+            "a": "What is Ivalice?",
+            "value": 600
+          },
+          {
+            "q": "Final Fantasy XIV's player character is commonly called this title.",
+            "a": "Who is the Warrior of Light?",
+            "value": 750
+          },
+          {
+            "q": "This Final Fantasy VI villain destroys the world and becomes a godlike ruler.",
+            "a": "Who is Kefka Palazzo?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Elder Scrolls",
+        "questions": [
+          {
+            "q": "The Dragonborn is the player character of this entry.",
+            "a": "What is Skyrim?",
+            "value": 150
+          },
+          {
+            "q": "Morrowind takes place primarily on this island.",
+            "a": "What is Vvardenfell?",
+            "value": 300
+          },
+          {
+            "q": "Oblivion begins with an assassination that leaves this emperor dead.",
+            "a": "Who is Uriel Septim VII?",
+            "value": 450
+          },
+          {
+            "q": "This fiery plane of Oblivion is ruled by the Daedric Prince Mehrunes Dagon.",
+            "a": "What are the Deadlands?",
+            "value": 600
+          },
+          {
+            "q": "The Khajiit homeland is this province.",
+            "a": "What is Elsweyr?",
+            "value": 750
+          },
+          {
+            "q": "The Dwemer are commonly known by this misleading fantasy-race label.",
+            "a": "Who are the Dwarves?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Persona",
+        "questions": [
+          {
+            "q": "Persona 5's protagonists are known by this group name.",
+            "a": "Who are the Phantom Thieves?",
+            "value": 150
+          },
+          {
+            "q": "This Persona 4 setting is a rural Japanese town surrounded by fog and mystery.",
+            "a": "What is Inaba?",
+            "value": 300
+          },
+          {
+            "q": "Persona 3 centers on this hidden hour that appears after midnight.",
+            "a": "What is the Dark Hour?",
+            "value": 450
+          },
+          {
+            "q": "The Velvet Room is usually overseen by this long-nosed attendant.",
+            "a": "Who is Igor?",
+            "value": 600
+          },
+          {
+            "q": "Persona 5's main protagonist is commonly given this canon name.",
+            "a": "Who is Ren Amamiya?",
+            "value": 750
+          },
+          {
+            "q": "This mascot-like character in Persona 4 emerges from the TV World.",
+            "a": "Who is Teddie?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "BioWare RPGs",
+        "questions": [
+          {
+            "q": "Commander Shepard stars in this science-fiction trilogy.",
+            "a": "What is Mass Effect?",
+            "value": 150
+          },
+          {
+            "q": "This Grey Warden companion in Dragon Age: Origins is a royal bastard and possible king.",
+            "a": "Who is Alistair?",
+            "value": 300
+          },
+          {
+            "q": "This Star Wars RPG lets the player discover they were once Darth Revan.",
+            "a": "What is Knights of the Old Republic?",
+            "value": 450
+          },
+          {
+            "q": "Shepard commands two famous versions of this starship during the Mass Effect trilogy.",
+            "a": "What is the Normandy?",
+            "value": 600
+          },
+          {
+            "q": "This quarian engineer joins Shepard and frequently talks about the Migrant Fleet.",
+            "a": "Who is Tali’Zorah?",
+            "value": 750
+          },
+          {
+            "q": "This elf companion in Dragon Age: Inquisition is secretly the Dread Wolf.",
+            "a": "Who is Solas?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Classic & Modern CRPG",
+        "questions": [
+          {
+            "q": "Baldur's Gate is based on this tabletop role-playing system.",
+            "a": "What is Dungeons & Dragons?",
+            "value": 150
+          },
+          {
+            "q": "This 1999 RPG places an immortal Nameless One at the center of Sigil.",
+            "a": "What is Planescape: Torment?",
+            "value": 300
+          },
+          {
+            "q": "This 2015 Obsidian RPG takes place in Eora and revived the Infinity Engine style.",
+            "a": "What is Pillars of Eternity?",
+            "value": 450
+          },
+          {
+            "q": "Disco Elysium removes traditional combat and centers its mechanics on these talking parts of the protagonist's psyche.",
+            "a": "What are skills?",
+            "value": 600
+          },
+          {
+            "q": "This 2023 RPG by Larian adapts D&D 5th Edition and allows a party of four.",
+            "a": "What is Baldur’s Gate 3?",
+            "value": 750
+          },
+          {
+            "q": "This post-apocalyptic RPG series by Interplay and later Bethesda uses the SPECIAL attribute system.",
+            "a": "What is Fallout?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these Final Fantasy games in release order.",
+            "items": [
+              "Final Fantasy VI",
+              "Final Fantasy VII",
+              "Final Fantasy X",
+              "Final Fantasy XII"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "FFVI → FFVII → FFX → FFXII",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Elder Scrolls games in release order.",
+            "items": [
+              "Morrowind",
+              "Oblivion",
+              "Skyrim",
+              "The Elder Scrolls Online"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Morrowind → Oblivion → Skyrim → ESO",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Persona games in release order.",
+            "items": [
+              "Persona 3",
+              "Persona 4",
+              "Persona 5",
+              "Persona 5 Royal"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Persona 3 → Persona 4 → Persona 5 → Persona 5 Royal",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these BioWare RPGs in release order.",
+            "items": [
+              "Knights of the Old Republic",
+              "Mass Effect",
+              "Dragon Age: Origins",
+              "Mass Effect 2"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "KOTOR → Mass Effect → Dragon Age: Origins → Mass Effect 2",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these CRPGs in release order.",
+            "items": [
+              "Baldur’s Gate",
+              "Planescape: Torment",
+              "Pillars of Eternity",
+              "Disco Elysium"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Baldur’s Gate → Planescape: Torment → Pillars of Eternity → Disco Elysium",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these RPGs in release order.",
+            "items": [
+              "Fallout 3",
+              "Skyrim",
+              "The Witcher 3",
+              "Baldur’s Gate 3"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Fallout 3 → Skyrim → The Witcher 3 → Baldur’s Gate 3",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "RPG Finale",
+      "q": "This designer created the Final Fantasy series while working at Square.",
+      "a": "Who is Hironobu Sakaguchi?"
+    }
+  },
+  {
+    "id": "fan-rock-and-metal",
+    "name": "Rock & Metal",
+    "tagline": "Foundations, classic metal, 90s heaviness, albums, musicians, and release history.",
+    "accent": "#555555",
+    "icon": "R",
+    "art": "fan-art/rock-and-metal.jpg",
+    "textBoard": [
+      {
+        "category": "70s Foundations",
+        "questions": [
+          {
+            "q": "This British band released Paranoid in 1970.",
+            "a": "Who are Black Sabbath?",
+            "value": 150
+          },
+          {
+            "q": "This band recorded 'Smoke on the Water.'",
+            "a": "Who are Deep Purple?",
+            "value": 300
+          },
+          {
+            "q": "Jimmy Page played guitar for this band.",
+            "a": "Who are Led Zeppelin?",
+            "value": 450
+          },
+          {
+            "q": "This band released 'The Boys Are Back in Town.'",
+            "a": "Who are Thin Lizzy?",
+            "value": 600
+          },
+          {
+            "q": "Lemmy fronted this loud trio formed in 1975.",
+            "a": "Who are Motörhead?",
+            "value": 750
+          },
+          {
+            "q": "Judas Priest vocalist Rob Halford is known by this metal title.",
+            "a": "Who is the Metal God?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "80s Metal",
+        "questions": [
+          {
+            "q": "Metallica's 1986 album is this.",
+            "a": "What is Master of Puppets?",
+            "value": 150
+          },
+          {
+            "q": "This band released The Number of the Beast in 1982.",
+            "a": "Who are Iron Maiden?",
+            "value": 300
+          },
+          {
+            "q": "This thrash band fronted by Dave Mustaine released Peace Sells... but Who’s Buying?",
+            "a": "Who are Megadeth?",
+            "value": 450
+          },
+          {
+            "q": "This Los Angeles band released Appetite for Destruction.",
+            "a": "Who are Guns N’ Roses?",
+            "value": 600
+          },
+          {
+            "q": "Slayer's 1986 album opens with 'Angel of Death.'",
+            "a": "What is Reign in Blood?",
+            "value": 750
+          },
+          {
+            "q": "This progressive metal band released Operation: Mindcrime in 1988.",
+            "a": "Who are Queensrÿche?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "90s Heavy",
+        "questions": [
+          {
+            "q": "This Seattle band released Nevermind in 1991.",
+            "a": "Who are Nirvana?",
+            "value": 150
+          },
+          {
+            "q": "Pantera's 1990 album is titled this cowboy-from-hell phrase.",
+            "a": "What is Cowboys from Hell?",
+            "value": 300
+          },
+          {
+            "q": "This band released the 1992 album Dirt.",
+            "a": "Who are Alice in Chains?",
+            "value": 450
+          },
+          {
+            "q": "This band released the 1991 self-titled album commonly called the Black Album.",
+            "a": "Who are Metallica?",
+            "value": 600
+          },
+          {
+            "q": "This band released Around the Fur in 1997.",
+            "a": "Who are Deftones?",
+            "value": 750
+          },
+          {
+            "q": "This Swedish band helped define melodic death metal with The Jester Race.",
+            "a": "Who are In Flames?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Iconic Albums",
+        "questions": [
+          {
+            "q": "Pink Floyd's prism-covered 1973 album is this.",
+            "a": "What is The Dark Side of the Moon?",
+            "value": 150
+          },
+          {
+            "q": "AC/DC's 1980 album released after Bon Scott's death is this.",
+            "a": "What is Back in Black?",
+            "value": 300
+          },
+          {
+            "q": "This 1991 Pearl Jam debut features 'Alive' and 'Jeremy.'",
+            "a": "What is Ten?",
+            "value": 450
+          },
+          {
+            "q": "Tool's 2001 album featuring 'Schism' is this.",
+            "a": "What is Lateralus?",
+            "value": 600
+          },
+          {
+            "q": "System of a Down's 2001 breakthrough album is this.",
+            "a": "What is Toxicity?",
+            "value": 750
+          },
+          {
+            "q": "This 2004 Mastodon album retells Moby-Dick through progressive sludge metal.",
+            "a": "What is Leviathan?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Players & Voices",
+        "questions": [
+          {
+            "q": "Ozzy Osbourne first became famous as the singer of this band.",
+            "a": "What is Black Sabbath?",
+            "value": 150
+          },
+          {
+            "q": "Eddie Van Halen was the guitarist for this band.",
+            "a": "What is Van Halen?",
+            "value": 300
+          },
+          {
+            "q": "James Hetfield is guitarist and lead vocalist of this band.",
+            "a": "What is Metallica?",
+            "value": 450
+          },
+          {
+            "q": "Maynard James Keenan fronts this progressive metal band.",
+            "a": "What is Tool?",
+            "value": 600
+          },
+          {
+            "q": "Chester Bennington was one of the lead vocalists of this band.",
+            "a": "What is Linkin Park?",
+            "value": 750
+          },
+          {
+            "q": "This drummer became famous with Dream Theater before later joining numerous projects.",
+            "a": "Who is Mike Portnoy?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Album Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these Black Sabbath albums in release order.",
+            "items": [
+              "Black Sabbath",
+              "Paranoid",
+              "Master of Reality",
+              "Vol. 4"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Black Sabbath → Paranoid → Master of Reality → Vol. 4",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Metallica albums in release order.",
+            "items": [
+              "Kill ’Em All",
+              "Ride the Lightning",
+              "Master of Puppets",
+              "...And Justice for All"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Kill ’Em All → Ride the Lightning → Master of Puppets → ...And Justice for All",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these grunge albums in release order.",
+            "items": [
+              "Facelift",
+              "Ten",
+              "Nevermind",
+              "Dirt"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Facelift → Ten → Nevermind → Dirt",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Iron Maiden albums in release order.",
+            "items": [
+              "Iron Maiden",
+              "Killers",
+              "The Number of the Beast",
+              "Powerslave"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Iron Maiden → Killers → The Number of the Beast → Powerslave",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these alternative-metal albums in release order.",
+            "items": [
+              "Undertow",
+              "Around the Fur",
+              "Lateralus",
+              "Toxicity"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Undertow → Around the Fur → Lateralus → Toxicity",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these modern heavy albums in release order.",
+            "items": [
+              "Leviathan",
+              "City of Evil",
+              "Crack the Skye",
+              "Magma"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Leviathan → City of Evil → Crack the Skye → Magma",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Metal History",
+      "q": "Before Black Sabbath, Tony Iommi lost two fingertips in an accident on his last day at this kind of factory.",
+      "a": "What is a sheet-metal factory?"
+    }
+  },
+  {
+    "id": "fan-science-fiction-movies",
+    "name": "Science Fiction Movies",
+    "tagline": "Space voyages, aliens, time travel, machines, directors, and release history.",
+    "accent": "#3ba7a3",
+    "icon": "S",
+    "art": "fan-art/science-fiction-movies.jpg",
+    "textBoard": [
+      {
+        "category": "Space",
+        "questions": [
+          {
+            "q": "This 1968 Stanley Kubrick film features the computer HAL 9000.",
+            "a": "What is 2001: A Space Odyssey?",
+            "value": 150
+          },
+          {
+            "q": "This 1979 film sends the Nostromo crew against a xenomorph.",
+            "a": "What is Alien?",
+            "value": 300
+          },
+          {
+            "q": "This 1997 Paul Verhoeven film sends Johnny Rico and the Mobile Infantry to fight giant alien bugs.",
+            "a": "What is Starship Troopers?",
+            "value": 450
+          },
+          {
+            "q": "This 2014 Christopher Nolan film sends explorers through a wormhole near Saturn.",
+            "a": "What is Interstellar?",
+            "value": 600
+          },
+          {
+            "q": "This 2015 film strands Mark Watney on Mars.",
+            "a": "What is The Martian?",
+            "value": 750
+          },
+          {
+            "q": "This 2013 film stars Sandra Bullock as an astronaut struggling to survive in orbit.",
+            "a": "What is Gravity?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Aliens",
+        "questions": [
+          {
+            "q": "This friendly alien wants to phone home in a 1982 Spielberg film.",
+            "a": "Who is E.T.?",
+            "value": 150
+          },
+          {
+            "q": "This 1987 action film pits Arnold Schwarzenegger against an invisible extraterrestrial hunter.",
+            "a": "What is Predator?",
+            "value": 300
+          },
+          {
+            "q": "This 1996 blockbuster features aliens attacking famous landmarks on July 4 weekend.",
+            "a": "What is Independence Day?",
+            "value": 450
+          },
+          {
+            "q": "This 2009 film takes humans to the moon Pandora.",
+            "a": "What is Avatar?",
+            "value": 600
+          },
+          {
+            "q": "This 2016 film follows linguist Louise Banks communicating with mysterious visitors.",
+            "a": "What is Arrival?",
+            "value": 750
+          },
+          {
+            "q": "This 2014 film repeatedly resets a soldier's day during an alien war.",
+            "a": "What is Edge of Tomorrow?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Time Travel",
+        "questions": [
+          {
+            "q": "Marty McFly travels through time in this 1985 film.",
+            "a": "What is Back to the Future?",
+            "value": 150
+          },
+          {
+            "q": "This 1984 film sends a cyborg assassin back to kill Sarah Connor.",
+            "a": "What is The Terminator?",
+            "value": 300
+          },
+          {
+            "q": "Bill and Ted use a phone booth for time travel in this 1989 comedy.",
+            "a": "What is Bill & Ted’s Excellent Adventure?",
+            "value": 450
+          },
+          {
+            "q": "This 1995 Terry Gilliam film involves a prisoner sent into the past to investigate a plague.",
+            "a": "What is 12 Monkeys?",
+            "value": 600
+          },
+          {
+            "q": "This 2012 thriller has Joseph Gordon-Levitt playing a killer who targets people sent back through time.",
+            "a": "What is Looper?",
+            "value": 750
+          },
+          {
+            "q": "This 2020 Christopher Nolan film uses reversed entropy rather than conventional time travel.",
+            "a": "What is Tenet?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Robots & AI",
+        "questions": [
+          {
+            "q": "This 1982 film features replicant hunter Rick Deckard.",
+            "a": "What is Blade Runner?",
+            "value": 150
+          },
+          {
+            "q": "This 1987 film turns murdered officer Alex Murphy into a cybernetic law enforcer.",
+            "a": "What is RoboCop?",
+            "value": 300
+          },
+          {
+            "q": "The red pill and blue pill appear in this 1999 simulation-centered film.",
+            "a": "What is The Matrix?",
+            "value": 450
+          },
+          {
+            "q": "This Pixar film follows a trash-compacting robot left on Earth.",
+            "a": "What is WALL-E?",
+            "value": 600
+          },
+          {
+            "q": "This 2014 film tests whether an android named Ava possesses consciousness.",
+            "a": "What is Ex Machina?",
+            "value": 750
+          },
+          {
+            "q": "This 2013 film follows a man who falls in love with an operating system named Samantha.",
+            "a": "What is Her?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Directors",
+        "questions": [
+          {
+            "q": "This director made E.T., Close Encounters of the Third Kind, and Minority Report.",
+            "a": "Who is Steven Spielberg?",
+            "value": 150
+          },
+          {
+            "q": "This director made Alien and Blade Runner.",
+            "a": "Who is Ridley Scott?",
+            "value": 300
+          },
+          {
+            "q": "This director made The Terminator, Aliens, and Avatar.",
+            "a": "Who is James Cameron?",
+            "value": 450
+          },
+          {
+            "q": "This director made The Matrix with her sister Lilly.",
+            "a": "Who is Lana Wachowski?",
+            "value": 600
+          },
+          {
+            "q": "This director made Arrival, Blade Runner 2049, and Dune.",
+            "a": "Who is Denis Villeneuve?",
+            "value": 750
+          },
+          {
+            "q": "This director made Ex Machina and Annihilation.",
+            "a": "Who is Alex Garland?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these sci-fi films in release order.",
+            "items": [
+              "2001: A Space Odyssey",
+              "Alien",
+              "Blade Runner",
+              "The Matrix"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "2001 → Alien → Blade Runner → The Matrix",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these time-travel films in release order.",
+            "items": [
+              "The Terminator",
+              "Back to the Future",
+              "12 Monkeys",
+              "Looper"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Terminator → Back to the Future → 12 Monkeys → Looper",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these alien-contact films in release order.",
+            "items": [
+              "E.T.",
+              "Independence Day",
+              "Avatar",
+              "Arrival"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "E.T. → Independence Day → Avatar → Arrival",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these robot/AI films in release order.",
+            "items": [
+              "RoboCop",
+              "The Matrix",
+              "WALL-E",
+              "Ex Machina"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "RoboCop → Matrix → WALL-E → Ex Machina",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Christopher Nolan films in release order.",
+            "items": [
+              "Inception",
+              "Interstellar",
+              "Tenet",
+              "Oppenheimer"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Inception → Interstellar → Tenet → Oppenheimer",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Denis Villeneuve sci-fi films in release order.",
+            "items": [
+              "Arrival",
+              "Blade Runner 2049",
+              "Dune",
+              "Dune: Part Two"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Arrival → Blade Runner 2049 → Dune → Dune: Part Two",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Sci-Fi Finale",
+      "q": "This author wrote the novel Do Androids Dream of Electric Sheep?, the basis for Blade Runner.",
+      "a": "Who is Philip K. Dick?"
+    }
+  },
+  {
+    "id": "fan-shonen-power-systems-and-rivalries",
+    "name": "Shonen Power Systems & Rivalries",
+    "tagline": "A focused board about how battle anime powers work and the rivalries that push them forward.",
+    "accent": "#7158d6",
+    "icon": "⚡",
+    "art": "fan-art/shonen-power-systems-and-rivalries.jpg",
+    "textBoard": [
+      {
+        "category": "Power Systems",
+        "questions": [
+          {
+            "q": "Naruto characters mold physical and spiritual energy into this force.",
+            "a": "What is chakra?",
+            "value": 150
+          },
+          {
+            "q": "Hunter x Hunter combatants control life energy through this system.",
+            "a": "What is Nen?",
+            "value": 300
+          },
+          {
+            "q": "Bleach's spiritual beings exert this pressure through their power.",
+            "a": "What is reiatsu / spiritual pressure?",
+            "value": 450
+          },
+          {
+            "q": "Jujutsu Kaisen techniques are fueled by this energy generated from negative emotions.",
+            "a": "What is Cursed Energy?",
+            "value": 600
+          },
+          {
+            "q": "My Hero Academia calls superhuman abilities by this term.",
+            "a": "What are Quirks?",
+            "value": 750
+          },
+          {
+            "q": "JoJo's later battles center on manifestations of fighting spirit called these.",
+            "a": "What are Stands?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Signature Techniques",
+        "questions": [
+          {
+            "q": "Naruto learns this rotating chakra sphere from Jiraiya.",
+            "a": "What is the Rasengan?",
+            "value": 150
+          },
+          {
+            "q": "Gon's simple Nen technique uses Rock, Paper, and Scissors as its basis.",
+            "a": "What is Jajanken?",
+            "value": 300
+          },
+          {
+            "q": "Ichigo's signature Zanpakuto attack is this crescent-shaped energy slash.",
+            "a": "What is Getsuga Tensho?",
+            "value": 450
+          },
+          {
+            "q": "Gojo's attraction technique is this color-named application of Limitless.",
+            "a": "What is Blue?",
+            "value": 600
+          },
+          {
+            "q": "All Might's most famous finishing smash shares its name with this country.",
+            "a": "What is United States of Smash?",
+            "value": 750
+          },
+          {
+            "q": "Jotaro's Star Platinum stops this concept late in Stardust Crusaders.",
+            "a": "What is time?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Rivals",
+        "questions": [
+          {
+            "q": "Naruto's central rival is this last prominent Uchiha survivor of his generation.",
+            "a": "Who is Sasuke Uchiha?",
+            "value": 150
+          },
+          {
+            "q": "Gon repeatedly measures himself against this white-haired assassin heir.",
+            "a": "Who is Killua Zoldyck?",
+            "value": 300
+          },
+          {
+            "q": "Ichigo's Quincy rival at school is this bespectacled archer.",
+            "a": "Who is Uryu Ishida?",
+            "value": 450
+          },
+          {
+            "q": "This stoic Ten Shadows user is sent to recover the Sukuna finger that Yuji ends up eating.",
+            "a": "Who is Megumi Fushiguro?",
+            "value": 600
+          },
+          {
+            "q": "Deku's explosive childhood rival is this hero student.",
+            "a": "Who is Katsuki Bakugo?",
+            "value": 750
+          },
+          {
+            "q": "Joseph Joestar repeatedly clashes and competes with this proud Hamon warrior before they become allies.",
+            "a": "Who is Caesar Zeppeli?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Transformation States",
+        "questions": [
+          {
+            "q": "Naruto gains golden chakra cloaks from this tailed beast sealed inside him.",
+            "a": "Who is Kurama / the Nine-Tails?",
+            "value": 150
+          },
+          {
+            "q": "Gon's adult-like transformation appears during his confrontation with this Royal Guard.",
+            "a": "Who is Neferpitou?",
+            "value": 300
+          },
+          {
+            "q": "Ichigo's masked power is tied to this inner spiritual side of himself.",
+            "a": "What is his Hollow?",
+            "value": 450
+          },
+          {
+            "q": "Yuji's body houses this King of Curses.",
+            "a": "Who is Ryomen Sukuna?",
+            "value": 600
+          },
+          {
+            "q": "Deku's inherited stockpiling Quirk is this.",
+            "a": "What is One For All?",
+            "value": 750
+          },
+          {
+            "q": "In JoJo Part 3, Dio's Stand is this time-stopping counterpart to Star Platinum.",
+            "a": "What is The World?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Rules & Restrictions",
+        "questions": [
+          {
+            "q": "Nen users can strengthen abilities by placing these self-imposed limits on them.",
+            "a": "What are conditions/restrictions or vows?",
+            "value": 150
+          },
+          {
+            "q": "Jujutsu sorcerers can gain power by agreeing to these supernatural contracts.",
+            "a": "What are Binding Vows?",
+            "value": 300
+          },
+          {
+            "q": "In Naruto, opening more of these internal chakra gates increases power at great physical cost.",
+            "a": "What are the Eight Gates?",
+            "value": 450
+          },
+          {
+            "q": "A Bleach Soul Reaper normally releases a Zanpakuto first with Shikai, then with this advanced release.",
+            "a": "What is Bankai?",
+            "value": 600
+          },
+          {
+            "q": "Quirks can strain their users' bodies, making repeated overuse a form of this tradeoff.",
+            "a": "What is recoil / physical drawback?",
+            "value": 750
+          },
+          {
+            "q": "A Stand is generally harmed when this connected person is harmed, and vice versa.",
+            "a": "Who is the Stand user?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Power-System Timeline",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these manga debuts in order.",
+            "items": [
+              "JoJo’s Bizarre Adventure",
+              "Hunter x Hunter",
+              "Naruto",
+              "Bleach"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "JoJo → Hunter x Hunter → Naruto → Bleach",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these anime premieres in order.",
+            "items": [
+              "Naruto",
+              "Bleach",
+              "My Hero Academia",
+              "Jujutsu Kaisen"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Naruto → Bleach → My Hero Academia → Jujutsu Kaisen",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Naruto power milestones in order.",
+            "items": [
+              "Shadow Clone Jutsu",
+              "Rasengan",
+              "Sage Mode",
+              "Six Paths Sage Mode"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Shadow Clone → Rasengan → Sage Mode → Six Paths Sage Mode",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Ichigo forms/releases in broad story order.",
+            "items": [
+              "Shikai",
+              "Bankai",
+              "Hollow mask",
+              "Fullbring"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Shikai → Bankai → Hollow mask → Fullbring",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Hunter x Hunter concepts as Gon learns/uses them in the anime.",
+            "items": [
+              "Ten",
+              "Ren",
+              "Hatsu",
+              "Jajanken"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Ten → Ren → Hatsu → Jajanken",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Jujutsu Kaisen ideas by when Yuji encounters them prominently.",
+            "items": [
+              "Cursed Energy",
+              "Binding Vow with Sukuna",
+              "Domain Expansion",
+              "Black Flash"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Cursed Energy → Binding Vow with Sukuna → Domain Expansion → Black Flash",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Power Finale",
+      "q": "This Hunter x Hunter creator also created Yu Yu Hakusho.",
+      "a": "Who is Yoshihiro Togashi?"
+    }
+  },
+  {
+    "id": "fan-superhero-movies",
+    "name": "Superhero Movies",
+    "tagline": "Marvel, DC, Spider-Man, X-Men, villains, classifications, and film chronology.",
+    "accent": "#d13232",
+    "icon": "S",
+    "art": "fan-art/superhero-movies.jpg",
+    "textBoard": [
+      {
+        "category": "Marvel Studios",
+        "questions": [
+          {
+            "q": "This 2008 film launched the Marvel Cinematic Universe.",
+            "a": "What is Iron Man?",
+            "value": 150
+          },
+          {
+            "q": "This hero first wields Mjolnir in a 2011 solo film.",
+            "a": "Who is Thor?",
+            "value": 300
+          },
+          {
+            "q": "Loki leads a Chitauri invasion of New York at the climax of this 2012 team-up.",
+            "a": "What is The Avengers?",
+            "value": 450
+          },
+          {
+            "q": "This 2014 film introduces the Guardians led by Star-Lord.",
+            "a": "What is Guardians of the Galaxy?",
+            "value": 600
+          },
+          {
+            "q": "This 2018 film brings Thanos' hunt for the Infinity Stones to the foreground.",
+            "a": "What is Avengers: Infinity War?",
+            "value": 750
+          },
+          {
+            "q": "This 2019 film follows the surviving Avengers' attempt to reverse the Snap.",
+            "a": "What is Avengers: Endgame?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "DC on Film",
+        "questions": [
+          {
+            "q": "Christopher Reeve first played this Kryptonian hero in a major 1978 feature.",
+            "a": "Who is Superman?",
+            "value": 150
+          },
+          {
+            "q": "Michael Keaton first played Batman for this director in 1989.",
+            "a": "Who is Tim Burton?",
+            "value": 300
+          },
+          {
+            "q": "Heath Ledger played this villain in The Dark Knight.",
+            "a": "Who is the Joker?",
+            "value": 450
+          },
+          {
+            "q": "This 2017 film introduced Diana Prince's World War I origin story to the DCEU.",
+            "a": "What is Wonder Woman?",
+            "value": 600
+          },
+          {
+            "q": "This 2022 film stars Robert Pattinson as Bruce Wayne.",
+            "a": "What is The Batman?",
+            "value": 750
+          },
+          {
+            "q": "This 2019 film centers on Arthur Fleck rather than a traditional superhero protagonist.",
+            "a": "What is Joker?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Spider-Verse",
+        "questions": [
+          {
+            "q": "Tobey Maguire's first Spider-Man film was directed by this filmmaker.",
+            "a": "Who is Sam Raimi?",
+            "value": 150
+          },
+          {
+            "q": "Andrew Garfield's version of Peter Parker debuts in this 2012 film.",
+            "a": "What is The Amazing Spider-Man?",
+            "value": 300
+          },
+          {
+            "q": "Tom Holland's first solo MCU Spider-Man movie is this.",
+            "a": "What is Spider-Man: Homecoming?",
+            "value": 450
+          },
+          {
+            "q": "This animated 2018 film makes Miles Morales its central Spider-Man.",
+            "a": "What is Spider-Man: Into the Spider-Verse?",
+            "value": 600
+          },
+          {
+            "q": "In No Way Home, this sorcerer's botched memory spell pulls in visitors from other universes.",
+            "a": "Who is Doctor Strange?",
+            "value": 750
+          },
+          {
+            "q": "Across the Spider-Verse introduces this futuristic Spider-Man who leads the Spider-Society.",
+            "a": "Who is Miguel O’Hara / Spider-Man 2099?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "X-Men & Mutants",
+        "questions": [
+          {
+            "q": "Hugh Jackman first played Wolverine in this 2000 film.",
+            "a": "What is X-Men?",
+            "value": 150
+          },
+          {
+            "q": "This telepath founded the X-Men and runs Xavier's School.",
+            "a": "Who is Professor Charles Xavier?",
+            "value": 300
+          },
+          {
+            "q": "This metal-controlling mutant is played by Ian McKellen and Michael Fassbender across different eras.",
+            "a": "Who is Magneto?",
+            "value": 450
+          },
+          {
+            "q": "This 2014 film uses time travel to prevent a dystopian future ruled by Sentinels.",
+            "a": "What is X-Men: Days of Future Past?",
+            "value": 600
+          },
+          {
+            "q": "This 2017 film gives Wolverine an R-rated final journey in a near future.",
+            "a": "What is Logan?",
+            "value": 750
+          },
+          {
+            "q": "This foul-mouthed mercenary received his first solo film in 2016.",
+            "a": "Who is Deadpool?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Hero Villain Other",
+        "questions": [
+          {
+            "format": "alignmentChoice",
+            "q": "In The Dark Knight, classify Bruce Wayne. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Hero",
+            "value": 150
+          },
+          {
+            "format": "alignmentChoice",
+            "q": "In Avengers: Infinity War, classify Thanos. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Villain",
+            "value": 300
+          },
+          {
+            "format": "alignmentChoice",
+            "q": "In Spider-Man 2, classify J. Jonah Jameson. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Other",
+            "value": 450
+          },
+          {
+            "format": "alignmentChoice",
+            "q": "In Black Panther, classify Erik Killmonger. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Villain",
+            "value": 600
+          },
+          {
+            "format": "alignmentChoice",
+            "q": "In Logan, classify Laura / X-23. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Hero",
+            "value": 750
+          },
+          {
+            "format": "alignmentChoice",
+            "q": "In The Batman, classify Carmine Falcone. HERO = hero, VILLAIN = principal antagonist, OTHER = neither.",
+            "a": "Other",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Order",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Put these superhero films in release order.",
+            "items": [
+              "Superman",
+              "Batman",
+              "X-Men",
+              "Spider-Man"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Superman → Batman → X-Men → Spider-Man",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these MCU films in release order.",
+            "items": [
+              "Iron Man",
+              "Thor",
+              "The Avengers",
+              "Guardians of the Galaxy"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Iron Man → Thor → Avengers → Guardians",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Batman films in release order.",
+            "items": [
+              "Batman Begins",
+              "The Dark Knight",
+              "The Dark Knight Rises",
+              "The Batman"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Batman Begins → Dark Knight → Dark Knight Rises → The Batman",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Spider-Man films in release order.",
+            "items": [
+              "Spider-Man 2",
+              "The Amazing Spider-Man",
+              "Homecoming",
+              "Into the Spider-Verse"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Spider-Man 2 → Amazing Spider-Man → Homecoming → Spider-Verse",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these X-Men films in release order.",
+            "items": [
+              "X2",
+              "First Class",
+              "Days of Future Past",
+              "Logan"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "X2 → First Class → Days of Future Past → Logan",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these Avengers films in release order.",
+            "items": [
+              "The Avengers",
+              "Age of Ultron",
+              "Infinity War",
+              "Endgame"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Avengers → Age of Ultron → Infinity War → Endgame",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Superhero Finale",
+      "q": "This director made both The Avengers and Avengers: Age of Ultron.",
+      "a": "Who is Joss Whedon?"
+    }
+  },
+  {
+    "id": "fan-video-games-across-generations",
+    "name": "Video Games Across Generations",
+    "tagline": "Heroes, bosses, mechanics, RPGs, indies, and release history.",
+    "accent": "#22a86b",
+    "icon": "G",
+    "art": "fan-art/video-games-across-generations.jpg",
+    "textBoard": [
+      {
+        "category": "Iconic Heroes",
+        "questions": [
+          {
+            "q": "This blue hedgehog is Sega's speed-focused mascot.",
+            "a": "Who is Sonic the Hedgehog?",
+            "value": 150
+          },
+          {
+            "q": "This archaeologist stars in Tomb Raider.",
+            "a": "Who is Lara Croft?",
+            "value": 300
+          },
+          {
+            "q": "This Spartan supersoldier is known by the service number John-117.",
+            "a": "Who is Master Chief?",
+            "value": 450
+          },
+          {
+            "q": "This treasure hunter stars in the Uncharted series.",
+            "a": "Who is Nathan Drake?",
+            "value": 600
+          },
+          {
+            "q": "This bald warrior wields the Blades of Chaos in God of War.",
+            "a": "Who is Kratos?",
+            "value": 750
+          },
+          {
+            "q": "This android protagonist of NieR:Automata is paired early on with scanner unit 9S.",
+            "a": "Who is 2B?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Bosses & Threats",
+        "questions": [
+          {
+            "q": "This turtle-like king repeatedly kidnaps Princess Peach.",
+            "a": "Who is Bowser?",
+            "value": 150
+          },
+          {
+            "q": "This one-winged Final Fantasy VII villain wields the Masamune.",
+            "a": "Who is Sephiroth?",
+            "value": 300
+          },
+          {
+            "q": "This artificial intelligence tests Chell throughout Portal.",
+            "a": "Who is GLaDOS?",
+            "value": 450
+          },
+          {
+            "q": "This BioShock antagonist delivers the phrase 'Would you kindly?'",
+            "a": "Who is Atlas / Frank Fontaine?",
+            "value": 600
+          },
+          {
+            "q": "This Bloodborne boss waits atop the Astral Clocktower in The Old Hunters.",
+            "a": "Who is Lady Maria?",
+            "value": 750
+          },
+          {
+            "q": "This Elden Ring demigod says she has 'never known defeat.'",
+            "a": "Who is Malenia?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Game Mechanics",
+        "questions": [
+          {
+            "q": "In many games, this three-letter stat measures damage dealt per second.",
+            "a": "What is DPS?",
+            "value": 150
+          },
+          {
+            "q": "A game where dying often resets most progress but each run changes is commonly called this genre.",
+            "a": "What is a roguelike / roguelite?",
+            "value": 300
+          },
+          {
+            "q": "Invincibility frames are commonly shortened to this term.",
+            "a": "What are i-frames?",
+            "value": 450
+          },
+          {
+            "q": "In fighting games, an input timed on the earliest possible frame is often described with this phrase.",
+            "a": "What is frame-perfect?",
+            "value": 600
+          },
+          {
+            "q": "A stamina-powered dodge roll is especially associated with this action-RPG subgenre.",
+            "a": "What are Soulslikes?",
+            "value": 750
+          },
+          {
+            "q": "In speedrunning, reaching items or areas out of their intended order is called this.",
+            "a": "What is sequence breaking?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "RPG Knowledge",
+        "questions": [
+          {
+            "q": "Cloud Strife is the protagonist of this numbered Final Fantasy.",
+            "a": "What is Final Fantasy VII?",
+            "value": 150
+          },
+          {
+            "q": "The Dragonborn is the player character title in this Elder Scrolls game.",
+            "a": "What is Skyrim?",
+            "value": 300
+          },
+          {
+            "q": "This BioWare trilogy follows Commander Shepard.",
+            "a": "What is Mass Effect?",
+            "value": 450
+          },
+          {
+            "q": "This monster-hunting RPG series stars Geralt of Rivia.",
+            "a": "What is The Witcher?",
+            "value": 600
+          },
+          {
+            "q": "Persona 5's protagonists call themselves this group.",
+            "a": "Who are the Phantom Thieves?",
+            "value": 750
+          },
+          {
+            "q": "Disco Elysium casts the player as this profession in Revachol.",
+            "a": "What is a detective?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Indie Hits",
+        "questions": [
+          {
+            "q": "This block-building survival game began as an indie project by Markus Persson.",
+            "a": "What is Minecraft?",
+            "value": 150
+          },
+          {
+            "q": "This platformer follows Madeline climbing a mountain.",
+            "a": "What is Celeste?",
+            "value": 300
+          },
+          {
+            "q": "This 2015 RPG lets players spare or fight nearly every monster.",
+            "a": "What is Undertale?",
+            "value": 450
+          },
+          {
+            "q": "This farming RPG begins when the player inherits a plot in Pelican Town.",
+            "a": "What is Stardew Valley?",
+            "value": 600
+          },
+          {
+            "q": "This bug-filled metroidvania takes place in Hallownest.",
+            "a": "What is Hollow Knight?",
+            "value": 750
+          },
+          {
+            "q": "This card-based roguelike sends players climbing a procedurally generated tower.",
+            "a": "What is Slay the Spire?",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "category": "Release Timeline",
+        "questions": [
+          {
+            "format": "sequence",
+            "q": "Order these systems by launch date, earliest first.",
+            "items": [
+              "PlayStation 2",
+              "Xbox 360",
+              "PlayStation 4",
+              "PlayStation 5"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "PS2 → Xbox 360 → PS4 → PS5",
+            "value": 150
+          },
+          {
+            "format": "sequence",
+            "q": "Put these games in release order.",
+            "items": [
+              "Half-Life 2",
+              "BioShock",
+              "Dark Souls",
+              "The Last of Us"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Half-Life 2 → BioShock → Dark Souls → The Last of Us",
+            "value": 300
+          },
+          {
+            "format": "sequence",
+            "q": "Put these open-world games in release order.",
+            "items": [
+              "Grand Theft Auto III",
+              "The Elder Scrolls IV: Oblivion",
+              "Red Dead Redemption",
+              "The Witcher 3"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "GTA III → Oblivion → Red Dead Redemption → The Witcher 3",
+            "value": 450
+          },
+          {
+            "format": "sequence",
+            "q": "Put these indie games in release order.",
+            "items": [
+              "Braid",
+              "Super Meat Boy",
+              "Undertale",
+              "Hades"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Braid → Super Meat Boy → Undertale → Hades",
+            "value": 600
+          },
+          {
+            "format": "sequence",
+            "q": "Put these FromSoftware titles in release order.",
+            "items": [
+              "Demon’s Souls",
+              "Dark Souls",
+              "Bloodborne",
+              "Sekiro: Shadows Die Twice"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Demon’s Souls → Dark Souls → Bloodborne → Sekiro",
+            "value": 750
+          },
+          {
+            "format": "sequence",
+            "q": "Put these landmark games in release order.",
+            "items": [
+              "Ocarina of Time",
+              "Metroid Prime",
+              "Wii Sports",
+              "Breath of the Wild"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "a": "Ocarina → Metroid Prime → Wii Sports → Breath of the Wild",
+            "value": 1000
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Game Design History",
+      "q": "This Japanese designer created Metal Gear and later directed Death Stranding.",
+      "a": "Who is Hideo Kojima?"
+    }
   }
 ]
