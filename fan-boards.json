@@ -169,7 +169,7 @@
     "tagline": "Pop, hip-hop, alternative, R&B, landmark albums, and decade chronology.",
     "accent": "#b34ddb",
     "icon": "9",
-    "art": "fan-art/1990s-music.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/4/44/SmashingPumpkins-SiameseDream.jpg",
     "textBoard": [
       {
         "category": "Pop Radio",
@@ -464,7 +464,8 @@
       "category": "90s Finale",
       "q": "Which 1991 R.E.M. album contains both \"Losing My Religion\" and \"Shiny Happy People\"?",
       "a": "Out of Time"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-2000s-music",
@@ -472,7 +473,7 @@
     "tagline": "Pop, hip-hop, rock, R&B, albums, and release-order memory.",
     "accent": "#e83e8c",
     "icon": "♪",
-    "art": "fan-art/2000s-music.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/0/09/The_Strokes_-_Is_This_It_cover.png",
     "textBoard": [
       {
         "category": "Pop Explosion",
@@ -767,7 +768,8 @@
       "category": "Decade Finale",
       "q": "Which French electronic duo, famous for their robot helmets, released Discovery in 2001?",
       "a": "Daft Punk"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-2010s-music",
@@ -775,7 +777,7 @@
     "tagline": "Streaming-era pop, rap, indie, R&B, albums, and release chronology.",
     "accent": "#8d5cf6",
     "icon": "♫",
-    "art": "fan-art/2010s-music.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/8/83/Coldplay_-_Mylo_Xyloto_%28Official_Album_Cover%29.png",
     "textBoard": [
       {
         "category": "Pop Giants",
@@ -1070,7 +1072,8 @@
       "category": "Streaming Era",
       "q": "Which South Korean group became a global stadium act with songs such as \"DNA\" and \"Boy With Luv\"?",
       "a": "BTS"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-2020s-music-so-far",
@@ -1078,7 +1081,7 @@
     "tagline": "Major pop, rap, R&B, alternative, albums, and release order from the decade so far.",
     "accent": "#45b8ff",
     "icon": "2",
-    "art": "fan-art/2020s-music-so-far.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/b/b2/Olivia_Rodrigo_-_SOUR.png",
     "textBoard": [
       {
         "category": "Pop",
@@ -1373,7 +1376,8 @@
       "category": "2020s Finale",
       "q": "Which superstar released the country-influenced album Cowboy Carter in 2024?",
       "a": "Beyoncé"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-after-school-cartoons-2000s",
@@ -1381,7 +1385,7 @@
     "tagline": "A focused 2000s TV-animation board spanning Cartoon Network, Nickelodeon, Disney, action shows, and premiere order.",
     "accent": "#f08a35",
     "icon": "C",
-    "art": "fan-art/after-school-cartoons-2000s.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/a/a9/KNDLogo.png",
     "textBoard": [
       {
         "category": "Cartoon Network",
@@ -1676,7 +1680,8 @@
       "category": "2000s Cartoon Finale",
       "q": "Which animator created both The Fairly OddParents and Danny Phantom?",
       "a": "Butch Hartman"
-    }
+    },
+    "genre": "TV"
   },
   {
     "id": "fan-cartoons-and-tv-favorites",
@@ -1684,7 +1689,7 @@
     "tagline": "Cartoon Network, Nickelodeon, Disney TV, adult animation, sitcoms, and premiere order.",
     "accent": "#21a8d8",
     "icon": "T",
-    "art": "fan-art/cartoons-and-tv-favorites.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/8/82/Over_the_Garden_Wall_%28animated_miniseries%29_poster.jpg",
     "textBoard": [
       {
         "category": "Cartoon Network",
@@ -1979,7 +1984,8 @@
       "category": "Animation History",
       "q": "Which animator created Samurai Jack and the series Primal?",
       "a": "Genndy Tartakovsky"
-    }
+    },
+    "genre": "TV"
   },
   {
     "id": "fan-dragon-ball-from-saiyans-to-super",
@@ -1987,7 +1993,7 @@
     "tagline": "Saiyans, techniques, forms, villains, wishes, and saga order.",
     "accent": "#f28c28",
     "icon": "D",
-    "art": "fan-art/dragon-ball-from-saiyans-to-super.jpg",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx813-ZhnFNOeCU5dQ.png",
     "textBoard": [
       {
         "category": "Saiyan Blood",
@@ -2282,7 +2288,8 @@
       "category": "Creator",
       "q": "Which manga artist created Dragon Ball after his success with Dr. Slump?",
       "a": "Akira Toriyama"
-    }
+    },
+    "genre": "Anime"
   },
   {
     "id": "fan-fighting-games-round-one",
@@ -2290,7 +2297,7 @@
     "tagline": "Street Fighter, Mortal Kombat, Tekken, anime fighters, mechanics, and release history.",
     "accent": "#e74b3c",
     "icon": "F",
-    "art": "fan-art/fighting-games-round-one.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/1/1d/SF2_JPN_flyer.jpg",
     "textBoard": [
       {
         "category": "Street Fighter",
@@ -2585,7 +2592,8 @@
       "category": "Final Round",
       "q": "Which Japanese producer, famous for his sunglasses, has long been the face of Tekken?",
       "a": "Katsuhiro Harada"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-hip-hop-through-the-eras",
@@ -2593,7 +2601,7 @@
     "tagline": "Foundations, golden age, 1990s, 2000s, modern rap, producers, and chronology.",
     "accent": "#d88620",
     "icon": "H",
-    "art": "fan-art/hip-hop-through-the-eras.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/commons/7/72/De_La_Soul_-_3_Feet_High_and_Rising_Cover.jpeg",
     "textBoard": [
       {
         "category": "Foundations",
@@ -2888,7 +2896,8 @@
       "category": "Hip-Hop Finale",
       "q": "Which New York City borough is widely called the birthplace of hip-hop?",
       "a": "The Bronx"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-horror-games-survive-the-night",
@@ -2896,7 +2905,7 @@
     "tagline": "Survival horror, monsters, locations, mechanics, indie scares, and release order.",
     "accent": "#7a1d2d",
     "icon": "H",
-    "art": "fan-art/horror-games-survive-the-night.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/9/96/Silent_Hill_video_game_cover.png",
     "textBoard": [
       {
         "category": "Survival Horror",
@@ -3191,7 +3200,8 @@
       "category": "Horror Finale",
       "q": "Which Japanese designer directed the original Resident Evil and later created The Evil Within?",
       "a": "Shinji Mikami"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-isekai-and-fantasy-anime",
@@ -3199,7 +3209,7 @@
     "tagline": "Other worlds, guilds, kingdoms, abilities, party members, and adaptation chronology.",
     "accent": "#55a46d",
     "icon": "I",
-    "art": "fan-art/isekai-and-fantasy-anime.jpg",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx21355-wRVUrGxpvIQQ.jpg",
     "textBoard": [
       {
         "category": "Sent Elsewhere",
@@ -3494,7 +3504,8 @@
       "category": "Fantasy Finale",
       "q": "Which light-novel author created Re:Zero − Starting Life in Another World?",
       "a": "Tappei Nagatsuki"
-    }
+    },
+    "genre": "Anime"
   },
   {
     "id": "fan-nintendo-console-kingdom",
@@ -3502,7 +3513,7 @@
     "tagline": "Mario, Zelda, Metroid, Kirby, hardware, Smash, and release order.",
     "accent": "#e60012",
     "icon": "N",
-    "art": "fan-art/nintendo-console-kingdom.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/0/03/Super_Mario_Bros._box.png",
     "textBoard": [
       {
         "category": "Mario World",
@@ -3797,7 +3808,8 @@
       "category": "Nintendo Origins",
       "q": "Which legendary designer created Mario and The Legend of Zelda?",
       "a": "Shigeru Miyamoto"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-playstation-through-the-generations",
@@ -3805,7 +3817,7 @@
     "tagline": "PS1 through PS5, mascots, hardware, exclusives, and console chronology.",
     "accent": "#2f6fd6",
     "icon": "P",
-    "art": "fan-art/playstation-through-the-generations.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/0/00/ApeEscapeNACover.jpg",
     "textBoard": [
       {
         "category": "PlayStation 1",
@@ -4100,7 +4112,8 @@
       "category": "PlayStation Finale",
       "q": "Which Sony executive is known as the \"Father of the PlayStation\"?",
       "a": "Ken Kutaragi"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-pokemon-trainer-challenge",
@@ -4108,7 +4121,7 @@
     "tagline": "Types, evolutions, regions, moves, legends, and generation order.",
     "accent": "#ffcc00",
     "icon": "P",
-    "art": "fan-art/pokemon-trainer-challenge.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/4/4c/Pok%C3%A9mon_box_art_-_Gold_Version.png",
     "textBoard": [
       {
         "category": "Type Matchups",
@@ -4403,7 +4416,8 @@
       "category": "Pokédex History",
       "q": "Which pair of 1996 Game Boy games launched the Pokémon franchise in Japan?",
       "a": "Pokémon Red and Green"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-rpg-worlds",
@@ -4411,7 +4425,7 @@
     "tagline": "Final Fantasy, Elder Scrolls, Persona, BioWare, classic CRPGs, and release order.",
     "accent": "#5d76c9",
     "icon": "R",
-    "art": "fan-art/rpg-worlds.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/a/a7/Chrono_Trigger.jpg",
     "textBoard": [
       {
         "category": "Final Fantasy",
@@ -4706,7 +4720,8 @@
       "category": "RPG Finale",
       "q": "Which designer created the Final Fantasy series while working at Square?",
       "a": "Hironobu Sakaguchi"
-    }
+    },
+    "genre": "Games"
   },
   {
     "id": "fan-rock-and-metal",
@@ -4714,7 +4729,7 @@
     "tagline": "Foundations, classic metal, 90s heaviness, albums, musicians, and release history.",
     "accent": "#555555",
     "icon": "R",
-    "art": "fan-art/rock-and-metal.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/4/4d/Queen_A_Night_At_The_Opera.png",
     "textBoard": [
       {
         "category": "70s Foundations",
@@ -5009,7 +5024,8 @@
       "category": "Metal History",
       "q": "Which Birmingham guitarist lost two fingertips in a sheet-metal factory accident, then helped invent heavy metal anyway?",
       "a": "Tony Iommi"
-    }
+    },
+    "genre": "Music"
   },
   {
     "id": "fan-science-fiction-movies",
@@ -5017,7 +5033,7 @@
     "tagline": "Space voyages, aliens, time travel, machines, directors, and release history.",
     "accent": "#3ba7a3",
     "icon": "S",
-    "art": "fan-art/science-fiction-movies.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/9/97/Metropolis_%28German_three-sheet_poster%29.jpg",
     "textBoard": [
       {
         "category": "Final Frontier",
@@ -5312,7 +5328,8 @@
       "category": "Sci-Fi Finale",
       "q": "Which author wrote Do Androids Dream of Electric Sheep? and The Man in the High Castle?",
       "a": "Philip K. Dick"
-    }
+    },
+    "genre": "Movies"
   },
   {
     "id": "fan-shonen-power-systems-and-rivalries",
@@ -5320,7 +5337,7 @@
     "tagline": "A focused board about how battle anime powers work and the rivalries that push them forward.",
     "accent": "#7158d6",
     "icon": "⚡",
-    "art": "fan-art/shonen-power-systems-and-rivalries.jpg",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx11061-y5gsT1hoHuHw.png",
     "textBoard": [
       {
         "category": "Power Systems",
@@ -5615,7 +5632,8 @@
       "category": "Power Finale",
       "q": "Which manga artist created both Hunter x Hunter and Yu Yu Hakusho?",
       "a": "Yoshihiro Togashi"
-    }
+    },
+    "genre": "Anime"
   },
   {
     "id": "fan-superhero-movies",
@@ -5623,7 +5641,7 @@
     "tagline": "Marvel, DC, Spider-Man, X-Men, villains, classifications, and film chronology.",
     "accent": "#d13232",
     "icon": "S",
-    "art": "fan-art/superhero-movies.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/1/19/Blade_movie.jpg",
     "textBoard": [
       {
         "category": "Marvel Studios",
@@ -5924,7 +5942,8 @@
       "category": "Superhero Finale",
       "q": "Which director made The Dark Knight trilogy?",
       "a": "Christopher Nolan"
-    }
+    },
+    "genre": "Movies"
   },
   {
     "id": "fan-video-games-across-generations",
@@ -5932,7 +5951,7 @@
     "tagline": "Heroes, bosses, mechanics, RPGs, indies, and release history.",
     "accent": "#22a86b",
     "icon": "G",
-    "art": "fan-art/video-games-across-generations.jpg",
+    "art": "https://upload.wikimedia.org/wikipedia/en/2/25/Half-Life_2_cover.jpg",
     "textBoard": [
       {
         "category": "Iconic Heroes",
@@ -6227,6 +6246,1846 @@
       "category": "Game Design History",
       "q": "Which Japanese designer created Metal Gear and later directed Death Stranding?",
       "a": "Hideo Kojima"
+    },
+    "genre": "Games"
+  },
+  {
+    "id": "fan-attack-on-titan",
+    "name": "Attack on Titan",
+    "genre": "Anime",
+    "icon": "⚔",
+    "accent": "#b3392f",
+    "tagline": "Walls, Titans, the Survey Corps and the truth beyond the sea.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-buvcRTBx4NSm.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That Soldier?",
+        "questions": [
+          {
+            "q": "Who is this Survey Corps captain?",
+            "a": "Levi Ackerman",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b45627-CR68RyZmddGG.png",
+            "hint": "Often called humanity's strongest soldier.",
+            "format": "typed",
+            "accept": [
+              "Levi",
+              "Captain Levi"
+            ]
+          },
+          {
+            "q": "Who is this soldier, raised alongside Eren?",
+            "a": "Mikasa Ackerman",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b40881-F3gr1PkreDvj.png",
+            "format": "typed",
+            "accept": [
+              "Mikasa"
+            ]
+          },
+          {
+            "q": "Who is this member of the 104th Training Corps?",
+            "a": "Armin Arlert",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b46494-g7xYYuBtYPnO.png",
+            "hint": "Eren's childhood best friend and the squad's strategist.",
+            "format": "typed",
+            "accept": [
+              "Armin"
+            ]
+          },
+          {
+            "q": "Who is this Titan-obsessed squad leader?",
+            "a": "Hange Zoë",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b71121-7R7CnQd3lHgt.png",
+            "format": "typed",
+            "accept": [
+              "Hange",
+              "Hanji",
+              "Hange Zoe",
+              "Hanji Zoe"
+            ]
+          },
+          {
+            "q": "Who is this Survey Corps commander?",
+            "a": "Erwin Smith",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b46496-Mu86MENd5wNB.png",
+            "hint": "He leads the suicide charge at Shiganshina.",
+            "format": "typed",
+            "accept": [
+              "Erwin"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Titans",
+        "questions": [
+          {
+            "q": "Which Titan does Eren hold alongside the Founding Titan?",
+            "a": "Attack Titan",
+            "format": "choice",
+            "options": [
+              "Armored Titan",
+              "Attack Titan",
+              "Colossal Titan",
+              "Cart Titan"
+            ],
+            "correct": 1
+          },
+          {
+            "q": "Name all three Marleyan warriors who broke through the walls as children.",
+            "a": "Reiner Braun, Bertolt Hoover, Annie Leonhart",
+            "note": "The Armored, Colossal and Female Titans.",
+            "format": "list",
+            "items": [
+              "Reiner Braun",
+              "Bertolt Hoover",
+              "Annie Leonhart"
+            ]
+          },
+          {
+            "q": "Which of these are among the Nine Titans? Tick all that are.",
+            "a": "Jaw Titan, Cart Titan, War Hammer Titan",
+            "format": "multi",
+            "options": [
+              "Jaw Titan",
+              "Smiling Titan",
+              "Cart Titan",
+              "War Hammer Titan",
+              "Rod Reiss Titan"
+            ],
+            "correct": [
+              0,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "How many Titan powers descend from Ymir Fritz?",
+            "a": "Nine",
+            "format": "number",
+            "target": 9,
+            "margin": 0
+          },
+          {
+            "q": "Which fur-covered Titan hurls boulders at the Survey Corps in Shiganshina?",
+            "a": "The Beast Titan"
+          }
+        ]
+      },
+      {
+        "category": "Openings",
+        "questions": [
+          {
+            "q": "Which group performs this first opening?",
+            "a": "Linked Horizon",
+            "id": "8OkpRK2_gVs",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"Guren no Yumiya.\"",
+            "format": "typed",
+            "accept": [
+              "Linked Horizon"
+            ]
+          },
+          {
+            "q": "What is the title of this second opening?",
+            "a": "Jiyuu no Tsubasa",
+            "id": "PbWFpzi8C94",
+            "clipStart": 0,
+            "clipLen": 25,
+            "format": "typed",
+            "accept": [
+              "Jiyu no Tsubasa",
+              "Wings of Freedom"
+            ]
+          },
+          {
+            "q": "This Season 2 opening is titled after a Survey Corps salute. What does the title mean in English?",
+            "a": "\"Dedicate your hearts!\" (Shinzou wo Sasageyo!)",
+            "id": "LKP-vZvjbh8",
+            "clipStart": 0,
+            "clipLen": 25
+          },
+          {
+            "q": "This Final Season opening shares its name with a cataclysm in the story. What is that event called?",
+            "a": "The Rumbling",
+            "id": "2S4qGKmzBJE",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is by the Japanese band SiM."
+          },
+          {
+            "q": "Which composer scored the series, including \"Vogel im Käfig\"?",
+            "a": "Hiroyuki Sawano"
+          }
+        ]
+      },
+      {
+        "category": "By the Numbers",
+        "questions": [
+          {
+            "q": "Roughly how tall is the Colossal Titan, in meters?",
+            "a": "About 60 meters",
+            "format": "number",
+            "target": 60,
+            "unit": "m",
+            "margin": 10
+          },
+          {
+            "q": "How many years does a Titan shifter live after inheriting the power?",
+            "a": "13 years (the Curse of Ymir)",
+            "format": "number",
+            "target": 13,
+            "unit": "years",
+            "margin": 0
+          },
+          {
+            "q": "In what year does Wall Maria fall?",
+            "a": "Year 845",
+            "wheel": true,
+            "format": "number",
+            "target": 845,
+            "margin": 5
+          },
+          {
+            "q": "How many episodes does the full anime run, including the Final Chapters specials?",
+            "a": "89",
+            "format": "number",
+            "target": 89,
+            "unit": "episodes",
+            "margin": 5
+          },
+          {
+            "q": "In what year did the first manga chapter come out?",
+            "a": "2009",
+            "format": "number",
+            "target": 2009,
+            "margin": 1
+          }
+        ]
+      },
+      {
+        "category": "The World",
+        "questions": [
+          {
+            "q": "On which island do the walls stand?",
+            "a": "Paradis Island",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg"
+          },
+          {
+            "q": "Which nation across the sea uses Eldian Titans as weapons?",
+            "a": "Marley"
+          },
+          {
+            "q": "Which gas-powered gear lets soldiers swing between buildings?",
+            "a": "Omni-directional mobility gear (3D Maneuver Gear)"
+          },
+          {
+            "q": "What is the invisible network linking every Subject of Ymir called?",
+            "a": "The Paths",
+            "wheel": true
+          },
+          {
+            "q": "Which military branch guards the royal capital inside the innermost wall?",
+            "a": "The Military Police Brigade"
+          }
+        ]
+      },
+      {
+        "category": "In Order",
+        "questions": [
+          {
+            "q": "In what order are the walls, from outermost to innermost?",
+            "a": "Wall Maria → Wall Rose → Wall Sina",
+            "format": "sequence",
+            "items": [
+              "Wall Maria",
+              "Wall Rose",
+              "Wall Sina"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "q": "In what order do these events happen?",
+            "a": "Fall of Wall Maria → Battle of Trost District → 57th Expedition beyond the Walls → Return to Shiganshina",
+            "format": "sequence",
+            "items": [
+              "Fall of Wall Maria",
+              "Battle of Trost District",
+              "57th Expedition beyond the Walls",
+              "Return to Shiganshina"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "In what order did these seasons air?",
+            "a": "Season 1 → Season 2 → Season 3 → The Final Season",
+            "format": "sequence",
+            "items": [
+              "Season 1",
+              "Season 2",
+              "Season 3",
+              "The Final Season"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "In what order did these happen in the story's history?",
+            "a": "Ymir Fritz gains the power of the Titans → The Great Titan War → The walls are raised → The Fall of Shiganshina",
+            "format": "sequence",
+            "items": [
+              "Ymir Fritz gains the power of the Titans",
+              "The Great Titan War",
+              "The walls are raised",
+              "The Fall of Shiganshina"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "In what order do these arcs happen?",
+            "a": "Female Titan arc → Uprising arc → Raid on Liberio → War for Paradis arc",
+            "format": "sequence",
+            "items": [
+              "Female Titan arc",
+              "Uprising arc",
+              "Raid on Liberio",
+              "War for Paradis arc"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "Which manga artist created Attack on Titan?",
+      "a": "Hajime Isayama"
+    }
+  },
+  {
+    "id": "fan-demon-slayer",
+    "name": "Demon Slayer",
+    "genre": "Anime",
+    "icon": "🗡",
+    "accent": "#2a9d8f",
+    "tagline": "Breathing styles, Hashira, Upper Moons and a sister in a box.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-WBsBl0ClmgYL.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That?",
+        "questions": [
+          {
+            "q": "Who is this cowardly swordsman who fights best asleep?",
+            "a": "Zenitsu Agatsuma",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b129131-FZrQ7lSlxmEr.png",
+            "format": "typed",
+            "accept": [
+              "Zenitsu"
+            ]
+          },
+          {
+            "q": "Who is this boar-masked swordsman?",
+            "a": "Inosuke Hashibira",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/n129130-SJC0Kn1DU39E.jpg",
+            "format": "typed",
+            "accept": [
+              "Inosuke"
+            ]
+          },
+          {
+            "q": "Who is this stoic Water Hashira?",
+            "a": "Giyu Tomioka",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b130050-qsLThJs5VIbz.png",
+            "hint": "He spares Tanjiro and his sister in the very first episode.",
+            "format": "typed",
+            "accept": [
+              "Giyu",
+              "Giyuu",
+              "Giyuu Tomioka",
+              "Tomioka"
+            ]
+          },
+          {
+            "q": "Who is this Hashira?",
+            "a": "Mitsuri Kanroji",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b136072-xVwyRUKdpybi.png",
+            "hint": "The Love Hashira.",
+            "format": "typed",
+            "accept": [
+              "Mitsuri",
+              "Kanroji"
+            ]
+          },
+          {
+            "q": "Who is this Hashira?",
+            "a": "Muichiro Tokito",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b136069-6PLglx4tETUX.png",
+            "hint": "The Mist Hashira, and the youngest of them.",
+            "format": "typed",
+            "accept": [
+              "Muichiro",
+              "Muichirou",
+              "Tokito",
+              "Muichirou Tokitou"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Breathing & Blades",
+        "questions": [
+          {
+            "q": "What is the technique of controlled breathing that powers every Demon Slayer called?",
+            "a": "Total Concentration Breathing"
+          },
+          {
+            "q": "What is the fire dance Tanjiro's family performs every New Year?",
+            "a": "Hinokami Kagura"
+          },
+          {
+            "q": "Which of these are real Breathing styles? Tick all that are.",
+            "a": "Serpent Breathing, Love Breathing, Mist Breathing",
+            "format": "multi",
+            "options": [
+              "Serpent Breathing",
+              "Ice Breathing",
+              "Love Breathing",
+              "Metal Breathing",
+              "Mist Breathing"
+            ],
+            "correct": [
+              0,
+              2,
+              4
+            ]
+          },
+          {
+            "q": "What material are Nichirin swords forged from?",
+            "a": "Scarlet Crimson Iron Sand and Ore",
+            "note": "It absorbs sunlight, which is why the blades can kill demons."
+          },
+          {
+            "q": "Which Breathing style is the original, from which all the others descend?",
+            "a": "Sun Breathing",
+            "format": "choice",
+            "options": [
+              "Moon Breathing",
+              "Sun Breathing",
+              "Water Breathing",
+              "Flame Breathing"
+            ],
+            "correct": 1
+          }
+        ]
+      },
+      {
+        "category": "Music & Studio",
+        "questions": [
+          {
+            "q": "Which singer performs this first opening?",
+            "a": "LiSA",
+            "id": "pmanD_s7G3U",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"Gurenge.\"",
+            "format": "typed",
+            "accept": [
+              "Lisa"
+            ]
+          },
+          {
+            "q": "This opening's arc is set in which famous red-light district?",
+            "a": "Yoshiwara",
+            "id": "tLQLa6lM3Us",
+            "clipStart": 0,
+            "clipLen": 30,
+            "note": "Aimer's \"Zankyosanka,\" from the Entertainment District arc."
+          },
+          {
+            "q": "Which song, played over a famous battle at the end of Episode 19, is named after the main character?",
+            "a": "\"Kamado Tanjiro no Uta\""
+          },
+          {
+            "q": "Which studio animates Demon Slayer?",
+            "a": "ufotable"
+          },
+          {
+            "q": "Go Shiina co-composed the anime's score with which composer?",
+            "a": "Yuki Kajiura"
+          }
+        ]
+      },
+      {
+        "category": "Hero, Villain or Other",
+        "questions": [
+          {
+            "q": "Is the Demon King, who created all other demons, a hero, a villain, or other?",
+            "a": "Villain",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Kyojuro Rengoku, the Flame Hashira, a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b129133-VlTPowwt68rJ.png",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Akaza, Upper Rank Three, a hero, a villain, or other?",
+            "a": "Villain",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Hotaru Haganezuka, Tanjiro's temperamental swordsmith, a hero, a villain, or other?",
+            "a": "Other",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b138990-E5kiUoLigpyX.jpg",
+            "note": "He forges the blades; he doesn't fight.",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Enmu, the demon who controls the Mugen Train, a hero, a villain, or other?",
+            "a": "Villain",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b139737-1YaFT0Xvxwaz.png",
+            "format": "alignmentChoice"
+          }
+        ]
+      },
+      {
+        "category": "By the Numbers",
+        "questions": [
+          {
+            "q": "How many elite pillars make up the Corps' top rank at full strength?",
+            "a": "Nine",
+            "format": "number",
+            "target": 9,
+            "margin": 0
+          },
+          {
+            "q": "How many Upper Moons serve the Demon King?",
+            "a": "Six",
+            "format": "number",
+            "target": 6,
+            "margin": 0
+          },
+          {
+            "q": "How many nights must candidates survive in the Final Selection?",
+            "a": "Seven",
+            "wheel": true,
+            "format": "number",
+            "target": 7,
+            "unit": "nights",
+            "margin": 0
+          },
+          {
+            "q": "Mugen Train set Japan's all-time box-office record. Roughly how much did it earn there, in billions of yen?",
+            "a": "About 40 billion yen",
+            "format": "number",
+            "target": 40,
+            "unit": "billion yen",
+            "margin": 4
+          },
+          {
+            "q": "In what order do these arcs happen?",
+            "a": "Final Selection → Mugen Train → Entertainment District → Swordsmith Village",
+            "format": "sequence",
+            "items": [
+              "Final Selection",
+              "Mugen Train",
+              "Entertainment District",
+              "Swordsmith Village"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Demons & Slayers",
+        "questions": [
+          {
+            "q": "What does Nezuko wear in her mouth to stop her from biting?",
+            "a": "A bamboo muzzle",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b127518-NRlq1CQ1v1ro.png"
+          },
+          {
+            "q": "Which demon turned Nezuko into a demon?",
+            "a": "Muzan Kibutsuji",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b129132-4nIZakUZ1o8W.jpg"
+          },
+          {
+            "q": "Name both demons who share the rank of Upper Six.",
+            "a": "Daki, Gyutaro",
+            "format": "list",
+            "items": [
+              "Daki",
+              "Gyutaro"
+            ]
+          },
+          {
+            "q": "What is the lowest of the Demon Slayer Corps' ten ranks called?",
+            "a": "Mizunoto",
+            "wheel": true
+          },
+          {
+            "q": "What is the name of the mark that appears on the strongest slayers' bodies?",
+            "a": "The Demon Slayer Mark"
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "Which manga artist created Demon Slayer?",
+      "a": "Koyoharu Gotouge"
+    }
+  },
+  {
+    "id": "fan-jujutsu-kaisen",
+    "name": "Jujutsu Kaisen",
+    "genre": "Anime",
+    "icon": "✋",
+    "accent": "#7b3fe4",
+    "tagline": "Cursed energy, domains, the Shibuya Incident and twenty very dangerous fingers.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-LHBAeoZDIsnF.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That Sorcerer?",
+        "questions": [
+          {
+            "q": "Who is this hammer-and-nails sorcerer?",
+            "a": "Nobara Kugisaki",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b133700-f6sOO3TcgLV6.png",
+            "format": "typed",
+            "accept": [
+              "Nobara",
+              "Kugisaki"
+            ]
+          },
+          {
+            "q": "Who is this shikigami user?",
+            "a": "Megumi Fushiguro",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b126635-L0y3I92JSUkN.png",
+            "hint": "He summons his Divine Dogs with shadows.",
+            "format": "typed",
+            "accept": [
+              "Megumi",
+              "Fushiguro"
+            ]
+          },
+          {
+            "q": "Who is this cursed-tool specialist?",
+            "a": "Maki Zen'in",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b134167-5TCytk45YByD.png",
+            "format": "typed",
+            "accept": [
+              "Maki",
+              "Maki Zenin"
+            ]
+          },
+          {
+            "q": "Who is this sorcerer who speaks only in rice-ball fillings?",
+            "a": "Toge Inumaki",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b157115-kdhRYQdVhH95.png",
+            "format": "typed",
+            "accept": [
+              "Toge",
+              "Inumaki"
+            ]
+          },
+          {
+            "q": "Who is this former salaryman sorcerer?",
+            "a": "Kento Nanami",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b133704-8wLTGjc234q2.png",
+            "hint": "He hates overtime.",
+            "format": "typed",
+            "accept": [
+              "Nanami",
+              "Kento"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Cursed Techniques",
+        "questions": [
+          {
+            "q": "What is Satoru Gojo's inherited technique called?",
+            "a": "Limitless",
+            "format": "choice",
+            "options": [
+              "Boogie Woogie",
+              "Ten Shadows",
+              "Limitless",
+              "Straw Doll Technique"
+            ],
+            "correct": 2
+          },
+          {
+            "q": "What is Gojo's Domain Expansion called?",
+            "a": "Unlimited Void",
+            "format": "choice",
+            "options": [
+              "Coffin of the Iron Mountain",
+              "Unlimited Void",
+              "Chimera Shadow Garden",
+              "Self-Embodiment of Perfection"
+            ],
+            "correct": 1
+          },
+          {
+            "q": "Which of these belong to Ryomen Sukuna? Tick all that do.",
+            "a": "Malevolent Shrine, Dismantle, Cleave",
+            "format": "multi",
+            "options": [
+              "Malevolent Shrine",
+              "Dismantle",
+              "Divergent Fist",
+              "Cleave",
+              "Maximum: Meteor"
+            ],
+            "correct": [
+              0,
+              1,
+              3
+            ]
+          },
+          {
+            "q": "What is Mahito's soul-reshaping technique called?",
+            "a": "Idle Transfiguration"
+          },
+          {
+            "q": "What is a hit called when cursed energy lands within a millionth of a second of the physical strike?",
+            "a": "Black Flash",
+            "wheel": true
+          }
+        ]
+      },
+      {
+        "category": "Openings & Studio",
+        "questions": [
+          {
+            "q": "Which singer performs this first opening?",
+            "a": "Eve",
+            "id": "GwaRztMaoY0",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"Kaikai Kitan.\"",
+            "format": "typed",
+            "accept": [
+              "Eve"
+            ]
+          },
+          {
+            "q": "What is the title of this second opening?",
+            "a": "VIVID VICE",
+            "id": "LFTE4W--Htk",
+            "clipStart": 0,
+            "clipLen": 25,
+            "format": "typed",
+            "accept": [
+              "Vivid Vice"
+            ]
+          },
+          {
+            "q": "Which band performs this Shibuya Incident opening?",
+            "a": "King Gnu",
+            "id": "5yb2N3pnztU",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"SPECIALZ.\"",
+            "format": "typed",
+            "accept": [
+              "King Gnu",
+              "Kinggnu"
+            ]
+          },
+          {
+            "q": "Which studio animates the series?",
+            "a": "MAPPA"
+          },
+          {
+            "q": "In which manga magazine is the series serialized?",
+            "a": "Weekly Shonen Jump"
+          }
+        ]
+      },
+      {
+        "category": "Hero, Villain or Other",
+        "questions": [
+          {
+            "q": "Is Mahito, the patchwork curse, a hero, a villain, or other?",
+            "a": "Villain",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Yuji Itadori a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b127212-FVm2tD0erQ5B.png",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Shoko Ieiri, the school's doctor, a hero, a villain, or other?",
+            "a": "Other",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b158154-UCqbiULli62P.png",
+            "note": "She heals; she doesn't fight.",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Kenjaku, the brain wearing Geto's body, a hero, a villain, or other?",
+            "a": "Villain",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b289584-KndGudJZm5Ik.jpg",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Yuta Okkotsu a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b129571-GHJk7gviHOOw.jpg",
+            "format": "alignmentChoice"
+          }
+        ]
+      },
+      {
+        "category": "By the Numbers",
+        "questions": [
+          {
+            "q": "How many fingers of Sukuna exist?",
+            "a": "20",
+            "format": "number",
+            "target": 20,
+            "margin": 0
+          },
+          {
+            "q": "How old is Yuji at the start of the story?",
+            "a": "15",
+            "format": "number",
+            "target": 15,
+            "unit": "years old",
+            "margin": 0
+          },
+          {
+            "q": "How many special-grade sorcerers exist at the start of the story?",
+            "a": "Four",
+            "note": "Gojo, Yuta, Yuki Tsukumo and Suguru Geto.",
+            "format": "number",
+            "target": 4,
+            "margin": 0
+          },
+          {
+            "q": "The Shibuya Incident begins on which day of October?",
+            "a": "October 31 (Halloween)",
+            "wheel": true,
+            "format": "number",
+            "target": 31,
+            "margin": 0
+          },
+          {
+            "q": "How many Cursed Womb: Death Painting brothers are there in total?",
+            "a": "Nine",
+            "format": "number",
+            "target": 9,
+            "margin": 0
+          }
+        ]
+      },
+      {
+        "category": "Ranks & Order",
+        "questions": [
+          {
+            "q": "Put these sorcerer grades in order, lowest first.",
+            "a": "Grade 4 → Grade 3 → Grade 2 → Grade 1 → Special Grade",
+            "format": "sequence",
+            "items": [
+              "Grade 4",
+              "Grade 3",
+              "Grade 2",
+              "Grade 1",
+              "Special Grade"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "q": "In what order do these arcs happen?",
+            "a": "Cursed Womb → Kyoto Goodwill Event → Shibuya Incident → Culling Game",
+            "format": "sequence",
+            "items": [
+              "Cursed Womb",
+              "Kyoto Goodwill Event",
+              "Shibuya Incident",
+              "Culling Game"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "Name the three Cursed Womb brothers who appear in the first season.",
+            "a": "Choso, Eso, Kechizu",
+            "format": "list",
+            "items": [
+              "Choso",
+              "Eso",
+              "Kechizu"
+            ]
+          },
+          {
+            "q": "In what order were these released?",
+            "a": "Season 1 → Jujutsu Kaisen 0 (film) → Hidden Inventory / Premature Death → Shibuya Incident",
+            "format": "sequence",
+            "items": [
+              "Season 1",
+              "Jujutsu Kaisen 0 (film)",
+              "Hidden Inventory / Premature Death",
+              "Shibuya Incident"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "Which technique does Gojo make by combining Blue and Red?",
+            "a": "Hollow Purple"
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "Which manga artist created Jujutsu Kaisen?",
+      "a": "Gege Akutami"
+    }
+  },
+  {
+    "id": "fan-my-hero-academia",
+    "name": "My Hero Academia",
+    "genre": "Anime",
+    "icon": "💥",
+    "accent": "#2e8b57",
+    "tagline": "Quirks, Class 1-A, the League of Villains and going Plus Ultra.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21459-nYh85uj2Fuwr.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That Student?",
+        "questions": [
+          {
+            "q": "Who is this half-cold, half-hot student?",
+            "a": "Shoto Todoroki",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89220-KNBwaVFAR8FD.png",
+            "format": "typed",
+            "accept": [
+              "Shoto",
+              "Todoroki",
+              "Shouto Todoroki"
+            ]
+          },
+          {
+            "q": "Who is this student, whose touch cancels gravity?",
+            "a": "Ochaco Uraraka",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89221-gSF2a4gPbG4m.png",
+            "format": "typed",
+            "accept": [
+              "Uraraka",
+              "Ochaco",
+              "Ochako Uraraka"
+            ]
+          },
+          {
+            "q": "Who is this class representative with engines in his legs?",
+            "a": "Tenya Iida",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89222-TL8MQM3wJgEB.png",
+            "format": "typed",
+            "accept": [
+              "Iida",
+              "Tenya"
+            ]
+          },
+          {
+            "q": "Who is this frog-Quirk student?",
+            "a": "Tsuyu Asui",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89223-5762vburxnlz.png",
+            "hint": "She asks everyone to call her by her first name.",
+            "format": "typed",
+            "accept": [
+              "Tsuyu",
+              "Froppy",
+              "Asui"
+            ]
+          },
+          {
+            "q": "Who is this bird-headed student?",
+            "a": "Fumikage Tokoyami",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89898-yAYDmPQPSOTV.png",
+            "hint": "His Quirk is a shadowy creature that lives inside him.",
+            "format": "typed",
+            "accept": [
+              "Tokoyami",
+              "Fumikage"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Quirks",
+        "questions": [
+          {
+            "q": "What is Bakugo's Quirk called?",
+            "a": "Explosion",
+            "format": "choice",
+            "options": [
+              "Hardening",
+              "Engine",
+              "Explosion",
+              "Zero Gravity"
+            ],
+            "correct": 2
+          },
+          {
+            "q": "What is the name of the power All Might passes to Deku?",
+            "a": "One For All",
+            "format": "choice",
+            "options": [
+              "All For One",
+              "One For All",
+              "Hellflame",
+              "Half-Cold Half-Hot"
+            ],
+            "correct": 1
+          },
+          {
+            "q": "Which of these are real Quirks in the series? Tick all that are.",
+            "a": "Overhaul, Permeation, Warp Gate",
+            "format": "multi",
+            "options": [
+              "Overhaul",
+              "Photosynthesis",
+              "Permeation",
+              "Warp Gate",
+              "Time Freeze"
+            ],
+            "correct": [
+              0,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "What is Deku's technique of spreading a fraction of his power through his whole body called?",
+            "a": "Full Cowl"
+          },
+          {
+            "q": "What happens to anything Tomura Shigaraki touches with all five fingers?",
+            "a": "It decays to dust",
+            "wheel": true
+          }
+        ]
+      },
+      {
+        "category": "Openings & Studio",
+        "questions": [
+          {
+            "q": "Which band performs this first opening?",
+            "a": "Porno Graffitti",
+            "id": "yu0HjPzFYnY",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"THE DAY.\"",
+            "format": "typed",
+            "accept": [
+              "Porno Graffiti",
+              "Pornograffitti"
+            ]
+          },
+          {
+            "q": "Which singer-songwriter performs this Season 2 opening?",
+            "a": "Kenshi Yonezu",
+            "id": "iQGAPewPH1s",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"Peace Sign.\"",
+            "format": "typed",
+            "accept": [
+              "Yonezu",
+              "Kenshi Yonezu"
+            ]
+          },
+          {
+            "q": "What is the title of this Season 3 opening?",
+            "a": "ODD FUTURE",
+            "id": "v1YojYU5nPQ",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "Performed by UVERworld.",
+            "format": "typed",
+            "accept": [
+              "Odd Future"
+            ]
+          },
+          {
+            "q": "Which studio animates the series?",
+            "a": "Bones"
+          },
+          {
+            "q": "What Latin phrase is U.A. High School's motto?",
+            "a": "\"Plus Ultra\" (\"further beyond\")"
+          }
+        ]
+      },
+      {
+        "category": "Hero, Villain or Other",
+        "questions": [
+          {
+            "q": "Is Tomura Shigaraki's mentor, the Symbol of Evil, a hero, a villain, or other?",
+            "a": "Villain",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/125956-jzhb8Z4peLb8.jpg",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is All Might a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b89224-K6KEuQAuYKzq.jpg",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Inko Midoriya, Deku's mother, a hero, a villain, or other?",
+            "a": "Other",
+            "note": "She's a civilian.",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Stain, the Hero Killer, a hero, a villain, or other?",
+            "a": "Villain",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Mei Hatsume, the Support Course inventor, a hero, a villain, or other?",
+            "a": "Other",
+            "note": "She builds hero gear; she isn't a hero student.",
+            "format": "alignmentChoice"
+          }
+        ]
+      },
+      {
+        "category": "By the Numbers",
+        "questions": [
+          {
+            "q": "How many students are in Class 1-A at the start of the year?",
+            "a": "20",
+            "format": "number",
+            "target": 20,
+            "unit": "students",
+            "margin": 0
+          },
+          {
+            "q": "Roughly what percentage of the world's population has a Quirk?",
+            "a": "About 80%",
+            "format": "number",
+            "target": 80,
+            "unit": "%",
+            "margin": 5
+          },
+          {
+            "q": "Deku is the ninth holder of his inherited power. Which number holder is All Might?",
+            "a": "The eighth",
+            "wheel": true,
+            "format": "number",
+            "target": 8,
+            "margin": 0
+          },
+          {
+            "q": "By what age do most children develop their Quirk?",
+            "a": "Four",
+            "format": "number",
+            "target": 4,
+            "unit": "years old",
+            "margin": 0
+          },
+          {
+            "q": "In what year did the manga begin?",
+            "a": "2014",
+            "format": "number",
+            "target": 2014,
+            "margin": 1
+          }
+        ]
+      },
+      {
+        "category": "U.A. & Beyond",
+        "questions": [
+          {
+            "q": "In what order do these events happen?",
+            "a": "Entrance exam → USJ attack → U.A. Sports Festival → Hero Killer arc",
+            "format": "sequence",
+            "items": [
+              "Entrance exam",
+              "USJ attack",
+              "U.A. Sports Festival",
+              "Hero Killer arc"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "Name all three members of U.A.'s Big Three.",
+            "a": "Mirio Togata, Tamaki Amajiki, Nejire Hado",
+            "format": "list",
+            "items": [
+              "Mirio Togata",
+              "Tamaki Amajiki",
+              "Nejire Hado"
+            ]
+          },
+          {
+            "q": "In what order do these arcs happen?",
+            "a": "Shie Hassaikai → Joint Training → Paranormal Liberation War → Final War",
+            "format": "sequence",
+            "items": [
+              "Shie Hassaikai",
+              "Joint Training",
+              "Paranormal Liberation War",
+              "Final War"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "What hero name does Bakugo finally settle on?",
+            "a": "Great Explosion Murder God Dynamight"
+          },
+          {
+            "q": "Which villain group does Tomura Shigaraki lead?",
+            "a": "The League of Villains"
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "Which manga artist created My Hero Academia?",
+      "a": "Kohei Horikoshi"
+    }
+  },
+  {
+    "id": "fan-death-note",
+    "name": "Death Note",
+    "genre": "Anime",
+    "icon": "📓",
+    "accent": "#8b1e2d",
+    "tagline": "A notebook, a Shinigami, a detective, and a lot of potato chips.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1535-kUgkcrfOrkUM.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That?",
+        "questions": [
+          {
+            "q": "Who is this Shinigami, who drops his notebook into the human world out of boredom?",
+            "a": "Ryuk",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b75-IkEpzO21LgFy.jpg",
+            "format": "typed",
+            "accept": [
+              "Ryuk",
+              "Ryuuku"
+            ]
+          },
+          {
+            "q": "Who is this idol, who becomes the Second Kira?",
+            "a": "Misa Amane",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b835-CiZa8y2z2gCz.png",
+            "format": "typed",
+            "accept": [
+              "Misa",
+              "Amane"
+            ]
+          },
+          {
+            "q": "Who is this Shinigami, who is devoted to the Second Kira?",
+            "a": "Rem",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/n1905-9GfCvLFKNRLR.png",
+            "format": "typed",
+            "accept": [
+              "Rem"
+            ]
+          },
+          {
+            "q": "Who is this cheerful junior detective on the task force?",
+            "a": "Touta Matsuda",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/n1906-JCWKEGGook3Z.png",
+            "format": "typed",
+            "accept": [
+              "Matsuda",
+              "Touta"
+            ]
+          },
+          {
+            "q": "Who is this prosecutor who becomes Kira's final proxy?",
+            "a": "Teru Mikami",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/n1904-xKw2NgiE6VbU.jpg",
+            "hint": "He shouts \"Delete!\" as he writes.",
+            "format": "typed",
+            "accept": [
+              "Mikami",
+              "Teru"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Rules of the Notebook",
+        "questions": [
+          {
+            "q": "If no cause of death is written, how many seconds after the name is written does the victim die?",
+            "a": "40 seconds",
+            "format": "number",
+            "target": 40,
+            "unit": "seconds",
+            "margin": 0
+          },
+          {
+            "q": "If no cause is written, how does the victim die?",
+            "a": "A heart attack",
+            "format": "choice",
+            "options": [
+              "A stroke",
+              "A heart attack",
+              "They fall asleep forever",
+              "Nothing happens"
+            ],
+            "correct": 1
+          },
+          {
+            "q": "What must the writer picture while writing a name, for it to work?",
+            "a": "The victim's face",
+            "format": "choice",
+            "options": [
+              "The victim's home",
+              "The victim's voice",
+              "The victim's face",
+              "The victim's birthday"
+            ],
+            "correct": 2
+          },
+          {
+            "q": "What do Shinigami Eyes let their owner see above people's heads?",
+            "a": "Their name and remaining lifespan"
+          },
+          {
+            "q": "What percentage of your remaining life does the Shinigami Eyes deal cost?",
+            "a": "Half (50%)",
+            "format": "number",
+            "target": 50,
+            "unit": "%",
+            "margin": 0
+          }
+        ]
+      },
+      {
+        "category": "Music & Studio",
+        "questions": [
+          {
+            "q": "Which band performs this first opening?",
+            "a": "Nightmare",
+            "id": "D7MMMNTQ7H0",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"the WORLD.\"",
+            "format": "typed",
+            "accept": [
+              "Nightmare"
+            ]
+          },
+          {
+            "q": "Which heavy band performs the second opening, \"What's up, people?!\"?",
+            "a": "Maximum the Hormone"
+          },
+          {
+            "q": "Which studio animated Death Note?",
+            "a": "Madhouse"
+          },
+          {
+            "q": "Which fruit does Light's Shinigami companion crave?",
+            "a": "Apples",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b75-IkEpzO21LgFy.jpg"
+          },
+          {
+            "q": "In which magazine was the manga serialized?",
+            "a": "Weekly Shonen Jump"
+          }
+        ]
+      },
+      {
+        "category": "Characters",
+        "questions": [
+          {
+            "q": "Which of these characters are Shinigami? Tick all that are.",
+            "a": "Sidoh, Gelus",
+            "format": "multi",
+            "options": [
+              "Sidoh",
+              "Mogi",
+              "Gelus",
+              "Aizawa",
+              "Halle Lidner"
+            ],
+            "correct": [
+              0,
+              2
+            ]
+          },
+          {
+            "q": "What is the name of L's elderly handler and inventor?",
+            "a": "Watari"
+          },
+          {
+            "q": "Name both of L's young successors.",
+            "a": "Near, Mello",
+            "format": "list",
+            "items": [
+              "Near",
+              "Mello"
+            ]
+          },
+          {
+            "q": "Under what false name does L introduce himself at university?",
+            "a": "Hideki Ryuga",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b71-1W4panC53vfs.png"
+          },
+          {
+            "q": "Which newscaster becomes the killer's spokesperson in the final arc?",
+            "a": "Kiyomi Takada"
+          }
+        ]
+      },
+      {
+        "category": "Timeline",
+        "questions": [
+          {
+            "q": "In what order do these events happen?",
+            "a": "Light finds the notebook → Lind L. Tailor's televised challenge → Light meets L at university → L's death",
+            "format": "sequence",
+            "items": [
+              "Light finds the notebook",
+              "Lind L. Tailor's televised challenge",
+              "Light meets L at university",
+              "L's death"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "In what order were these released?",
+            "a": "The manga → The Japanese live-action film → The anime → The Netflix film",
+            "format": "sequence",
+            "items": [
+              "The manga",
+              "The Japanese live-action film",
+              "The anime",
+              "The Netflix film"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "How many episodes does the anime have?",
+            "a": "37",
+            "format": "number",
+            "target": 37,
+            "unit": "episodes",
+            "margin": 0
+          },
+          {
+            "q": "How old is Light when the story begins?",
+            "a": "17",
+            "wheel": true,
+            "format": "number",
+            "target": 17,
+            "unit": "years old",
+            "margin": 0
+          },
+          {
+            "q": "What does Light hide inside his desk drawer's false bottom, rigged to burn if it's forced?",
+            "a": "Pages of the notebook",
+            "wheel": true
+          }
+        ]
+      },
+      {
+        "category": "Light Yagami",
+        "questions": [
+          {
+            "q": "What is the name of Light's father, the police chief?",
+            "a": "Soichiro Yagami",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b80-26EhwSsSqQ50.png"
+          },
+          {
+            "q": "What title does Light give himself in his vision of a new world?",
+            "a": "\"The god of the new world\""
+          },
+          {
+            "q": "How does Light test whether the notebook really works, on the very first day?",
+            "a": "He writes the name of a criminal holding hostages on TV"
+          },
+          {
+            "q": "Which junk food does L eat almost nothing but?",
+            "a": "Sweets"
+          },
+          {
+            "q": "What does Light famously eat while writing names, hidden from a camera?",
+            "a": "Potato chips"
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creators",
+      "q": "Which writer and artist created Death Note?",
+      "a": "Tsugumi Ohba and Takeshi Obata"
+    }
+  },
+  {
+    "id": "fan-fullmetal-alchemist",
+    "name": "Fullmetal Alchemist: Brotherhood",
+    "genre": "Anime",
+    "icon": "⚗",
+    "accent": "#b8860b",
+    "tagline": "Equivalent Exchange, homunculi, the Philosopher's Stone and two brothers paying the price.",
+    "art": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx5114-nSWCgQlmOMtj.jpg",
+    "textBoard": [
+      {
+        "category": "Who's That?",
+        "questions": [
+          {
+            "q": "Who is this colonel, known as the Flame Alchemist?",
+            "a": "Roy Mustang",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b68-moBLY2WO2am3.png",
+            "format": "typed",
+            "accept": [
+              "Mustang",
+              "Roy"
+            ]
+          },
+          {
+            "q": "Who is this automail mechanic and childhood friend?",
+            "a": "Winry Rockbell",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/63-xloedtYxiJ2E.jpg",
+            "format": "typed",
+            "accept": [
+              "Winry"
+            ]
+          },
+          {
+            "q": "Who is this sharpshooting lieutenant?",
+            "a": "Riza Hawkeye",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b70-k4bCgDspyOdI.png",
+            "format": "typed",
+            "accept": [
+              "Riza",
+              "Hawkeye"
+            ]
+          },
+          {
+            "q": "Who is this Ishvalan avenger, named for the X on his forehead?",
+            "a": "Scar",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/b66-bLbGWXrmDqfV.png",
+            "format": "typed",
+            "accept": [
+              "Scar"
+            ]
+          },
+          {
+            "q": "Who is this general, commander of Fort Briggs?",
+            "a": "Olivier Mira Armstrong",
+            "img": "https://s4.anilist.co/file/anilistcdn/character/large/n3934-MKTV6tQeP8T3.png",
+            "format": "typed",
+            "accept": [
+              "Olivier",
+              "Olivier Armstrong"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "Alchemy",
+        "questions": [
+          {
+            "q": "What is alchemy's basic law, that to gain something you must give up something of equal value, called?",
+            "a": "Equivalent Exchange"
+          },
+          {
+            "q": "What forbidden act cost Edward his leg and Alphonse his body?",
+            "a": "Human transmutation"
+          },
+          {
+            "q": "What is the Philosopher's Stone made from?",
+            "a": "Human souls",
+            "format": "choice",
+            "options": [
+              "Gold",
+              "Red water",
+              "Human souls",
+              "Dragon blood"
+            ],
+            "correct": 2
+          },
+          {
+            "q": "Which of these characters are State Alchemists? Tick all that are.",
+            "a": "Alex Louis Armstrong, Solf J. Kimblee, Shou Tucker",
+            "format": "multi",
+            "options": [
+              "Alex Louis Armstrong",
+              "Izumi Curtis",
+              "Solf J. Kimblee",
+              "Maes Hughes",
+              "Shou Tucker"
+            ],
+            "correct": [
+              0,
+              2,
+              4
+            ]
+          },
+          {
+            "q": "What do State Alchemists carry to prove their certification?",
+            "a": "A silver pocket watch",
+            "wheel": true
+          }
+        ]
+      },
+      {
+        "category": "Openings & World",
+        "questions": [
+          {
+            "q": "Which singer performs this first opening?",
+            "a": "YUI",
+            "id": "S2IOrt-n2fc",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "The song is \"again.\"",
+            "format": "typed",
+            "accept": [
+              "Yui"
+            ]
+          },
+          {
+            "q": "What is the title of this third opening?",
+            "a": "Golden Time Lover",
+            "id": "FRCXO2EA7AY",
+            "clipStart": 0,
+            "clipLen": 25,
+            "note": "Performed by Sukima Switch.",
+            "format": "typed",
+            "accept": [
+              "Golden Time Lover"
+            ]
+          },
+          {
+            "q": "Which studio animated Brotherhood?",
+            "a": "Bones"
+          },
+          {
+            "q": "In which military-run country is the story set?",
+            "a": "Amestris"
+          },
+          {
+            "q": "Which eastern empire does the prince Ling Yao come from?",
+            "a": "Xing"
+          }
+        ]
+      },
+      {
+        "category": "Hero, Villain or Other",
+        "questions": [
+          {
+            "q": "Is Father, the mastermind behind the homunculi, a hero, a villain, or other?",
+            "a": "Villain",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Alphonse Elric a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b12-tCKu8yK5kFL5.jpg",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Pinako Rockbell, the brothers' automail-making neighbor, a hero, a villain, or other?",
+            "a": "Other",
+            "note": "She keeps them walking; she doesn't fight.",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is King Bradley, the Führer, a hero, a villain, or other?",
+            "a": "Villain",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b5103-jnflrjKevO3z.png",
+            "format": "alignmentChoice"
+          },
+          {
+            "q": "Is Van Hohenheim, the brothers' father, a hero, a villain, or other?",
+            "a": "Hero",
+            "aimg": "https://s4.anilist.co/file/anilistcdn/character/large/b9792-YA8kiO4NjmGL.jpg",
+            "format": "alignmentChoice"
+          }
+        ]
+      },
+      {
+        "category": "By the Numbers",
+        "questions": [
+          {
+            "q": "How many homunculi are named after the deadly sins?",
+            "a": "Seven",
+            "format": "number",
+            "target": 7,
+            "margin": 0
+          },
+          {
+            "q": "How many episodes does Brotherhood have?",
+            "a": "64",
+            "format": "number",
+            "target": 64,
+            "unit": "episodes",
+            "margin": 0
+          },
+          {
+            "q": "How old is Edward when he becomes the youngest State Alchemist?",
+            "a": "12",
+            "format": "number",
+            "target": 12,
+            "unit": "years old",
+            "margin": 0
+          },
+          {
+            "q": "Edward's watch is engraved \"Don't forget 3. Oct. 11.\" In which month did the brothers burn their house? Give its number.",
+            "a": "October (10)",
+            "wheel": true,
+            "format": "number",
+            "target": 10,
+            "margin": 0
+          },
+          {
+            "q": "In what year did Brotherhood begin airing?",
+            "a": "2009",
+            "format": "number",
+            "target": 2009,
+            "margin": 0
+          }
+        ]
+      },
+      {
+        "category": "In Order",
+        "questions": [
+          {
+            "q": "In what order do these events happen?",
+            "a": "The brothers try to bring their mother back → Edward becomes a State Alchemist → Maes Hughes is killed → The Promised Day",
+            "format": "sequence",
+            "items": [
+              "The brothers try to bring their mother back",
+              "Edward becomes a State Alchemist",
+              "Maes Hughes is killed",
+              "The Promised Day"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "In what order were these released?",
+            "a": "The manga → The first anime (2003) → Brotherhood → The live-action film",
+            "format": "sequence",
+            "items": [
+              "The manga",
+              "The first anime (2003)",
+              "Brotherhood",
+              "The live-action film"
+            ],
+            "correctOrder": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "q": "Name all seven homunculi.",
+            "a": "Lust, Gluttony, Envy, Greed, Sloth, Wrath, Pride",
+            "format": "list",
+            "items": [
+              "Lust",
+              "Gluttony",
+              "Envy",
+              "Greed",
+              "Sloth",
+              "Wrath",
+              "Pride"
+            ]
+          },
+          {
+            "q": "What is the name of the brothers' hometown?",
+            "a": "Resembool"
+          },
+          {
+            "q": "What is the name of the Elric brothers' mother?",
+            "a": "Trisha Elric"
+          }
+        ]
+      }
+    ],
+    "final": {
+      "category": "Creator",
+      "q": "Which manga artist created Fullmetal Alchemist?",
+      "a": "Hiromu Arakawa"
     }
   }
 ]

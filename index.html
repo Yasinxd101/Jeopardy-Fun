@@ -3697,7 +3697,13 @@ function loadFanBoards() {
       if (!Array.isArray(list)) return;
       FAN_BOARDS = list.filter(isValidBoard).map(function (b) {
         sanitizeBoardFields(b);
-        b.genre = "Fan Boards";
+        // A board here may name the tab it belongs in, so boards added by
+        // the owner sit with the built-ins under Anime, Games, Music and so
+        // on. One that names nothing -- or names a shelf that is not a genre,
+        // My Boards or After Dark -- stays under Fan Boards.
+        var g = typeof b.genre === "string" ? b.genre.trim().slice(0, 24) : "";
+        b.genre = g && g !== "My Boards" && g !== ADULT_TAB ? g : "Fan Boards";
+        b.fromFanFile = true;
         return b;
       });
       rebuildBoards();
@@ -10203,9 +10209,19 @@ function boardGenres() {
     var g = b.genre || "Other";
     if (order.indexOf(g) === -1) order.push(g);
   });
+  // Tabs come in a fixed order rather than whichever board happened to load
+  // first, so the fan boards arriving a moment after the page does not
+  // shuffle the tabs under someone's finger. Anything unlisted keeps its
+  // place after these, and My Boards is always last before After Dark.
+  var PREFERRED = ["Anime", "Games", "Music", "TV", "Movies", "Web Serials", "Fan Boards"];
+  var rank = function (g) { var i = PREFERRED.indexOf(g); return i === -1 ? PREFERRED.length : i; };
+  order = order.map(function (g, i) { return [g, i]; })
+    .sort(function (x, y) { return rank(x[0]) - rank(y[0]) || x[1] - y[1]; })
+    .map(function (x) { return x[0]; })
+    .filter(function (g) { return g !== "My Boards"; });
   // My Boards always shows a tab (with at least the Create card) so users
   // can build even before they have any custom boards.
-  if (order.indexOf("My Boards") === -1) order.push("My Boards");
+  order.push("My Boards");
   // The 18+ section is opt-in: it only appears once enabled in Settings.
   order = order.filter(function (g) { return g !== ADULT_TAB; });
   if (state.adultEnabled) order.push(ADULT_TAB);
@@ -10431,7 +10447,7 @@ function viewBoardPreview() {
       // Fan boards are submitted by strangers, so anyone can flag one. The
       // built-in boards and your own are not reportable -- there is nobody to
       // report them to.
-      (b.genre === "Fan Boards"
+      (b.fromFanFile
         ? '<button class="danger-link" data-action="confirmReportBoard" data-id="' + esc(b.id) + '">Report this board</button>'
         : '') +
       (state.exampleOpen && b.id === "example-board"
