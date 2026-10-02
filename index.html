@@ -110,6 +110,8 @@
     width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; border: none;
     background: #ffd166; color: #0b0f24; font-weight: 900; font-size: 18px; cursor: pointer;
   }
+  /* The second choice next to a gold one: same size, quieter. */
+  .big-gold.btn-quiet { background: #232a52; color: #e6e8ff; box-shadow: inset 0 0 0 2px #3d4682; }
   .big-disabled {
     width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; border: none;
     background: #2a2f55; color: #6a72a8; font-weight: 900; font-size: 18px; cursor: default;
@@ -127,6 +129,7 @@
   .plus-btn { background: #2cb67d; border: none; color: #04210f; font-weight: 900; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
   .minus-btn { background: #ff5470; border: none; color: #2a0410; font-weight: 900; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
   .chip { display: flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 14px; max-width: 100%; min-width: 0; }
+  .chip-score { font-variant-numeric: tabular-nums; opacity: 0.92; }
   .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32vw; }
   /* The board claims the whole screen instead of stranding dead space under
      the bottom row on tall phones. */
@@ -367,6 +370,18 @@
     .board-card.card-rise, .boards-tab-active, .boards-wrap.searching .search-results-panel { animation: none; }
   }
   .boards-grid { display: flex; flex-direction: column; gap: 16px; }
+  /* A laptop or a TV-sized window: a single 540px column left two thirds of
+     the screen empty and made you scroll through 27 boards. The controls stay
+     a readable width; the boards themselves spread into two columns. */
+  @media (min-width: 1000px) {
+    .boards-wrap.boards-wide { max-width: 1060px; }
+    .boards-wrap.boards-wide > :not(#boardsPanel):not(.boards-tabs-wrap) {
+      max-width: 560px; margin-left: auto; margin-right: auto;
+    }
+    .boards-wrap.boards-wide .boards-tabs-wrap { max-width: 860px; margin-left: auto; margin-right: auto; }
+    .boards-wide .boards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+    .boards-wide .boards-grid > .board-card, .boards-wide .boards-grid > .my-board-wrap { height: 100%; }
+  }
   .board-card {
     position: relative; display: flex; align-items: flex-start; gap: 16px;
     width: 100%; text-align: left; border: none; cursor: pointer;
@@ -488,6 +503,13 @@
   .buzz-pad-live { justify-content: flex-start; padding-top: 18px; gap: 14px; overflow-y: auto; }
   .buzz-pad .confirm-btn-cancel { flex: none; }
   .buzz-pad-live .buzz-btn { width: min(62vw, 250px); height: min(62vw, 250px); flex-shrink: 0; }
+  /* Between questions a phone held the status card and the button in its top
+     half and nothing below. Auto margins centre everything under the top line
+     when there is room, and fall back to a plain scroll when there is not --
+     justify-content: center would cut the top off instead. */
+  .buzz-pad-live .buzz-topline + * { margin-top: auto; }
+  .buzz-pad-live > :last-child { margin-bottom: auto; }
+  .buzz-pad-live .buzz-topline { flex: none; }
   .buzz-topline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .buzz-score {
     background: #161b3d; border: 1px solid #ffd166; border-radius: 999px;
@@ -1093,7 +1115,7 @@
   }
   .my-board-wrap { position: relative; }
   .my-board-controls {
-    display: flex; gap: 14px; justify-content: flex-end; margin: -8px 4px 0;
+    display: flex; gap: 14px; justify-content: flex-end; margin: 2px 4px 6px;
   }
   .my-board-controls button {
     background: none; border: none; color: #8b92c0; font-weight: 800;
@@ -1397,16 +1419,19 @@
   .demo-tip { margin: 12px 0 0; font-size: 12.5px; line-height: 1.45; color: #8b92c0; text-align: center; }
 
   /* picking how a question plays, in the maker */
-  .btype-row-pick { display: flex; gap: 6px; margin-top: 6px; }
+  /* Seven kinds in one row left each chip 45px wide on a phone, with every
+     name broken one word per line. A grid gives them two rows on a phone and
+     one row wherever there is room for it. */
+  .btype-row-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; margin-top: 6px; }
   .btype {
-    flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
     background: #0d1230; border: 1px solid #2a2f55; border-radius: 11px; padding: 9px 5px;
     min-height: 58px; color: #aab0d8; font-family: inherit; cursor: pointer;
     transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
   }
   .btype-on { border-color: var(--ba, #ffd166); background: #191f44; color: #fff; }
   .btype-icon { font-size: 17px; line-height: 1; }
-  .btype-name { font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
+  .btype-name { font-size: 11.5px; font-weight: 800; line-height: 1.2; text-align: center; overflow-wrap: normal; }
   .btype-blurb { margin: 7px 0 0; font-size: 12px; color: #8b92c0; line-height: 1.4; }
   .btype-body {
     margin-top: 11px; padding: 11px; border-radius: 12px;
@@ -1912,6 +1937,8 @@
   .hc-tag { font-weight: 900; font-size: 11px; letter-spacing: 2px; color: #ffd166; }
   .hc-leave { background: none; border: none; color: #ff8aa0; font-weight: 800; font-size: 13px; cursor: pointer; padding: 8px; }
   .hc-wrap { padding: 14px 12px 28px; max-width: 620px; margin: 0 auto; }
+  .hc-wrap.hc-idle { min-height: calc(100svh - 60px); display: flex; flex-direction: column; justify-content: center; gap: 0; }
+  .hc-wrap.hc-idle > * { flex: none; }
   .hc-cat { margin: 0; color: #8b92c0; font-weight: 900; font-size: 11px; letter-spacing: 2px; text-align: center; }
   .hc-q { margin: 8px 0 0; color: #fff; font-size: 16px; line-height: 1.45; }
   .hc-meta, .hc-waiting { margin: 8px 0 0; color: #8b92c0; font-size: 13px; text-align: center; }
@@ -1967,6 +1994,7 @@
     display: flex; align-items: center; gap: 8px; background: #0d1230;
     border-radius: 10px; padding: 10px;
   }
+  .hc-turn-tag { font-size: 10px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #ffd166; border: 1px solid rgba(255,209,102,0.5); border-radius: 999px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px; }
   .hc-score-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hc-score-val { font-weight: 900; color: #ffd166; min-width: 52px; text-align: right; }
   .hc-mini { min-width: 38px; padding: 9px 0; font-size: 15px; }
@@ -2141,6 +2169,17 @@
     overflow-y: auto; scrollbar-width: thin;
   }
   .roster-2 { grid-template-columns: 1fr 1fr; }
+  /* Eight names is four rows of two: tighten each row so all four show
+     without a scroll on an ordinary screen, rather than cutting the last row
+     in half under the fade. */
+  .roster-2 { max-height: clamp(52px, 24svh, 300px); }
+  .roster-2 .row-item { padding: 2px 4px 2px 9px; }
+  .roster-2 .x-btn { min-height: 28px; }
+  .setup-inner { max-width: 480px; margin: 0 auto; }
+  @media (min-width: 900px) and (min-height: 600px) {
+    .setup-inner { max-width: 600px; }
+    .roster-2 { max-height: none; }
+  }
   .roster .row-item { padding: 5px 6px 5px 9px; gap: 8px; font-size: 13.5px; }
   .roster .x-btn { min-width: 30px; min-height: 30px; font-size: 16px; }
   .roster-more {
@@ -2598,6 +2637,18 @@
     color: #ffd166; user-select: none; -webkit-user-select: none;
     transition: filter 0.25s ease;
   }
+  .fj-row { background: #161b3d; border: 1px solid #2a2f55; border-radius: 12px; padding: 12px 14px; }
+  .fj-top { display: flex; align-items: center; gap: 8px; }
+  .fj-name { font-weight: 800; color: #fff; min-width: 0; overflow-wrap: anywhere; }
+  .fj-wager { font-size: 12px; font-weight: 800; color: #aab0d8; background: #0d1230; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+  .fj-score { margin-left: auto; color: #aab0d8; font-weight: 800; }
+  .fj-wrote { margin-top: 8px; font-size: 14px; font-weight: 600; color: #ffd166; overflow-wrap: anywhere; }
+  .fj-wrote-none { color: #8b92c0; font-size: 13px; }
+  .fj-marks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .fj-marks button { min-height: 42px; }
+  .fj-result { margin-top: 10px; font-weight: 900; text-align: center; padding: 8px; border-radius: 9px; }
+  .fj-result-correct { color: #7ee2b0; background: rgba(44, 182, 125, 0.14); }
+  .fj-result-incorrect { color: #ff8aa0; background: rgba(255, 84, 112, 0.12); }
   .host-pin-blur { filter: blur(10px); user-select: none; -webkit-user-select: none; }
   .host-qr-hidden .host-qr { filter: blur(16px); opacity: 0.55; }
   button.buzz-room-code { background: none; border: none; padding: 0 2px; font: inherit; cursor: pointer; }
@@ -3163,37 +3214,37 @@ var RE5_TEXT_BOARD = [
 
 var BUILTIN_BOARDS = [
   { id: "anime", name: "Anime Music Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg", icon: "🎌", accent: "#a786df",
-    tagline: "Openings, endings, OSTs, and dubs from around the world. Every question is a clip. (Updated 2026)",
+    tagline: "Openings, endings, OSTs, and dubs from around the world. Every question is a clip.",
     textBoard: ANIME_MUSIC_BOARD,
     final: { category: "The Composers",
       q: "This composer's jazz infused Cowboy Bebop soundtrack, opening with the big band barnstormer 'Tank!', made her a legend of anime music.",
       a: "Who is Yoko Kanno?" } },
   { id: "onepiece", name: "One Piece Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1244/138851.jpg", icon: "🏴‍☠️", accent: "#3da9fc",
-    tagline: "Easy starts, thinker finishes, details you only know if you paid attention. (Updated 2026)",
+    tagline: "Easy starts, thinker finishes, details you only know if you paid attention.",
     textBoard: ONEPIECE_TEXT_BOARD,
     final: { category: "Grand Line History",
       q: "According to legend, this forbidden 100 year stretch of erased history lies between the World Government's founding and the present day.",
       a: "What is the Void Century?" } },
   { id: "bleach", name: "Bleach Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1541/147774.jpg", icon: "B", accent: "#ff8906",
-    tagline: "Soul Reapers, Hollows, and reveals you only caught on a reread. (Updated 2026)",
+    tagline: "Soul Reapers, Hollows, and reveals you only caught on a reread.",
     textBoard: BLEACH_TEXT_BOARD,
     final: { category: "Urahara's Regret",
       q: "Urahara's greatest creation and greatest mistake, this orb senses the hearts around it and makes their deepest desires real, and both he and Aizen buried one inside a soul to hide it.",
       a: "What is the Hogyoku?" } },
   { id: "naruto", name: "Naruto Jeopardy", genre: "Anime", art: "https://cdn.myanimelist.net/images/anime/1141/142503.jpg", icon: "N", accent: "#f25f4c",
-    tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish. (Updated 2026)",
+    tagline: "Village politics, forbidden jutsu, timelines, and tunes. Genin start, Kage finish.",
     textBoard: NARUTO_TEXT_BOARD,
     final: { category: "The First Chakra",
       q: "Every jutsu in history traces back to this woman, the first being to wield chakra, who ate the fruit of the God Tree and was sealed away by her own sons.",
       a: "Who is Kaguya Otsutsuki?" } },
   { id: "re5", name: "Resident Evil 5 Jeopardy", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/21690/library_600x900.jpg", icon: "R", accent: "#e04646",
-    tagline: "Kijuju, Uroboros, and boulder adjacent trivia. Co op questions, solo answers. (Updated 2026)",
+    tagline: "Kijuju, Uroboros, and boulder adjacent trivia. Co op questions, solo answers.",
     textBoard: RE5_TEXT_BOARD,
     final: { category: "Complete. Global.",
       q: "Wesker's endgame in one phrase, the three word goal he repeats for the worldwide release of Uroboros.",
       a: "What is Complete Global Saturation?" } },
   { id: "zeroescape", name: "Zero Escape Jeopardy", genre: "Games", art: "https://cdn.cloudflare.steamstatic.com/steam/apps/477740/library_600x900.jpg", icon: "9", accent: "#2cb67d",
-    tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously. (Updated 2026)",
+    tagline: "999, Virtue's Last Reward, and Zero Time Dilemma. Massive spoilers, obviously.",
     textBoard: ZEROESCAPE_TEXT_BOARD,
     final: { category: "Where It All Began",
       q: "The entire trilogy pivots on one moment, a 12 year old girl about to die in this location aboard the Gigantic, saved only by a puzzle her partner solves nine years in the future.",
@@ -3245,7 +3296,7 @@ var BUILTIN_BOARDS = [
       q: "Daughter of Afton's business partner Henry Emily, she was the first victim, and her spirit went on to give the gift of life to the others from inside this vessel. Name the girl or the animatronic she became.",
       a: "Who is Charlotte (Charlie) Emily, the Puppet (Marionette)?" } },
   { id: "worm", name: "Worm / Parahumans", genre: "Web Serials", icon: "W", accent: "#6b7fd7",
-    tagline: "Deep cut capes, interludes, and lore. For serious readers of the serial. (Updated 2026)",
+    tagline: "Deep cut capes, interludes, and lore. For serious readers of the serial.",
     textBoard: WORM_TEXT_BOARD,
     final: { category: "Deep Cuts",
       q: "A slow, rarely seen Chinese cape, dismissed by her own faction as barely worth their network, who reshaped terrain to raise whole buildings and once trapped Lung.",
@@ -3281,6 +3332,13 @@ function repoInfo() {
 }
 function repoIssueUrl(title, body, label) {
   var r = repoInfo();
+  // The details are written plain, so the copy box and an email read cleanly.
+  // GitHub alone gets "Board:" as a bold label, and a hard break after each
+  // short line so they do not run together into one paragraph.
+  body = body.split("\n").map(function (line) {
+    var m = /^([A-Z0-9][^:\n]{0,40}):( .*)?$/.exec(line);
+    return m ? "**" + m[1] + ":**" + (m[2] || "") + "  " : line;
+  }).join("\n");
   return "https://github.com/" + encodeURIComponent(r.owner) + "/" + encodeURIComponent(r.repo) +
     "/issues/new?title=" + encodeURIComponent(title) +
     "&labels=" + encodeURIComponent(label) +
@@ -3897,7 +3955,7 @@ var FAILURE_OUTCOMES = [
 ];
 
 var WHEELS = { chaos: CHAOS_OUTCOMES, success: SUCCESS_OUTCOMES, failure: FAILURE_OUTCOMES };
-var WHEEL_TITLES = { chaos: "Chaos Wheel", success: "Success Wheel", failure: "Failure Wheel" };
+var WHEEL_TITLES = { chaos: "Wheel of Chaos", success: "Success Wheel", failure: "Failure Wheel" };
 
 var BONUS_TRIVIA = [
   { q: "This is the only planet in our solar system not named after a god.", a: "What is Earth?" },
@@ -4027,7 +4085,24 @@ function fireConfetti(durationMs) {
       rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.22 });
   }
   var end = Date.now() + (durationMs || 2600);
-  (function tick() {
+  // Confetti belongs to the screen it celebrates. Tapping on before it had
+  // finished carried it over the next screen -- a shower over the setup page,
+  // or over the next player's first question -- so leaving clears it.
+  // The key is taken on the first frame, after the render that follows every
+  // call, so it names the screen the confetti is actually falling on.
+  var screenKey = function () {
+    var m = state.mil, f = state.feud;
+    return state.phase + "|" + (m ? m.stage + m.seat : "") + "|" + (f ? f.stage + f.round : "");
+  };
+  var keyAtStart = null;
+  requestAnimationFrame(function tick() {
+    if (keyAtStart === null) keyAtStart = screenKey();
+    if (screenKey() !== keyAtStart) {
+      cv.style.transition = "opacity 0.2s ease";
+      cv.style.opacity = "0";
+      setTimeout(function () { if (cv.parentNode) cv.parentNode.removeChild(cv); }, 220);
+      return;
+    }
     c2.clearRect(0, 0, cv.width, cv.height);
     parts.forEach(function (pt) {
       pt.x += pt.vx; pt.y += pt.vy; pt.rot += pt.vr;
@@ -4037,7 +4112,7 @@ function fireConfetti(durationMs) {
     });
     if (Date.now() < end) requestAnimationFrame(tick);
     else if (cv.parentNode) cv.parentNode.removeChild(cv);
-  })();
+  });
 }
 function flashScreen() {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -6637,11 +6712,11 @@ function submitBoardForReview() {
   }
   var cats = d.textBoard.map(function (c) { return c.category; }).join(", ");
   var head =
-    "**Board:** " + d.name + "\n" +
-    "**Tagline:** " + (d.tagline || "(none)") + "\n" +
-    "**Categories (" + d.textBoard.length + "):** " + cats + "\n" +
-    "**Final:** " + d.final.category + "\n" +
-    (d.adult ? "**18+:** yes, this belongs in After Dark.\n" : "") +
+    "Board: " + d.name + "\n" +
+    "Tagline: " + (d.tagline || "(none)") + "\n" +
+    "Categories (" + d.textBoard.length + "): " + cats + "\n" +
+    "Final: " + d.final.category + "\n" +
+    (d.adult ? "18+: yes, this belongs in After Dark.\n" : "") +
     "\n";
   // A whole board does not fit in a URL. Measured against the built-in boards,
   // the packed share link alone runs 7-14KB, and the raw JSON far more, so the
@@ -6656,7 +6731,7 @@ function submitBoardForReview() {
     "file; plain text can be read before it is opened.\n";
   var link = "";
   try { link = shareLinkFor(d); } catch (e) {}
-  var withLink = link ? head + "**Play it here:** " + link + "\n\n" + attachNote : "";
+  var withLink = link ? head + "Play it here: " + link + "\n\n" + attachNote : "";
   var url = withLink ? repoIssueUrl(title, withLink, "fan-board") : "";
   var hasLink = !!url && url.length <= ISSUE_URL_MAX;
   if (!hasLink) url = repoIssueUrl(title, head + attachNote, "fan-board");
@@ -6680,10 +6755,9 @@ function reportBoard(id) {
   var b = BOARDS.filter(function (x) { return x.id === id; })[0];
   if (!b) return;
   var body =
-    "**Board:** " + b.name + "\n" +
-    "**Board id:** `" + b.id + "`\n\n" +
-    "**What is wrong with it?**\n\n" +
-    "<!-- Wrong answers, broken links, stolen work, or content that should not be here. -->\n";
+    "Board: " + b.name + "\n" +
+    "Board id: `" + b.id + "`\n\n" +
+    "What is wrong with it? (Wrong answers, broken links, stolen work, or content that should not be here.)\n\n";
   hideBoardLocally(b.id);
   rebuildBoards();
   if (state.previewBoardId === b.id) state.previewBoardId = null;
@@ -10366,7 +10440,7 @@ function viewBoards() {
     { label: "New Players", action: "confirmNewPlayers" },
   ]);
 
-  return menu + '<div class="boards-bg"><div class="boards-wrap' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
+  return menu + '<div class="boards-bg"><div class="boards-wrap boards-wide' + (searching ? " searching" : "") + '" id="boardsWrap" style="' + (state.menuOpen ? "margin-top:120px;" : "") + '">' +
     '<div class="boards-header">' +
       '<h1 class="boards-title idle-float">JEOPARDY</h1>' +
       '<p class="boards-subtitle">' + (state.matchPending ? 'Full match: now pick the ROUND 2 board' : 'Choose a board to start the game') + '</p>' +
@@ -10447,7 +10521,7 @@ function viewBoardPreview() {
         // A two-round match out of a draft you are testing would send you off
         // to pick a second board, which is not what testing is for.
         (state.testingBoard ? '' :
-          '<button class="big-gold" style="background:#3da9fc;color:#04203a;font-size:15px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Full Match: Round 1 here, then pick Round 2</button>')
+          '<button class="big-gold btn-quiet" style="font-size:16px" data-action="startMatchSetup" data-id="' + esc(b.id) + '">Play a full match (2 rounds)</button>')
       ) +
       // Fan boards are submitted by strangers, so anyone can flag one. The
       // built-in boards and your own are not reportable -- there is nobody to
@@ -10580,7 +10654,7 @@ function viewPlayers() {
       '</div>' +
     '</div>';
   }
-  return '<div class="wrap setup-wrap"><div class="inner" style="max-width:480px;margin:0 auto">' +
+  return '<div class="wrap setup-wrap"><div class="inner setup-inner">' +
     '<h1 class="title idle-float" style="color:' + m.accent + '">' + m.name + '</h1>' +
     '<p class="sub">' + m.tagline + '</p>' +
     modeChips +
@@ -10885,7 +10959,8 @@ function viewStats() {
     return '<div class="row-item">' +
       '<span style="font-weight:900;color:#6a72a8;min-width:20px">' + (i + 1) + '.</span>' +
       '<span style="flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(p.name) + '</span>' +
-      '<span style="color:#aab0d8;font-size:12px;font-weight:700">' + p.wins + 'W / ' + p.games + 'G</span>' +
+      '<span style="color:#aab0d8;font-size:12px;font-weight:700">' + p.wins + (p.wins === 1 ? ' win' : ' wins') + ' &middot; ' +
+        p.games + (p.games === 1 ? ' game' : ' games') + '</span>' +
       '<span style="color:#7ee2b0;font-size:12px;font-weight:800;min-width:70px;text-align:right">best ' + p.best + '</span>' +
     '</div>';
   }).join("");
@@ -10900,7 +10975,8 @@ function viewStats() {
     var line = m.players.filter(function (p) { return p && p.name; })
       .map(function (p) { return esc(p.name) + ' ' + (typeof p.score === "number" ? p.score : 0); }).join(' &middot; ');
     return '<div class="search-hit" style="cursor:default;border-left-color:#ffd166">' +
-      '<div class="search-hit-meta">' + when + (boards.length ? ' &middot; ' + esc(boards.join(" + ")) : '') + '</div>' +
+      // Only join the parts that are there: with no date, this read "· A Board".
+      '<div class="search-hit-meta">' + [when, boards.length ? esc(boards.join(" + ")) : ""].filter(Boolean).join(' &middot; ') + '</div>' +
       '<div class="search-hit-q">' + line + '</div>' +
       (winners.length ? '<div class="search-hit-a">Winner: ' + esc(winners.join(" & ")) + '</div>' : '') +
     '</div>';
@@ -10908,7 +10984,7 @@ function viewStats() {
   if (!matchRows) matchRows = '<p class="muted">Match history shows up here.</p>';
 
   return '<div class="wrap"><div class="inner" style="max-width:520px;margin:0 auto">' +
-    '<h1 class="title" style="font-size:34px">STATS &amp; HISTORY</h1>' +
+    '<h1 class="title" style="font-size:clamp(26px, 8vw, 34px)">STATS</h1>' +
     '<p class="sub">All-time records on this device.</p>' +
     '<div class="card">' +
       '<p class="lbl" style="display:block;margin-bottom:10px">LEADERBOARD</p>' +
@@ -11584,23 +11660,32 @@ function viewMilBanked(m, pack, seat) {
     '</div>' +
   '</div></div>';
 }
+// Rank by score the way sport does it: ties share a place (1, 1, 3), and a
+// medal only goes out when somebody actually scored.
+function placeMark(scores, i) {
+  var mine = scores[i], place = 1;
+  scores.forEach(function (s) { if (s > mine) place++; });
+  var top = Math.max.apply(null, scores);
+  if (top > 0 && mine > 0 && place <= 3) return ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"][place - 1];
+  return place + ".";
+}
 function viewMilResults(m, pack) {
   var ranked = state.players.map(function (p, i) {
     return { name: p.name, color: p.color, shape: p.shape,
              amount: (m.winnings[i] && m.winnings[i].amount) || 0 };
   }).sort(function (a, b) { return b.amount - a.amount; });
   var top = ranked.length ? ranked[0].amount : 0;
-  var medals = ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"];
+  var amounts = ranked.map(function (p) { return p.amount; });
   var rows = ranked.map(function (p, i) {
     return '<div class="win-row' + (p.amount === top && top > 0 ? " win-row-champ" : "") + '">' +
-      '<span class="win-rank">' + (medals[i] || (i + 1) + ".") + '</span>' +
+      '<span class="win-rank">' + placeMark(amounts, i) + '</span>' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
       '<span class="win-name">' + esc(p.name) + '</span>' +
       '<span class="win-score">' + milMoneyLabel(p.amount) + '</span>' +
     '</div>';
   }).join("");
   return '<div class="win-bg"><div class="win-wrap">' +
-    '<h1 class="win-title">\uD83C\uDFC6 ' + esc(pack.name) + '</h1>' +
+    '<h1 class="win-title">' + (top > 0 ? '\uD83C\uDFC6 ' : '') + esc(pack.name) + '</h1>' +
     '<div class="win-board">' + rows + '</div>' +
     '<div class="win-actions">' +
       '<button class="big-gold" style="margin-top:0" data-action="milPlayAgain">Play again</button>' +
@@ -11618,9 +11703,9 @@ function viewMilPacks() {
       '<button class="board-card" data-action="startMil" data-id="' + esc(p.id) + '" style="--accent:' + esc(p.accent) + '">' +
         '<div class="board-card-icon" style="background:' + hexToRgba(p.accent, 0.18) + '">' +
           esc((p.name || "?").charAt(0).toUpperCase()) + '</div>' +
-        '<div class="board-card-text">' +
-          '<div class="board-card-name">' + esc(p.name) + '</div>' +
-          '<div class="board-card-tag">' + esc(p.tagline || (MIL_LADDER.length + " questions")) + '</div>' +
+        '<div class=\"board-card-body\">' +
+          '<div class=\"board-card-title\">' + esc(p.name) + '</div>' +
+          '<div class="board-card-tagline">' + esc(p.tagline || (MIL_LADDER.length + " questions")) + '</div>' +
         '</div>' +
       '</button>' +
       '<div class="my-board-controls">' +
@@ -11645,7 +11730,7 @@ function viewMilPacks() {
     '<div class="boards-grid">' + cards + '</div>' +
     '<div style="max-width:420px;margin:20px auto 0">' +
       '<button class="big-gold" data-action="openMilBuilder">Make a question pack</button>' +
-      '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="openPasteImport" data-kind="mil">Paste a pack someone sent you</button>' +
+      '<button class="big-gold btn-quiet" data-action="openPasteImport" data-kind="mil">Paste a pack someone sent you</button>' +
       '<button class="big-gold" style="background:#2a2f55;color:#fff" data-action="editPlayers">Back</button>' +
     '</div>' +
   '</div></div>';
@@ -11746,7 +11831,7 @@ function packFileName(d) {
 }
 function sendPackIn(d, kindTitle, label, what) {
   var title = kindTitle + ": " + d.name;
-  var head = "**Pack:** " + d.name + "\n**Tagline:** " + (d.tagline || "(none)") + "\n" + what + "\n\n";
+  var head = "Pack: " + d.name + "\nTagline: " + (d.tagline || "(none)") + "\n" + what + "\n\n";
   var attachNote = "Paste the pack text underneath this line \u2014 the app's \"Copy the pack\" button puts it on " +
     "your clipboard. Please do not attach a file; plain text can be read before it is opened.\n";
   openSendIt({
@@ -11767,7 +11852,7 @@ function submitMilPack() {
   if (err) { state.milBuilder.error = "Finish the pack first: " + err; render(); return; }
   state.milBuilder.error = "";
   state.milBuilder.submitMsg = "";
-  sendPackIn(d, "Millionaire pack", "millionaire-pack", "**Questions:** " + d.ladder.length + " (Millionaire ladder)");
+  sendPackIn(d, "Millionaire pack", "millionaire-pack", "Questions: " + d.ladder.length + " (Millionaire ladder)");
 }
 function milBuilderProgress(d) {
   var done = d.ladder.filter(function (q) {
@@ -11957,9 +12042,10 @@ function viewFeud() {
 function viewFeudResults(f, pack) {
   var ranked = f.teams.slice().sort(function (a, b) { return b.score - a.score; });
   var top = ranked.length ? ranked[0].score : 0;
+  var teamScores = ranked.map(function (t) { return t.score; });
   var rows = ranked.map(function (t, i) {
     return '<div class="win-row' + (t.score === top && top > 0 ? " win-row-champ" : "") + '">' +
-      '<span class="win-rank">' + (i === 0 ? "\uD83C\uDFC6" : (i + 1) + ".") + '</span>' +
+      '<span class="win-rank">' + placeMark(teamScores, i) + '</span>' +
       '<span class="win-name">' + esc(feudTeamLabel(t)) + '</span>' +
       '<span class="win-score">' + t.score + '</span>' +
     '</div>';
@@ -12056,9 +12142,9 @@ function viewFeudPacks() {
       '<button class="board-card" data-action="startFeud" data-id="' + esc(p.id) + '" style="--accent:' + esc(p.accent) + '">' +
         '<div class="board-card-icon" style="background:' + hexToRgba(p.accent, 0.18) + '">' +
           esc((p.name || "?").charAt(0).toUpperCase()) + '</div>' +
-        '<div class="board-card-text">' +
-          '<div class="board-card-name">' + esc(p.name) + '</div>' +
-          '<div class="board-card-tag">' + esc(p.tagline || (p.rounds.length + " surveys")) + '</div>' +
+        '<div class=\"board-card-body\">' +
+          '<div class=\"board-card-title\">' + esc(p.name) + '</div>' +
+          '<div class="board-card-tagline">' + esc(p.tagline || (p.rounds.length + " surveys")) + '</div>' +
         '</div>' +
       '</button>' +
       '<div class="my-board-controls">' +
@@ -12222,7 +12308,7 @@ function submitFeudPack() {
   if (err) { state.feudBuilder.error = "Finish the pack first: " + err; render(); return; }
   state.feudBuilder.error = "";
   state.feudBuilder.submitMsg = "";
-  sendPackIn(d, "Feud pack", "feud-pack", "**Surveys:** " + d.rounds.length);
+  sendPackIn(d, "Feud pack", "feud-pack", "Surveys: " + d.rounds.length);
 }
 function feudBuilderProgress(d) {
   var done = d.rounds.filter(function (r) {
@@ -13037,7 +13123,8 @@ function viewHostControl(bc) {
   var scores = (g.scores || []).map(function (p, i) {
     return '<div class="hc-score" data-key="hc-' + esc(p.name) + '">' +
         '<span class="dot" style="background:' + esc(p.color || '#8b92c0') + '"></span>' +
-        '<span class="hc-score-name">' + esc(p.name) + (i === g.turn ? ' &middot;' : '') + '</span>' +
+        // Whose turn it is, said in a word: a lone dot after the name read as a typo.
+        '<span class="hc-score-name">' + esc(p.name) + (i === g.turn ? ' <span class="hc-turn-tag">Picks</span>' : '') + '</span>' +
         '<span class="hc-score-val">' + p.score + '</span>' +
         (c ? '<button class="plus-btn hc-mini" data-action="hostScore" data-i="' + i + '" data-correct="1">+</button>' +
              '<button class="minus-btn hc-mini" data-action="hostScore" data-i="' + i + '" data-correct="0">&minus;</button>' : '') +
@@ -13100,7 +13187,7 @@ function viewHostControl(bc) {
       gridHtml = '<div class="hc-grid" style="grid-template-columns:repeat(' + g.pick.cats.length + ',minmax(0,1fr))">' + cells + '</div>';
     }
     return head +
-      '<div class="hc-wrap">' +
+      '<div class="hc-wrap' + (gridHtml ? '' : ' hc-idle') + '">' +
         boardCard +
         '<p class="hc-waiting">' + waiting + '</p>' +
         gridHtml +
@@ -13428,7 +13515,7 @@ function viewBuzzer() {
       '<div class="card">' +
         '<p class="buzz-mirror-q" style="text-align:center">' + esc(bc.msg || "The room was closed.") + '</p>' +
         '<button class="big-gold" data-action="rejoinBuzzer">Join a Room</button>' +
-        '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back to Start</button>' +
+        '<button class="big-gold btn-quiet" data-action="leaveBuzzer">Back to Start</button>' +
       '</div>' +
     '</div></div>';
   }
@@ -13493,7 +13580,7 @@ function viewBuzzer() {
       }).join('') + '</div>' +
       (bc.msg ? '<p class="err">' + esc(bc.msg) + '</p>' : '') +
       '<button class="big-gold" data-action="submitBuzzerJoin"' + (connecting ? " disabled" : "") + '>' + (connecting ? "Connecting&hellip;" : "Join Room") + '</button>' +
-      '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="watchAsTv"' + (connecting ? " disabled" : "") + '>Watch on TV (no buzzer)</button>' +
+      '<button class="big-gold btn-quiet" data-action="watchAsTv"' + (connecting ? " disabled" : "") + '>Watch on a TV</button>' +
       '<div class="host-claim">' +
         '<p class="host-claim-lbl">Hosting from this phone?</p>' +
         '<div class="host-claim-row">' +
@@ -13502,7 +13589,7 @@ function viewBuzzer() {
         '</div>' +
         '<p class="host-claim-hint">The 4-digit PIN is on the host screen. Host Control shows you the answers privately.</p>' +
       '</div>' +
-      '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="leaveBuzzer">Back</button>' +
+      '<button class="big-gold btn-quiet" data-action="leaveBuzzer">Back</button>' +
     '</div>' +
   '</div></div>';
 }
@@ -13819,8 +13906,8 @@ function viewDailyDoubleWager() {
     // backUnrevealed refuses to act once something has. Offer the exit that
     // matches the state rather than one that quietly does nothing.
     (state.revealed
-      ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>'
-      : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>') +
+      ? '<button class="big-gold" data-action="close">Back to board</button>'
+      : '<button class="big-gold btn-quiet" title="The question goes back on the board, unplayed" data-action="backUnrevealed">Back to board</button>') +
   '</div></div>';
 }
 
@@ -14374,7 +14461,7 @@ function viewClueFooter() {
     revealBlock = '<div class="answer-box">' + esc(item.a) + '</div>' +
       answerArt +
       (item.note ? '<p class="answer-note">' + esc(item.note) + '</p>' : '') +
-      '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="toggleAnswer">Hide Answer</button>';
+      '<button class="big-gold btn-quiet" data-action="toggleAnswer">Hide Answer</button>';
   }
 
   var clipVolRow = "";
@@ -14464,8 +14551,8 @@ function viewClueFooter() {
       '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>';
   }
   var closeBlock = state.revealed
-    ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="close">Back to Board</button>'
-    : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="backUnrevealed">Back to Board (Keep This Question)</button>';
+    ? '<button class="big-gold" data-action="close">Back to board</button>'
+    : '<button class="big-gold btn-quiet" title="The question goes back on the board, unplayed" data-action="backUnrevealed">Back to board</button>';
 
   var hint = (isVideo && !state.revealed && state.playing) ? '<p style="color:#aab0d8;text-align:center;margin-top:12px;font-size:13px">Players shout out their guess, then reveal when ready.</p>' : '';
   // The board author's private nudge for the host. Hidden until asked for, so
@@ -14672,11 +14759,12 @@ function viewWin() {
     })
     .sort(function (a, b) { return b.score - a.score; });
   var topScore = ranked.length ? ranked[0].score : 0;
-  var medals = ["🥇", "🥈", "🥉"];
+  var scores = ranked.map(function (p) { return p.score; });
+  var nobody = topScore <= 0;
   var rows = ranked.map(function (p, idx) {
-    var isChamp = p.score === topScore;
+    var isChamp = p.score === topScore && !nobody;
     return '<div class="win-row' + (isChamp ? " win-row-champ" : "") + '">' +
-      '<span class="win-rank">' + (medals[idx] || (idx + 1) + ".") + '</span>' +
+      '<span class="win-rank">' + placeMark(scores, idx) + '</span>' +
       '<span class="dot" style="background:' + p.color + '"></span>' +
       '<span class="win-name">' + esc(p.name) + (isChamp ? " 🎉" : "") + '</span>' +
       '<span class="win-score">' + p.score + '</span>' +
@@ -14685,8 +14773,9 @@ function viewWin() {
   var champNames = ranked.filter(function (p) { return p.score === topScore; }).map(function (p) { return p.name; }).join(" & ");
   var menu = renderMenu(withUndo(gameMenuItems(true)));
   return menu + '<div class="win-bg"><div class="win-wrap" style="' + (state.menuOpen ? "margin-top:180px;" : "") + '">' +
-    '<h1 class="win-title">🏆 Round Over!</h1>' +
-    '<p class="win-champ-line">' + esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!") + '</p>' +
+    '<h1 class="win-title">' + (nobody ? '' : '🏆 ') + 'Round Over!</h1>' +
+    '<p class="win-champ-line">' + (nobody ? "Nobody finished above zero this time."
+      : esc(champNames) + (champNames.indexOf(" & ") >= 0 ? " tie for the win!" : " wins!")) + '</p>' +
     '<div class="win-board">' + rows + '</div>' +
     '<div class="win-actions">' +
       '<button class="big-gold" style="margin-top:0" data-action="confirmNewRound">Play Again</button>' +
@@ -14709,7 +14798,7 @@ function viewBoard() {
     var charge = state.roomRules.streakBonus && st > 0 && st < 3 ? ' chip-charge chip-charge-' + st : '';
     return '<div class="chip' + (on ? ' chip-turn' : '') + charge + '" data-key="chip-' + esc(teamModeOn() ? teamLabel(teamOf(i)) : p.name) + '" style="--pc:' + p.color + ';background:' + (on ? p.color : "#161b3d") + ';color:' + (on ? "#0b0f24" : "#fff") + ';border:2px solid ' + (on ? "#fff" : "transparent") + '">' +
       avatarHtml({ shape: p.shape, color: on ? "#0b0f24" : p.color }, 11) +
-      '<span class="chip-name">' + esc(teamModeOn() ? teamLabel(teamOf(i)) : p.name) + '</span>: ' + p.score +
+      '<span class="chip-name">' + esc(teamModeOn() ? teamLabel(teamOf(i)) : p.name) + '</span><span class="chip-score">' + p.score + '</span>' +
       (state.roomRules.streakBonus && (p.streak || 0) >= 3 ? '<span class="chip-fx chip-fx-good" title="On a streak">STREAK ' + p.streak + '</span>' : '') +
       (p.immune ? '<span class="chip-fx chip-fx-good" title="Immune to the next negative effect">IMM</span>' : '') +
       (p.skipNextTurn ? '<span class="chip-fx chip-fx-bad" title="Skips their next pick">SKIP</span>' : '') +
@@ -14804,7 +14893,7 @@ function viewFinalWager(fin) {
     // The clue and answer stages both offer this; the wager stage did not, so
     // a room that did not want to play Final had to wager their way into it
     // first.
-    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8;font-size:15px" data-action="skipFinal">' +
+    '<button class="big-gold btn-quiet" style="font-size:16px" data-action="skipFinal">' +
       'Skip Final Jeopardy &mdash; straight to the results</button>' +
   '</div></div>';
 }
@@ -14837,7 +14926,7 @@ function viewFinalClue(fin) {
       (state.buzzer.on ? ' answers in from phones' : ' written down') +
       '. Everyone can also just write on paper.</p>' +
     '<button class="big-gold" data-action="revealFinalAnswer">Reveal the Answer</button>' +
-    '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="skipFinal">Nobody answered &mdash; skip to the results</button>' +
+    '<button class="big-gold btn-quiet" data-action="skipFinal">Nobody answered, skip to the results</button>' +
   '</div></div>';
 }
 
@@ -14847,19 +14936,25 @@ function viewFinalAnswerStage(fin) {
     var wager = state.finalWagers[i] || 0;
     var result = state.finalResults[i];
     var status = result
-      ? '<span style="font-weight:800;color:' + (result === "correct" ? "#7ee2b0" : "#ff8aa0") + '">' + (result === "correct" ? "Correct" : "Incorrect") + '</span>'
-      : '<span style="display:flex;gap:8px">' +
+      ? '<div class="fj-result fj-result-' + result + '">' + (result === "correct" ? "Correct" : "Incorrect") + '</div>'
+      : '<div class="fj-marks">' +
           '<button class="plus-btn" data-action="markFinal" data-i="' + i + '" data-correct="1">Correct</button>' +
           '<button class="minus-btn" data-action="markFinal" data-i="' + i + '" data-correct="0">Incorrect</button>' +
-        '</span>';
+        '</div>';
     var typed = state.finalAnswers[i];
-    return '<div class="row-item" style="flex-wrap:wrap">' +
-      '<span class="dot" style="background:' + p.color + '"></span>' +
-      '<span style="flex:1;font-weight:700;min-width:0;overflow-wrap:anywhere">' + esc(p.name) + ' (wagered ' + wager + ')' +
-        (typed
-          ? '<br><span style="color:#ffd166;font-weight:600;font-size:14px">wrote: ' + esc(typed) + '</span>'
-          : '<br><span style="color:#6a72a8;font-weight:600;font-size:13px">nothing came in from a phone &mdash; check their paper</span>') + '</span>' +
-      '<span class="score-num" id="score-disp-f' + i + '" style="color:#aab0d8;font-weight:700;min-width:54px;text-align:right">' + p.score + '</span>' +
+    // Name, wager and score on one line; what they wrote under it at full
+    // width; the marks below that. Squeezed side by side, the name and the
+    // "check their paper" note were wrapped into a column two words wide.
+    return '<div class="fj-row">' +
+      '<div class="fj-top">' +
+        '<span class="dot" style="background:' + p.color + '"></span>' +
+        '<span class="fj-name">' + esc(p.name) + '</span>' +
+        '<span class="fj-wager">wagered ' + wager + '</span>' +
+        '<span class="score-num fj-score" id="score-disp-f' + i + '">' + p.score + '</span>' +
+      '</div>' +
+      (typed
+        ? '<div class="fj-wrote">Wrote: <strong>' + esc(typed) + '</strong></div>'
+        : '<div class="fj-wrote fj-wrote-none">Nothing came in from a phone &mdash; check their paper.</div>') +
       status +
     '</div>';
   }).join("");
@@ -14873,10 +14968,10 @@ function viewFinalAnswerStage(fin) {
     '<div class="answer-box">' + esc(fin.a) + '</div>' +
     '<p style="color:#aab0d8;text-align:center;margin:22px 0 8px;font-size:14px;font-weight:600">Mark each player correct or incorrect to apply their wager.</p>' +
     '<div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div>' +
-    (state.lastScoreChange ? '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="undoLastScore">Undo Last Mark</button>' : '') +
+    (state.lastScoreChange ? '<button class="big-gold btn-quiet" data-action="undoLastScore">Undo last mark</button>' : '') +
     (allMarked
-      ? '<button class="big-gold" style="background:#3da9fc;color:#04203a" data-action="finishFinal">See Final Results</button>'
-      : '<button class="big-gold" style="background:#2a2f55;color:#aab0d8" data-action="skipFinal">Skip the rest &mdash; see the results</button>') +
+      ? '<button class="big-gold" data-action="finishFinal">See the results</button>'
+      : '<button class="big-gold btn-quiet" data-action="skipFinal">Skip the rest and see the results</button>') +
   '</div></div>';
 }
 
@@ -14981,7 +15076,7 @@ function viewWheelChallengeClue(w, outcome) {
         ? '<p style="text-align:center;color:#aab0d8;margin-top:8px;font-weight:700">' + esc(w.triviaQ.a) + '</p>'
         : '<button class="confirm-btn-cancel" style="width:100%;margin-top:10px;padding:16px;font-size:17px" data-action="revealWheelTriviaAnswer">Reveal Answer</button>');
   }
-  return '<p class="muted" style="margin-bottom:2px">Chaos Wheel Challenge</p>' +
+  return '<p class="muted" style="margin-bottom:2px">Wheel of Chaos challenge</p>' +
     '<div class="wheel-target-banner">' + esc(target.name) + '</div>' +
     '<div class="clue-box" style="margin-top:10px;flex-direction:column;gap:10px">' +
       '<div style="font-weight:900;color:' + gold + ';font-size:22px">' + esc(outcome.label) + '</div>' +
@@ -15010,7 +15105,7 @@ function viewWheel() {
     body = titleLine + '<p class="confirm-msg" style="font-size:19px">Who gets targeted by the Wheel of Chaos?</p>' +
       '<div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">' +
         '<button class="big-gold" style="margin-top:0;padding:18px;font-size:18px" data-action="chooseWheelTarget" data-mode="current">Current Player (' + esc(state.players[state.turn].name) + ')</button>' +
-        '<button class="big-gold" style="margin-top:0;padding:18px;font-size:18px;background:#3da9fc;color:#04203a" data-action="chooseWheelTarget" data-mode="random">Random Player</button>' +
+        '<button class="big-gold btn-quiet" style="margin-top:0;padding:18px;font-size:18px" data-action="chooseWheelTarget" data-mode="random">Random Player</button>' +
         '<button class="confirm-btn-cancel" style="padding:16px;font-size:17px" data-action="closeWheel">Cancel</button>' +
       '</div>';
   } else {
