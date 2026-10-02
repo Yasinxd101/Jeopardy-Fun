@@ -548,7 +548,7 @@
   /* host room lobby */
   .host-code {
     font-size: clamp(64px, 19vw, 118px); font-weight: 900; letter-spacing: 0.18em;
-    color: #ffd166; line-height: 1.05; margin: 6px 0 10px;
+    color: #ffd166; line-height: 1.05; margin: 6px 0 10px; white-space: nowrap;
     text-shadow: 0 0 34px rgba(255, 209, 102, 0.35);
   }
   .host-join-line { color: #aab0d8; font-size: 14px; margin: 0 0 6px; }
@@ -2598,7 +2598,10 @@
     color: #ffd166; user-select: none; -webkit-user-select: none;
     transition: filter 0.25s ease;
   }
-  .host-pin-blur { filter: blur(6px); user-select: none; -webkit-user-select: none; }
+  .host-pin-blur { filter: blur(10px); user-select: none; -webkit-user-select: none; }
+  .host-qr-hidden .host-qr { filter: blur(16px); opacity: 0.55; }
+  button.buzz-room-code { background: none; border: none; padding: 0 2px; font: inherit; cursor: pointer; }
+  button.buzz-room-code.host-code-blur { filter: none; letter-spacing: 2px; }
   @media (prefers-reduced-motion: reduce) { .host-code-blur { transition: none; } }
   .code-toggle {
     display: block; margin: 6px auto 0; background: none; border: 1px solid #2a2f55;
@@ -10156,7 +10159,9 @@ function gameMenuItems(includeManage) {
   var items = [];
   if (canPause() || state.paused) items.push({ label: state.paused ? "Carry on" : "Pause the game", action: "togglePause" });
   if (includeManage) items.push({ label: "Manage Players", action: "openManagePlayers" });
-  items.push({ label: state.buzzer.on ? "Buzzer Room (" + (state.buzzer.code || "") + ")" : "Open a Buzzer Room", action: "openHostRoom" });
+  // The menu opens over whatever is on screen -- settings, the board, a
+  // stream -- so it names the room without printing its code.
+  items.push({ label: state.buzzer.on ? "Buzzer Room" : "Open a Buzzer Room", action: "openHostRoom" });
   items.push({ label: "How It Works", action: "openHelp" });
   items.push({ label: "Stats & History", action: "openStats" });
   return items.concat([
@@ -10619,7 +10624,7 @@ function viewPlayers() {
         // read as though hosting happened somewhere else. Both live here now.
         (m.id === "jeopardy"
           ? '<button class="setup-join setup-host" data-action="openHostRoom">' +
-              (state.buzzer.on ? 'YOUR ROOM &middot; ' + esc(state.buzzer.code || '') : 'START A ROOM') +
+              (state.buzzer.on ? 'YOUR ROOM &middot; ' + state.buzzer.clients.length + ' IN' : 'START A ROOM') +
             '</button>'
           : '') +
         '<button class="setup-join" data-action="openBuzzerJoin">JOIN A ROOM</button>' +
@@ -13702,7 +13707,7 @@ function viewHostRoom() {
       (b.hostPin ?
         '<p class="host-join-line" style="margin-top:6px">Hosting from your own phone? Join, then enter host PIN ' +
           '<span class="host-pin-chip' + (state.showHostPin ? '' : ' host-pin-blur') + '">' +
-            esc(b.hostPin) + '</span>' +
+            esc(state.showHostPin ? b.hostPin : "8888") + '</span>' +
           ' <button class="code-toggle code-toggle-inline' + (state.showHostPin ? '' : ' code-toggle-show') + '" ' +
             'data-action="toggleHostPin">' + (state.showHostPin ? 'Hide' : 'Show') + '</button>' +
           (b.hostClaimed ? ' &middot; <span style="color:#7ee2b0;font-weight:800">host phone connected</span>' : '') +
@@ -13716,9 +13721,11 @@ function viewHostRoom() {
   }
   var qrBlock = "";
   if (b.status === "open" && b.code) {
-    qrBlock = '<div class="host-qr-wrap">' +
-      '<img class="host-qr" src="' + esc(roomQrSrc(b.code, 220)) + '" alt="QR code to join room ' + esc(b.code) + '" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
-      '<p class="buzz-timer-note">Scanning opens the app with the code filled in</p>' +
+    // The QR code IS the room code -- any phone camera reads it -- so it is
+    // covered whenever the code is. It was left sharp under a blurred code.
+    qrBlock = '<div class="host-qr-wrap' + (state.showRoomCode ? '' : ' host-qr-hidden') + '">' +
+      '<img class="host-qr" src="' + esc(roomQrSrc(b.code, 220)) + '" alt="QR code to join the room" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=&quot;none&quot;">' +
+      '<p class="buzz-timer-note">' + (state.showRoomCode ? 'Scanning opens the app with the code filled in' : 'Show the code to reveal the QR') + '</p>' +
     '</div>';
   }
   // Setting the TV up belongs here, while the room is being made -- not
@@ -13756,7 +13763,9 @@ function viewHostRoom() {
       // shape of the thing is still there, so it reads as "covered" instead of
       // "not arrived yet", and it sharpens when you ask for it.
       '<div class="host-code' + (state.showRoomCode ? '' : ' host-code-blur') + '" aria-hidden="' +
-        (state.showRoomCode ? 'false' : 'true') + '">' + esc(b.code || "----") + '</div>' +
+        // Covered, it is placeholder letters under the blur, not the code: the
+        // shape is the same, and there is nothing left to un-blur or copy.
+        (state.showRoomCode ? 'false' : 'true') + '">' + esc(state.showRoomCode ? (b.code || "----") : "KXRV") + '</div>' +
       (state.showRoomCode
         ? '<button class="code-toggle code-toggle-on" data-action="toggleRoomCode">Hide the code</button>'
         : '<button class="code-toggle code-toggle-show" data-action="toggleRoomCode">' +
@@ -14748,8 +14757,12 @@ function viewBoard() {
       '</span></div>'
     : "") +
     (state.buzzer.on ?
+      // The board is the screen most likely to be on a TV or a stream, so the
+      // code stays covered here too until the host taps it.
       '<div style="text-align:center;margin-bottom:14px"><span class="buzz-room-chip">Buzzer room' +
-        ' <span class="buzz-room-code">' + esc(state.buzzer.code || "") + '</span> &middot; ' +
+        ' <button class="buzz-room-code' + (state.showRoomCode ? '' : ' host-code-blur') + '" data-action="toggleRoomCode" ' +
+          'aria-label="' + (state.showRoomCode ? 'Hide the room code' : 'Show the room code') + '">' +
+          (state.showRoomCode ? esc(state.buzzer.code || "") : '&bull;&bull;&bull;&bull;') + '</button> &middot; ' +
         (state.buzzer.status === "open" ? state.buzzer.clients.length + ' connected' : esc(state.buzzer.status)) +
       '</span></div>'
     : "") +
